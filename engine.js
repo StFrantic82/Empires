@@ -136,25 +136,25 @@ for (const c of GCARDS) BY_ID[c.id] = c;
 
 const WONDERS = [
   // Valeur fixe : la cible des joueurs pressés
-  { id: 'M1', name: 'Pyramide', vals: [6, 4, 2] },
+  { id: 'M1', name: 'Pyramide', vals: [9, 6, 3] },
   // Un tag chacune : récompense la spécialisation
-  { id: 'M2', name: 'Colosse', vals: [2, 1, 1], mult: 'M' },
-  { id: 'M3', name: 'Phare', vals: [2, 1, 1], mult: 'P' },
-  { id: 'M4', name: 'Jardins suspendus', vals: [2, 1, 1], mult: 'S' },
-  { id: 'M5', name: 'Temple', vals: [2, 1, 1], mult: 'C' },
+  { id: 'M2', name: 'Colosse', vals: [3, 2, 1], mult: 'M' },
+  { id: 'M3', name: 'Phare', vals: [3, 2, 1], mult: 'P' },
+  { id: 'M4', name: 'Jardins suspendus', vals: [3, 2, 1], mult: 'S' },
+  { id: 'M5', name: 'Temple', vals: [3, 2, 1], mult: 'C' },
   // La forme de la ville, la variété, les vétérans, les guildes
-  { id: 'M6', name: 'Grande Muraille', vals: [3, 2, 1], by: 'lines' },
-  { id: 'M7', name: 'Acropole', vals: [2, 1, 1], by: 'lvl2' },
-  { id: 'M8', name: 'Cercle de pierres', vals: [2, 1, 1], by: 'diff' },
+  { id: 'M6', name: 'Grande Muraille', vals: [4, 3, 2], by: 'lines' },
+  { id: 'M7', name: 'Acropole', vals: [3, 2, 1], by: 'lvl2' },
+  { id: 'M8', name: 'Cercle de pierres', vals: [3, 2, 1], by: 'diff' },
   { id: 'M9', name: 'Armée de terre cuite', vals: [2, 1, 1], by: 'vets' },
-  { id: 'M10', name: 'Grand Bazar', vals: [2, 1, 1], by: 'sets' },
+  { id: 'M10', name: 'Grand Bazar', vals: [3, 2, 1], by: 'sets' },
   // Peu de points, mais un effet immédiat : du tempo
-  { id: 'M11', name: 'Mausolée', vals: [4, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
-  { id: 'M12', name: 'Sphinx', vals: [4, 3, 2], bonus: [{ op: 'plan', n: 2 }] },
-  { id: 'M13', name: 'Porte d’Ishtar', vals: [4, 3, 2], bonus: [{ op: 'takeGuild' }] },
-  { id: 'M14', name: 'Statue de Zeus', vals: [4, 3, 2], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
-  { id: 'M15', name: 'Grande Bibliothèque', vals: [4, 3, 2], bonus: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'M16', name: 'Pétra', vals: [4, 3, 2], bonus: [{ op: 'zone', n: 1, min: 3 }] },
+  { id: 'M11', name: 'Mausolée', vals: [6, 4, 3], bonus: [{ op: 'retrigger', times: 1 }] },
+  { id: 'M12', name: 'Sphinx', vals: [6, 4, 3], bonus: [{ op: 'plan', n: 2 }] },
+  { id: 'M13', name: 'Porte d’Ishtar', vals: [6, 4, 3], bonus: [{ op: 'takeGuild' }] },
+  { id: 'M14', name: 'Statue de Zeus', vals: [6, 4, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
+  { id: 'M15', name: 'Grande Bibliothèque', vals: [6, 4, 3], bonus: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'M16', name: 'Pétra', vals: [6, 4, 3], bonus: [{ op: 'zone', n: 1, min: 3 }] },
 ];
 const W_BY_ID = Object.fromEntries(WONDERS.map(w => [w.id, w]));
 const BASE_WONDERS = JSON.parse(JSON.stringify(WONDERS));
@@ -228,7 +228,7 @@ function newGame(names, opts = {}, seed) {
   if (o.guildFrom === 'row') for (const L of [1, 2]) for (let i = 0; i < (o.guildRow || 2); i++) if (G.decks[L].length) G.gmarket[L].push(G.decks[L].pop());
   G.wonders = shuffle(G, WONDERS.map(w => w.id)).slice(0, Math.min(WONDERS.length, n + 2)).map(id => ({ id, slots: [] }));
   // 5 marqueurs par joueur, sans dépasser le nombre de places sur les Merveilles
-  const perP = o.wonderMode === 'auto' ? 5 : (o.wondersPerPlayer || 3);
+  const perP = o.wonderMode === 'auto' ? 5 : (o.wondersPerPlayer || 2);
   G.endAt = o.endWonders || Math.min(perP * n, 3 * G.wonders.length);
   G.start = G.cur = Math.floor(rnd(G) * n);
   if (n === 2 && o.secondPlan !== false) G.players[(G.start + 1) % 2].plans = 1; // à 2 joueurs, le second joueur commence avec 1 Plan
@@ -552,6 +552,9 @@ function wonderCount(p, k) {
   return 0;
 }
 function wonderPoints(G, pi, wi, slotIndex) {
+  const k = G.opts.wonderMul || 1; return k === 1 ? wonderPointsRaw(G, pi, wi, slotIndex) : Math.round(k * wonderPointsRaw(G, pi, wi, slotIndex));
+}
+function wonderPointsRaw(G, pi, wi, slotIndex) {
   const W = W_BY_ID[G.wonders[wi].id]; const base = W.vals[slotIndex] || 0;
   if (W.multG) return base * G.players[pi].guilds[W.multG].length;
   if (W.by) return base * wonderCount(G.players[pi], W.by);
@@ -809,7 +812,7 @@ function pendingOptions(G) {
 }
 
 /* ---------- Bot ---------- */
-const BOT_W = { a0: 1.0, a1: 0.6, b0: 0.9, b1: 0.7, wk: 1, wl: 0.45, wp: 0.9, wr: 1.6, wperm: 1.5, wt: 0, wb: 0, gp: 1, et: 0, sf: 1, lt: 9, en: 0 };
+const BOT_W = { a0: 1.0, a1: 0.6, b0: 0.9, b1: 0.7, wk: 1, wl: 0.45, wp: 0.9, wr: 2.6, wperm: 1.5, wt: 0, wb: 0, gp: 1, et: 0, sf: 1, lt: 9, en: 0 };
 function evalPlayer(G, pi, forcePhase) {
   const p = G.players[pi], W = p.bw ? Object.assign({}, BOT_W, p.bw) : BOT_W;
   const nb = p.grid.filter(Boolean).length;
@@ -818,7 +821,7 @@ function evalPlayer(G, pi, forcePhase) {
   const phase = forcePhase != null ? forcePhase : Math.min(1, Math.max(placedOnWonders(G) / G.endAt, maxNb / 9));
   const s = scoreOf(G, pi);
   let econ = 0; p.wheel.forEach((n, l) => { econ += n * (W.wk + W.wl * l); });
-  econ += p.reserve * 0.7 + p.locked * 0.15 + (p.plans || 0) * W.wp + (p.retired || 0) * W.wr;
+  econ += p.reserve * 0.7 + p.locked * 0.15 + (p.plans || 0) * W.wp + (p.retired || 0) * W.wr * (G.opts.wonderMul || 1);
   p.grid.forEach(c => { if (!c) return; const k = BY_ID[c.id]; if (k.act) econ += c.occ ? 0.6 : 1.6; if (k.perm) econ += W.wperm; });
   if (p.guilds) for (const g of GUILDS) econ += Math.min(3, p.guilds[g].length) * 0.4 + p.guilds[g].length * (G.opts.guildChain ? 0.6 : 0.15);
   if (G.opts.prereqs !== false && wondersPresent(G, pi) === 0) econ -= 0.8 * (1 - phase);
@@ -1168,7 +1171,7 @@ function exportTables(opts) {
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
-  const lbl = { startWheel: 'Roue de départ (ouvriers par niveau 0→5)', endWonders: 'Fin : marqueurs sur les Merveilles (0 = 3 par joueur)', wonderScoring: 'Score des Merveilles', market: 'Cartes visibles par niveau', costMode: 'Coûts', guildDiscount: 'Réduction de guilde', prereqs: 'Prérequis', wonderMode: 'Marqueurs sur les Merveilles', retireStep: 'Taille de la zone de retraite (retraités pour 1 marqueur)', supply: 'Ouvriers dépensés', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une carte de guilde, puis construire ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
+  const lbl = { startWheel: 'Roue de départ (ouvriers par niveau 0→5)', endWonders: 'Fin : marqueurs sur les Merveilles (0 = 2 par joueur)', wonderScoring: 'Score des Merveilles', market: 'Cartes visibles par niveau', costMode: 'Coûts', guildDiscount: 'Réduction de guilde', prereqs: 'Prérequis', wonderMode: 'Marqueurs sur les Merveilles', retireStep: 'Taille de la zone de retraite (retraités pour 1 marqueur)', supply: 'Ouvriers dépensés', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une carte de guilde, puis construire ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
   const human = { arrival: 'À l’arrivée du marqueur', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par ouvrier', track: 'Zone de retraite (2 retraités = 1 marqueur)', auto: '1 marqueur à chaque retraite', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
   settings.push(['Cartes de guilde visibles', '4'], ['Cartes de guilde dans le paquet', String(GCARDS.length)], ['Bâtiments par niveau', String(CARDS.filter(c => c.lvl === 1).length)]);
   for (const k in lbl) { let v = o[k]; if (Array.isArray(v)) v = "'" + v.join(', '); if (typeof v === 'boolean') v = v ? 'oui' : 'non'; if (human[v]) v = human[v]; settings.push([lbl[k], String(v)]); }

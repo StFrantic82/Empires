@@ -35,4 +35,4 @@ Le second argument est un objet JSON d'options qui remplace les valeurs de `DEFA
 1. prend une des 4 cartes de guilde visibles et applique son effet ;
 2. puis construit un bâtiment **ou** tourne sa roue d'un cran.
 
-La partie se termine quand il y a 3 marqueurs par joueur sur les Merveilles, ou quand une ville compte 9 bâtiments. Les règles complètes sont dans l'onglet « Règles » de l'app.
+La partie se termine quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville compte 9 bâtiments. Les règles complètes sont dans l'onglet « Règles » de l'app.
