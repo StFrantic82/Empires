@@ -809,13 +809,13 @@ function pendingOptions(G) {
 }
 
 /* ---------- Bot ---------- */
-const BOT_W = { a0: 1.0, a1: 0.6, b0: 0.9, b1: 0.7, wk: 1, wl: 0.45, wp: 0.9, wr: 1.6, wperm: 1.5, wt: 0, wb: 0, gp: 1, et: 0 };
-function evalPlayer(G, pi) {
+const BOT_W = { a0: 1.0, a1: 0.6, b0: 0.9, b1: 0.7, wk: 1, wl: 0.45, wp: 0.9, wr: 1.6, wperm: 1.5, wt: 0, wb: 0, gp: 1, et: 0, sf: 1, lt: 9, en: 0 };
+function evalPlayer(G, pi, forcePhase) {
   const p = G.players[pi], W = p.bw ? Object.assign({}, BOT_W, p.bw) : BOT_W;
   const nb = p.grid.filter(Boolean).length;
   // avancement de la partie : marqueurs posés, ville la plus avancée (la sienne ou celle d'un adversaire), pioche de guilde
   const maxNb = W.gp ? Math.max(...G.players.map(q => q.grid.filter(Boolean).length)) : nb;
-  const phase = Math.min(1, Math.max(placedOnWonders(G) / G.endAt, maxNb / 9));
+  const phase = forcePhase != null ? forcePhase : Math.min(1, Math.max(placedOnWonders(G) / G.endAt, maxNb / 9));
   const s = scoreOf(G, pi);
   let econ = 0; p.wheel.forEach((n, l) => { econ += n * (W.wk + W.wl * l); });
   econ += p.reserve * 0.7 + p.locked * 0.15 + (p.plans || 0) * W.wp + (p.retired || 0) * W.wr;
@@ -925,13 +925,13 @@ function botValue(G, pi) {
 }
 // Déclencher la fin de partie : bon si l'on est devant, mauvais si l'on est derrière.
 // Les adversaires qui ont encore un tour à jouer gagneront quelques points de plus.
-function botEndMargin(G, pi) {
+function botEndMargin(G, pi, last) {
   const mine = scoreOf(G, pi).total; let worst = 1e9;
   G.players.forEach((q, j) => {
     if (j === pi) return;
     let k = j; let stillPlays = false; // joue-t-il encore avant la fin du tour de table ?
     for (let c = (pi + 1) % G.players.length; c !== G.start; c = (c + 1) % G.players.length) if (c === j) stillPlays = true;
-    worst = Math.min(worst, mine - scoreOf(G, j).total - (stillPlays ? 5 : 0));
+    worst = Math.min(worst, mine - scoreOf(G, j).total - (stillPlays ? last : 0));
   });
   return worst === 1e9 ? 0 : worst;
 }
@@ -1004,11 +1004,14 @@ function botFinishPendingSmart(G, pi) {
 // Explore toutes les façons de finir le tour ; renvoie la première décision du meilleur plan
 function botChoose(G, pi, level, noise) {
   const root = botCopy(G, true); const leaves = []; let nodes = 0;
-  const bw = G.players[pi].bw, ET = bw && bw.et != null ? bw.et : BOT_W.et;
+  const bw = G.players[pi].bw, ET = bw && bw.et != null ? bw.et : BOT_W.et, SF = bw && bw.sf != null ? bw.sf : BOT_W.sf, LT = bw && bw.lt != null ? bw.lt : BOT_W.lt, EN = bw && bw.en != null ? bw.en : BOT_W.en;
   const rec = (g, first) => {
     if (!g.pending && botStage(g) === 3) {
       let v = botValue(g, pi);
-      if (ET && g.endTriggered && !G.endTriggered) v += ET * Math.max(-20, Math.min(20, botEndMargin(g, pi))); // c'est moi qui déclenche la fin
+      if (g.endTriggered && !G.endTriggered) { // c'est moi qui déclenche la fin : même échelle que les autres plans, puis prime si je suis devant
+        if (SF) v = evalPlayer(g, pi, 1);
+        if (ET) { const m = botEndMargin(g, pi, LT); v += m >= 0 ? ET * Math.min(20, m) : EN * Math.max(-20, m); }
+      }
       leaves.push({ first, g, v }); return;
     }
     if (nodes > 700) { try { botFinishPendingSmart(g, pi); if (botStage(g) === 2) apply(g, { type: 'spin' }); botFinishPending(g); } catch (e) { return; } leaves.push({ first, g, v: botValue(g, pi) }); return; }
