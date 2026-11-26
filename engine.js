@@ -809,16 +809,22 @@ function pendingOptions(G) {
 }
 
 /* ---------- Bot ---------- */
+const BOT_W = { a0: 1.0, a1: 0.6, b0: 0.9, b1: 0.7, wk: 1, wl: 0.45, wp: 0.9, wr: 1.6, wperm: 1.5, wt: 0, wb: 0, gp: 1, et: 0 };
 function evalPlayer(G, pi) {
-  const p = G.players[pi];
-  const phase = Math.min(1, Math.max(placedOnWonders(G) / G.endAt, p.grid.filter(Boolean).length / 9));
+  const p = G.players[pi], W = p.bw ? Object.assign({}, BOT_W, p.bw) : BOT_W;
+  const nb = p.grid.filter(Boolean).length;
+  // avancement de la partie : marqueurs posés, ville la plus avancée (la sienne ou celle d'un adversaire), pioche de guilde
+  const maxNb = W.gp ? Math.max(...G.players.map(q => q.grid.filter(Boolean).length)) : nb;
+  const phase = Math.min(1, Math.max(placedOnWonders(G) / G.endAt, maxNb / 9));
   const s = scoreOf(G, pi);
-  let econ = 0; p.wheel.forEach((n, l) => { econ += n * (1 + 0.45 * l); });
-  econ += p.reserve * 0.7 + p.locked * 0.15 + (p.plans || 0) * 0.9 + (p.retired || 0) * 1.6;
-  p.grid.forEach(c => { if (!c) return; const k = BY_ID[c.id]; if (k.act) econ += c.occ ? 0.6 : 1.6; if (k.perm) econ += 1.5; });
+  let econ = 0; p.wheel.forEach((n, l) => { econ += n * (W.wk + W.wl * l); });
+  econ += p.reserve * 0.7 + p.locked * 0.15 + (p.plans || 0) * W.wp + (p.retired || 0) * W.wr;
+  p.grid.forEach(c => { if (!c) return; const k = BY_ID[c.id]; if (k.act) econ += c.occ ? 0.6 : 1.6; if (k.perm) econ += W.wperm; });
   if (p.guilds) for (const g of GUILDS) econ += Math.min(3, p.guilds[g].length) * 0.4 + p.guilds[g].length * (G.opts.guildChain ? 0.6 : 0.15);
   if (G.opts.prereqs !== false && wondersPresent(G, pi) === 0) econ -= 0.8 * (1 - phase);
-  return s.total * (0.7 + 0.8 * phase) + econ * (1.3 - 1.0 * phase);
+  if (W.wt) { const t = tagCounts(p); econ += W.wt * (t.P + t.M + t.S + t.C + t.J); }
+  econ += W.wb * nb;
+  return s.total * (W.a0 + W.a1 * phase) + econ * (W.b0 - W.b1 * phase);
 }
 function botPick(G, opts, depth) {
   // évalue chaque résolution en simulant
@@ -845,7 +851,7 @@ function botResolve(G, depth = 1) {
   }
   while (G.pending) resolve(G, pendingOptions(G)[0]); // filet de sécurité
 }
-function botTurn(G, noise = 0.6) {
+function botTurnBasic(G, noise = 0.6) {
   const pi = G.cur, p = G.players[pi];
   const tryAct = () => {
     const canCons = G.opts.wonderMode === 'consecrate' && G.players[pi].wheel[5] > 0;
@@ -895,6 +901,158 @@ function botTurn(G, noise = 0.6) {
   }
   tryAct();
   apply(G, { type: 'end' });
+  return G;
+}
+
+/* ---------- Bot réfléchi : planifie tout son tour, puis regarde le tour suivant ---------- */
+// Copie légère pour la réflexion. hide : les cartes à venir sont inconnues, on mélange donc les pioches de la copie.
+function botCopy(G, hide) {
+  const l = G.log, c = G.cs; G.log = []; G.cs = null;
+  const g = JSON.parse(JSON.stringify(G)); G.log = l; G.cs = c; g.cs = {};
+  if (hide) for (const d of [g.gdeck, g.decks && g.decks[1], g.decks && g.decks[2]]) if (d) for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(rnd(g) * (i + 1)); const t = d[i]; d[i] = d[j]; d[j] = t; }
+  return g;
+}
+// 1 : prendre une carte de guilde ; 2 : construire ou tourner la roue ; 3 : tour terminé
+function botStage(G) {
+  if (G.over) return 3;
+  if (!G.mainDone) return 1;
+  if (G.opts.guildChoice && G.lastMain === 'guild' && !G.bonusBuilt) return 2;
+  return 3;
+}
+function botValue(G, pi) {
+  if (G.endTriggered) { const p = G.players[pi]; return scoreOf(G, pi).total + 0.02 * wheelCount(p); } // dernier tour : seuls les points comptent
+  return evalPlayer(G, pi);
+}
+// Déclencher la fin de partie : bon si l'on est devant, mauvais si l'on est derrière.
+// Les adversaires qui ont encore un tour à jouer gagneront quelques points de plus.
+function botEndMargin(G, pi) {
+  const mine = scoreOf(G, pi).total; let worst = 1e9;
+  G.players.forEach((q, j) => {
+    if (j === pi) return;
+    let k = j; let stillPlays = false; // joue-t-il encore avant la fin du tour de table ?
+    for (let c = (pi + 1) % G.players.length; c !== G.start; c = (c + 1) % G.players.length) if (c === j) stillPlays = true;
+    worst = Math.min(worst, mine - scoreOf(G, j).total - (stillPlays ? 5 : 0));
+  });
+  return worst === 1e9 ? 0 : worst;
+}
+// Valeur d'un emplacement pour une carte, sans la payer : points de fin de partie que la position rapporte
+function botCellScore(G, pi, card, cell) {
+  const p = G.players[pi]; if (p.grid[cell]) return 0;
+  p.grid[cell] = { id: card.id, occ: false };
+  let v = endPoints(G, pi);
+  const r = rowOf(cell), c = colOf(cell); let nb = 0;
+  for (const [a, b] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) if (a >= 0 && a < 3 && b >= 0 && b < 3 && p.grid[a * 3 + b]) nb++;
+  if (JSON.stringify(card.imm || '').includes('adjImm')) v += nb * 1.5;
+  for (let k = 0; k < 3; k++) { if ([0, 1, 2].every(j => p.grid[k * 3 + j])) v += 0.6; if ([0, 1, 2].every(j => p.grid[j * 3 + k])) v += 0.6; }
+  p.grid[cell] = null;
+  return v + nb * 0.05;
+}
+// Constructions à étudier : pour chaque carte, ses deux meilleurs emplacements
+function botBuildCands(G, pi) {
+  const by = {};
+  for (const a of mainOptions(G)) { if (a.type !== 'build') continue; (by[a.L + ':' + a.idx] = by[a.L + ':' + a.idx] || []).push(a); }
+  const out = [];
+  for (const k in by) {
+    const card = BY_ID[G.market[by[k][0].L][by[k][0].idx]];
+    const cells = [...new Set(by[k].map(a => a.cell))].map(cell => [cell, G.players[pi].grid[cell] ? 1e6 : botCellScore(G, pi, card, cell)]).sort((x, y) => y[1] - x[1]);
+    const keep = new Set(cells.slice(0, 2).map(x => x[0]));
+    for (const [cell, v] of cells) if (v >= 1e6) keep.add(cell); // recouvrir la Grue : toujours étudié
+    for (const a of by[k]) if (keep.has(a.cell)) out.push(a);
+  }
+  return out;
+}
+function botFinishPending(G) { let guard = 0; while (G.pending && guard++ < 60) { const o = pendingOptions(G); if (!o.length) break; resolve(G, o[0]); } }
+// Choix en attente : on ne garde que les deux plus prometteurs
+function botPendingCands(G, pi) {
+  const opts = pendingOptions(G); if (opts.length <= 2) return opts;
+  const sc = [];
+  for (const v of opts) { const g = botCopy(G); try { resolve(g, v); botFinishPending(g); } catch (e) { continue; } sc.push([v, botValue(g, pi)]); }
+  sc.sort((a, b) => b[1] - a[1]);
+  return sc.slice(0, 2).map(x => x[0]);
+}
+function botDecisions(G, pi) {
+  if (G.pending) return botPendingCands(G, pi).map(r => ({ r }));
+  const st = botStage(G);
+  if (st === 1) return mainOptions(G).map(a => ({ a }));
+  if (st === 2) return botBuildCands(G, pi).map(a => ({ a })).concat([{ a: { type: 'spin' } }]);
+  return [];
+}
+function botApply(G, d) { if (d.a) apply(G, d.a); else resolve(G, d.r); }
+// Tour suivant joué vite (sans tenir compte des adversaires) : que vaut la position une fois ce tour préparé ?
+function botNextTurnValue(g, pi) {
+  if (g.over || g.endTriggered) return botValue(g, pi);
+  g.cur = pi; g.mainDone = false; g.lastMain = null; g.bonusBuilt = false; g.actUsed = false; g.pending = null; g.queue = g.queue && [];
+  for (let step = 0; step < 2; step++) {
+    const st = botStage(g); if (st === 3) break;
+    const ds = st === 1 ? mainOptions(g).map(a => ({ a })) : botBuildCands(g, pi).map(a => ({ a })).concat([{ a: { type: 'spin' } }]);
+    let best = null, bv = -1e9;
+    for (const d of ds) { const h = botCopy(g); try { botApply(h, d); botFinishPendingSmart(h, pi); } catch (e) { continue; } const v = botValue(h, pi); if (v > bv) { bv = v; best = h; } }
+    if (!best) break; g = best;
+  }
+  return botValue(g, pi);
+}
+function botFinishPendingSmart(G, pi) {
+  let guard = 0;
+  while (G.pending && guard++ < 60) {
+    const opts = pendingOptions(G); if (!opts.length) break;
+    if (opts.length === 1) { resolve(G, opts[0]); continue; }
+    let best = opts[0], bv = -1e9;
+    for (const v of opts) { const g = botCopy(G); try { resolve(g, v); botFinishPending(g); } catch (e) { continue; } const x = botValue(g, pi); if (x > bv) { bv = x; best = v; } }
+    resolve(G, best);
+  }
+}
+// Explore toutes les façons de finir le tour ; renvoie la première décision du meilleur plan
+function botChoose(G, pi, level, noise) {
+  const root = botCopy(G, true); const leaves = []; let nodes = 0;
+  const bw = G.players[pi].bw, ET = bw && bw.et != null ? bw.et : BOT_W.et;
+  const rec = (g, first) => {
+    if (!g.pending && botStage(g) === 3) {
+      let v = botValue(g, pi);
+      if (ET && g.endTriggered && !G.endTriggered) v += ET * Math.max(-20, Math.min(20, botEndMargin(g, pi))); // c'est moi qui déclenche la fin
+      leaves.push({ first, g, v }); return;
+    }
+    if (nodes > 700) { try { botFinishPendingSmart(g, pi); if (botStage(g) === 2) apply(g, { type: 'spin' }); botFinishPending(g); } catch (e) { return; } leaves.push({ first, g, v: botValue(g, pi) }); return; }
+    for (const d of botDecisions(g, pi)) {
+      const h = botCopy(g); nodes++;
+      try { botApply(h, d); } catch (e) { continue; }
+      rec(h, first || d);
+    }
+  };
+  rec(root, null);
+  if (!leaves.length) return null;
+  leaves.sort((a, b) => b.v - a.v);
+  let cand = leaves;
+  if (level >= 2 && !G.endTriggered) {
+    cand = [];
+    for (const lf of leaves) { // les meilleures fins de tour, avec des premières décisions variées
+      const key = JSON.stringify(lf.first);
+      if (cand.length >= 4) break;
+      if (cand.filter(c => JSON.stringify(c.first) === key).length >= 2) continue;
+      cand.push(lf);
+    }
+    for (const lf of cand) if (!lf.g.endTriggered) lf.v = 0.45 * lf.v + 0.55 * botNextTurnValue(lf.g, pi);
+  }
+  let best = null, bv = -1e9;
+  for (const lf of cand) { const v = lf.v + (rnd(root) - 0.5) * noise; if (v > bv) { bv = v; best = lf; } }
+  return best.first;
+}
+function botTurn(G, noise = 0.6, level) {
+  if (level == null) level = G.opts.botLevel == null ? 2 : G.opts.botLevel;
+  if (!level || !G.opts.guildChoice || G.opts.guildFrom !== 'gdeck') return botTurnBasic(G, noise);
+  const pi = G.cur; let guard = 0;
+  while (!G.over && guard++ < 80 && (G.pending || botStage(G) !== 3)) {
+    let d = null; try { d = botChoose(G, pi, level, noise); } catch (e) { d = null; }
+    try {
+      if (d) botApply(G, d);
+      else if (G.pending) resolve(G, pendingOptions(G)[0]);
+      else if (botStage(G) === 1) apply(G, mainOptions(G)[0]);
+      else apply(G, { type: 'spin' });
+    } catch (e) { // décision devenue impossible : on avance au plus simple
+      if (G.pending) resolve(G, pendingOptions(G)[0]); else if (botStage(G) === 1) apply(G, mainOptions(G)[0]); else apply(G, { type: 'spin' });
+    }
+  }
+  while (G.pending) resolve(G, pendingOptions(G)[0]);
+  if (!G.over) apply(G, { type: 'end' });
   return G;
 }
 
@@ -1017,7 +1175,7 @@ const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
   cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
-  retireNeed, botTurn, botResolve, evalPlayer, cardText, wonderText, guildText, exportTables, opsTxt,
+  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, exportTables, opsTxt,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Empires = API;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
