@@ -2,7 +2,7 @@
 
 Prototype du jeu de société **Empires** (titre provisoire), de Matthieu Verdier et Régis Crosnier.
 
-Chaque joueur développe une ville de 3 × 3 bâtiments. Ses ouvriers vieillissent sur une roue (niveaux 0 à 5) : plus ils sont expérimentés, plus ils paient cher, et ceux qui dépassent le niveau 5 partent à la retraite pour poser des marqueurs sur les Merveilles.
+Chaque joueur développe une ville de 3 × 3 bâtiments. Ses ouvriers gagnent en expérience sur une roue (niveaux 0 à 5) : plus leur niveau est élevé, plus ils paient cher, et ceux qui dépassent le niveau 5 partent à la retraite pour poser des marqueurs sur les Merveilles.
 
 ## Contenu
 

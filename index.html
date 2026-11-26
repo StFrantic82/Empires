@@ -9,7 +9,7 @@
 <style>
 /* VOICE: atelier de prototypage d'un eurogame antique — clair, concret, pour deux auteurs qui testent.
    IDEA: la table de jeu elle-même : plateau-roue, marché de cartes, ville 3x3, Merveilles.
-   PICTURE: la roue de vieillissement des ouvriers, grande, au centre du plateau du joueur actif.
+   PICTURE: la roue d’expérience des ouvriers, grande, au centre du plateau du joueur actif.
    COLOUR and TYPE: pierre (ivoire/ardoise) + couleurs des tags (orange, rouge, vert, bleu) + violet Merveille ; Cinzel pour les titres, Source Sans 3 pour le texte.
    LAYOUT: barre d'onglets ; en jeu, Merveilles et marché en haut, plateau du joueur au milieu, adversaires et journal à côté. */
 :root{color-scheme:light dark;
@@ -182,6 +182,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 <main id="app"></main>
 <div id="toast" class="toast" hidden></div>
 
+<script src="firebase-config.js"></script>
 <script src="engine.js"></script>
 <script>
 {
@@ -194,7 +195,7 @@ const TAGC = { P: 'var(--P)', M: 'var(--M)', S: 'var(--S)', C: 'var(--C)', J: 'v
 const MEEPLE = 'M10 1c2.6 0 4.3 1.9 4.3 4.2 0 1.3-.5 2.4-1.4 3.2l5.2 1.9c1.2.4 1.6 1.8.9 2.8-.5.6-1.3.8-2 .5l-2.7-1 3 6.2c.4.9-.2 1.9-1.2 1.9h-3.2L10 15.9l-2.9 4.8H3.9c-1 0-1.6-1-1.2-1.9l3-6.2-2.7 1c-.7.3-1.5.1-2-.5-.7-1-.3-2.4.9-2.8l5.2-1.9C6.2 7.6 5.7 6.5 5.7 5.2 5.7 2.9 7.4 1 10 1z';
 
 let view = 'jouer';
-let db = null, user = null, me = null, canWrite = null;
+let db = null, user = null, me = null, canWrite = null, backend = null;
 let overrides = {};
 let G = null, mode = null; // mode: 'local' | 'online'
 let seats = [];            // [{bot, uid, label}]
@@ -382,7 +383,7 @@ function heroHTML() {
   const icons = [['prosperite', 'Prospérité'], ['militaire', 'Militaire'], ['science', 'Science'], ['culture', 'Culture'], ['merveille', 'Merveilles']];
   return `<section class="hero">
     <div><h2>Empires</h2>
-      <p class="lead">Bâtissez votre cité avec des ouvriers qui vieillissent. Plus ils sont expérimentés, plus ils valent cher… jusqu’au jour où ils partent bâtir les Merveilles du monde.</p>
+      <p class="lead">Bâtissez votre cité avec des ouvriers qui gagnent en expérience. Plus leur niveau est élevé, plus ils valent cher… jusqu’au jour où ils partent bâtir les Merveilles du monde.</p>
       <div class="icons">${icons.map(([f, n]) => `<figure><img src="img/${f}.png" alt=""><figcaption>${n}</figcaption></figure>`).join('')}</div>
       <p class="by">Un jeu de Régis Crosnier &amp; Matthieu Verdier · 2 à 4 joueurs · 30 min · dès 10 ans</p>
       <div class="row"><a href="#table" class="cta">Prendre place</a><a href="#regles" style="color:var(--brown);font-weight:700">Lire les règles</a></div></div>
@@ -390,7 +391,7 @@ function heroHTML() {
   </section>
   <section class="steps">
     <div class="step"><span class="num">1</span><div><h3>Prenez une guilde</h3><p>Choisissez une des 4 cartes de guilde visibles et appliquez son effet : ouvriers, expérience ou Plans.</p></div></div>
-    <div class="step"><span class="num">2</span><div><h3>Construisez ou tournez</h3><p>Payez un bâtiment avec la somme des niveaux de vos ouvriers, ou faites tourner votre roue d’un cran pour les faire vieillir.</p></div></div>
+    <div class="step"><span class="num">2</span><div><h3>Construisez ou tournez</h3><p>Payez un bâtiment avec la somme des niveaux de vos ouvriers, ou faites tourner votre roue d’un cran pour leur faire gagner un niveau.</p></div></div>
     <div class="step"><span class="num">3</span><div><h3>Visez les Merveilles</h3><p>Après le niveau 5, vos vétérans partent à la retraite. Deux retraités : un marqueur sur une Merveille, et une nouvelle génération.</p></div></div>
   </section>`;
 }
@@ -413,13 +414,14 @@ function setupHTML() {
     <div class="row" style="margin-top:12px"><button class="pri" id="startLocal">Commencer la partie</button></div>
   </section>
   <section class="panel"><h2>Jouer à distance</h2>
-    ${db ? `<p class="note">Ouvrez une table, Régis s’y assoit depuis cette même page. Il lui faut l’accès Contributeur (menu Partager).</p>
+    ${db ? `<p class="note">${backend === 'firebase' ? 'Ouvrez une table, puis envoyez l’adresse de cette page aux autres joueurs : ils s’y assoient depuis leur propre écran.' : 'Ouvrez une table, Régis s’y assoit depuis cette même page. Il lui faut l’accès Contributeur (menu Partager).'}</p>
+    ${backend === 'firebase' ? `<div class="row" style="margin-bottom:10px"><label for="pname" class="small">Votre pseudo</label><input id="pname" maxlength="20" placeholder="Votre pseudo" value="${esc(myName())}" style="flex:1"></div>` : ''}
     ${seatsHTML('o')}
     <details class="var"><summary>Variantes de règles</summary>${optsForm('o')}</details>
     <div class="row" style="margin-top:12px"><input id="olabel" aria-label="Nom de la table" placeholder="Nom de la table" value="Partie du jour" style="flex:1"><button class="pri" id="createOnline">Ouvrir la table</button></div>
     <h3 style="margin-top:18px">Tables</h3>
     ${lobby.length ? `<ul class="tables">${lob}</ul>` : '<p class="note">Aucune table ouverte pour l’instant.</p>'}`
-    : `<p class="note">Le jeu à distance demande d’être connecté à claude.ai. La partie sur cet écran et l’atelier fonctionnent quand même.</p>`}
+    : `<p class="note">${window.EMPIRES_FIREBASE ? 'Connexion au service de jeu à distance…' : 'Le jeu à distance n’est pas encore configuré (fichier firebase-config.js). La partie sur cet écran et l’atelier fonctionnent quand même.'}</p>`}
   </section></div>`;
 }
 function optsForm(pref) {
@@ -606,14 +608,26 @@ function pushOnline() {
   const body = { state: JSON.stringify(G), rev: online.rev, status: G.over ? 'over' : 'playing' };
   online.writing = online.writing.then(() => ref.update(body)).catch(e => toast('Écriture refusée : ' + (e.code || e.message)));
 }
+function myName() { try { return localStorage.getItem('empires-name') || ''; } catch (e) { return ''; } }
+async function saveName() {
+  if (backend !== 'firebase') return true;
+  const el = $('#pname'), n = ((el ? el.value : myName()) || '').trim().slice(0, 20);
+  if (!n) { toast('Choisissez d’abord un pseudo.'); if (el) el.focus(); return false; }
+  try { localStorage.setItem('empires-name', n); } catch (e) { }
+  names[me] = n;
+  try { await user.setName(n); } catch (e) { }
+  return true;
+}
 async function createOnline() {
   if (!me) return toast('Identité indisponible : connectez-vous à claude.ai.');
+  if (!(await saveName())) return;
   const s = readSeats('o'); if (s.length < 2) return toast('Il faut au moins 2 sièges.');
   const d = { label: $('#olabel').value.slice(0, 60) || 'Partie', created: Date.now(), host: me, status: 'lobby', opts: readOpts('o'),
     seats: s.map((x, k) => ({ si: x.i, bot: x.bot, uid: !x.bot && k === 0 ? me : null })), state: null, rev: 0 };
   try { const ref = db.collection('games').doc(); await ref.set(d); openOnline(ref.id); } catch (e) { toast('Création impossible : ' + (e.code || e.message)); }
 }
 async function joinOnline(id) {
+  if (!(await saveName())) return;
   const ref = db.doc('games/' + id);
   try {
     const lease = await ref.acquire({ holder: me, ttlMs: 4000 });
@@ -920,9 +934,30 @@ document.addEventListener('change', e => {
 /* ---------- Démarrage ---------- */
 try { const s = localStorage.getItem('empires-ov'); if (s) { overrides = JSON.parse(s); E.applyOverrides(overrides); } } catch (e) { }
 route();
+document.addEventListener('input', e => { if (e.target && e.target.id === 'pname') { try { localStorage.setItem('empires-name', e.target.value.trim().slice(0, 20)); } catch (err) { } } });
+function loadScript(src) { return new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => ko(new Error('Chargement impossible : ' + src)); document.head.appendChild(s); }); }
+// Hors de Claude : Firestore (Firebase) remplace le stockage de l'artifact. Même interface doc / collection / onSnapshot.
+async function firebaseBackend(cfg) {
+  const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  await loadScript(base + 'firebase-app-compat.js'); await loadScript(base + 'firebase-firestore-compat.js');
+  firebase.initializeApp(cfg); const fs = firebase.firestore();
+  let uid = null; try { uid = localStorage.getItem('empires-uid'); } catch (e) { }
+  if (!uid) { uid = 'j' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36); try { localStorage.setItem('empires-uid', uid); } catch (e) { } }
+  const dbA = { doc: path => { const r = fs.doc(path); r.acquire = async () => ({ acquired: true }); return r; }, collection: n => fs.collection(n) };
+  const userA = {
+    id: async () => uid,
+    profiles: async ids => { const out = {}; await Promise.all(ids.map(async id => { try { const s = await fs.doc('players/' + id).get(); if (s.exists) out[id] = { name: s.data().name }; } catch (e) { } })); return out; },
+    setName: n => fs.doc('players/' + uid).set({ name: n, at: Date.now() }),
+  };
+  return [dbA, userA];
+}
 (async () => {
-  const c = window.claude; if (!c || !c.use) return;
-  [db, user] = await Promise.all([c.use('db'), c.use('user')]);
+  const c = window.claude;
+  if (c && c.use) { [db, user] = await Promise.all([c.use('db'), c.use('user')]); backend = 'claude'; }
+  else if (window.EMPIRES_FIREBASE) {
+    try { [db, user] = await firebaseBackend(window.EMPIRES_FIREBASE); backend = 'firebase'; }
+    catch (e) { console.error(e); toast('Jeu à distance indisponible : ' + e.message); return; }
+  } else return;
   if (user) { me = await user.id(); }
   if (!db) { if (view === 'jouer' && !G) render(); return; }
   db.doc('config/cards').onSnapshot(snap => {
