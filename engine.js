@@ -135,20 +135,26 @@ const BASE_CARDS = JSON.parse(JSON.stringify(CARDS));
 for (const c of GCARDS) BY_ID[c.id] = c;
 
 const WONDERS = [
-  { id: 'M1', name: 'Pyramide', vals: [5, 3, 2] },
+  // Valeur fixe : la cible des joueurs pressés
+  { id: 'M1', name: 'Pyramide', vals: [6, 4, 2] },
+  // Un tag chacune : récompense la spécialisation
   { id: 'M2', name: 'Colosse', vals: [2, 1, 1], mult: 'M' },
   { id: 'M3', name: 'Phare', vals: [2, 1, 1], mult: 'P' },
   { id: 'M4', name: 'Jardins suspendus', vals: [2, 1, 1], mult: 'S' },
   { id: 'M5', name: 'Temple', vals: [2, 1, 1], mult: 'C' },
-  { id: 'M6', name: 'Mausolée', vals: [3, 2, 1], bonus: [{ op: 'retrigger', times: 1 }] },
-  { id: 'M7', name: 'Statue', vals: [4, 3, 2], bonus: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
-  { id: 'M8', name: 'Grande Bibliothèque', vals: [2, 1, 1], multG: 'eru' },
-  { id: 'M9', name: 'Grand Bazar', vals: [2, 1, 1], multG: 'mar' },
-  { id: 'M10', name: 'Forges de Vulcain', vals: [2, 1, 1], multG: 'art' },
-  { id: 'M11', name: 'Sphinx', vals: [4, 3, 2], bonus: [{ op: 'plan', n: 2 }] },
-  { id: 'M12', name: 'Cercle de pierres', vals: [3, 2, 1], bonus: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'M13', name: 'Grande Muraille', vals: [4, 3, 2], bonus: [{ op: 'gain', n: 1, lvl: 3 }] },
-  { id: 'M14', name: 'Porte d’Ishtar', vals: [3, 2, 1], bonus: [{ op: 'takeGuild' }] },
+  // La forme de la ville, la variété, les vétérans, les guildes
+  { id: 'M6', name: 'Grande Muraille', vals: [3, 2, 1], by: 'lines' },
+  { id: 'M7', name: 'Acropole', vals: [2, 1, 1], by: 'lvl2' },
+  { id: 'M8', name: 'Cercle de pierres', vals: [2, 1, 1], by: 'diff' },
+  { id: 'M9', name: 'Armée de terre cuite', vals: [2, 1, 1], by: 'vets' },
+  { id: 'M10', name: 'Grand Bazar', vals: [2, 1, 1], by: 'sets' },
+  // Peu de points, mais un effet immédiat : du tempo
+  { id: 'M11', name: 'Mausolée', vals: [4, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
+  { id: 'M12', name: 'Sphinx', vals: [4, 3, 2], bonus: [{ op: 'plan', n: 2 }] },
+  { id: 'M13', name: 'Porte d’Ishtar', vals: [4, 3, 2], bonus: [{ op: 'takeGuild' }] },
+  { id: 'M14', name: 'Statue de Zeus', vals: [4, 3, 2], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
+  { id: 'M15', name: 'Grande Bibliothèque', vals: [4, 3, 2], bonus: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'M16', name: 'Pétra', vals: [4, 3, 2], bonus: [{ op: 'zone', n: 1, min: 3 }] },
 ];
 const W_BY_ID = Object.fromEntries(WONDERS.map(w => [w.id, w]));
 const BASE_WONDERS = JSON.parse(JSON.stringify(WONDERS));
@@ -536,15 +542,25 @@ function retriggerCells(G, pi) {
   // pas de boucle : on ne redéclenche ni un autre redéclenchement, ni l'Étude (qui active des cartes)
   return G.players[pi].grid.map((c, i) => { if (!c || !BY_ID[c.id].imm) return -1; const j = JSON.stringify(BY_ID[c.id].imm); return j.includes('retrigger') || j.includes('"line"') || j.includes('adjImm') ? -1 : i; }).filter(i => i >= 0);
 }
+const WONDER_BY = { lines: 'nb de lignes et colonnes complètes de votre ville', lvl2: 'nb de bâtiments de niveau 2', diff: 'nb de types de tags différents', vets: 'nb d’ouvriers de niveau 5 sur votre roue', sets: 'nb de séries Artisans + Érudits + Marchands' };
+function wonderCount(p, k) {
+  if (k === 'lines') { let L = 0; for (let i = 0; i < 3; i++) { if ([0, 1, 2].every(j => p.grid[i * 3 + j])) L++; if ([0, 1, 2].every(j => p.grid[j * 3 + i])) L++; } return L; }
+  if (k === 'lvl2') return p.grid.filter(c => c && BY_ID[c.id].lvl === 2).length;
+  if (k === 'diff') return diffTags(p);
+  if (k === 'vets') return p.wheel[5];
+  if (k === 'sets') return Math.min(...GUILDS.map(g => p.guilds[g].length));
+  return 0;
+}
 function wonderPoints(G, pi, wi, slotIndex) {
   const W = W_BY_ID[G.wonders[wi].id]; const base = W.vals[slotIndex] || 0;
   if (W.multG) return base * G.players[pi].guilds[W.multG].length;
+  if (W.by) return base * wonderCount(G.players[pi], W.by);
   return W.mult ? base * tagCounts(G.players[pi])[W.mult] : base;
 }
 function placeOnWonder(G, pi, wi) {
   const w = G.wonders[wi], W = W_BY_ID[w.id], p = G.players[pi];
   const slot = w.slots.length; w.slots.push(pi);
-  if (G.opts.wonderScoring === 'arrival') { const pts = wonderPoints(G, pi, wi, slot); p.vp += pts; log(G, `${p.name} : un ouvrier part à la retraite, marqueur sur ${W.name} (+${pts} PV).`); }
+  if (G.opts.wonderScoring === 'arrival') { const pts = wonderPoints(G, pi, wi, slot); p.vp += pts; (G.wst = G.wst || []).push([W.id, slot, pts, pi]); log(G, `${p.name} : un ouvrier part à la retraite, marqueur sur ${W.name} (+${pts} PV).`); }
   else log(G, `${p.name} : un ouvrier rejoint ${W.name}.`);
   if (W.bonus) push(G, W.bonus);
   for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.onMarker) push(G, pm.onMarker); }
@@ -821,7 +837,8 @@ function botResolve(G, depth = 1) {
       const ok = [4, 3, 2, 1, 0].filter(l => p.wheel[l] > 0 && l + pd.by <= 5);
       v = ok.length ? ok[0] : -1;
     } else if (pd.type === 'eject') {
-      v = pd.options.slice().sort((a, b) => wonderPoints(G, G.cur, b, G.wonders[b].slots.length) - wonderPoints(G, G.cur, a, G.wonders[a].slots.length))[0];
+      const wv = w => wonderPoints(G, G.cur, w, G.wonders[w].slots.length) + (W_BY_ID[G.wonders[w].id].bonus ? 2 : 0);
+      v = pd.options.slice().sort((a, b) => wv(b) - wv(a))[0];
     } else if (depth > 0) v = botPick(G, pendingOptions(G), depth);
     else v = pendingOptions(G)[0];
     resolve(G, v);
@@ -965,7 +982,7 @@ function guildText(g, opts) {
 }
 function wonderText(W) {
   const v = W.vals.join(' / ');
-  let s = W.multG ? `${v} PV × nb de cartes de guilde ${GUILD_NAMES[W.multG]}` : W.mult ? `${v} PV × nb de ${TAG_NAMES[W.mult]}` : `${v} PV`;
+  let s = W.by ? `${v} PV × ${WONDER_BY[W.by]}` : W.multG ? `${v} PV × nb de cartes de guilde ${GUILD_NAMES[W.multG]}` : W.mult ? `${v} PV × nb de ${TAG_NAMES[W.mult]}` : `${v} PV`;
   if (W.bonus) s += ' + ' + opsTxt(W.bonus).replace(/^./, m => m.toLowerCase());
   return s;
 }
@@ -981,7 +998,7 @@ function exportTables(opts) {
     cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Or (niveau 5)' : c.f === 'ag' ? 'Argent (niveau 3+)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
   }
   const wonders = [['ID', 'Merveille', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
-  for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
+  for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
   const theme = { art: 'Faire progresser des ouvriers', eru: 'Gagner des Plans', mar: 'Gagner des ouvriers', voy: 'Joker : rangée au choix, un effet au choix parmi les trois' };
   const guilds = [['Guilde', 'Thème', 'Nombre de cartes de guilde', 'Bâtiments avec réduction de cette guilde']];
   for (const g of ['art', 'eru', 'mar', 'voy']) guilds.push([GUILD_NAMES[g], theme[g], GCARDS.filter(c => c.g === g).length, CARDS.filter(c => c.gd && c.g === g).length]);
