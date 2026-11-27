@@ -149,7 +149,7 @@ const WONDERS = [
   { id: 'M9', name: 'Armée de terre cuite', vals: [2, 1, 1], by: 'vets' },
   { id: 'M10', name: 'Grand Bazar', vals: [3, 2, 1], by: 'sets' },
   // Peu de points, mais un effet immédiat : du tempo
-  { id: 'M11', name: 'Mausolée', vals: [6, 4, 3], bonus: [{ op: 'retrigger', times: 1 }] },
+  { id: 'M11', name: 'Mausolée', vals: [5, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
   { id: 'M12', name: 'Sphinx', vals: [6, 4, 3], bonus: [{ op: 'plan', n: 2 }] },
   { id: 'M13', name: 'Porte d’Ishtar', vals: [6, 4, 3], bonus: [{ op: 'takeGuild' }] },
   { id: 'M14', name: 'Statue de Zeus', vals: [6, 4, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
@@ -483,7 +483,7 @@ function run(G) {
         break;
       }
       case 'eject': {
-        const free = G.wonders.map((w, i) => i).filter(i => G.wonders[i].slots.length < 3);
+        const free = G.wonders.map((w, i) => i).filter(i => G.wonders[i].slots.length < 3 && !G.wonders[i].slots.includes(pi)); // un seul marqueur par joueur sur chaque Merveille
         p.st.ejected++;
         if (G.opts.wonderMode && G.opts.wonderMode !== 'auto' && !op.marker) {
           if (G.opts.wonderMode === 'track') {
@@ -658,7 +658,7 @@ function apply(G, a) {
       if (G.opts.wonderMode !== 'consecrate') throw new Error('Variante inactive');
       if (G.actUsed) throw new Error('Activation déjà utilisée ce tour');
       if (!(p.wheel[5] > 0)) throw new Error('Il faut un ouvrier de niveau 5');
-      if (!G.wonders.some(w => w.slots.length < 3)) throw new Error('Merveilles complètes');
+      if (!G.wonders.some(w => w.slots.length < 3 && !w.slots.includes(pi))) throw new Error('Merveilles complètes');
       p.wheel[5]--; G.actUsed = true; p.st.consecrated = (p.st.consecrated || 0) + 1;
       log(G, `${p.name} consacre un vétéran à une Merveille.`);
       G.queue.unshift({ op: { op: 'eject', marker: true, noReturn: true } }); run(G); return G;
