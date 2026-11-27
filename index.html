@@ -165,6 +165,13 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .barrow i{display:block;height:100%}
 .hot{color:#c62828;font-weight:700}.cold{color:#1e5aa8;font-weight:700}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1f1c17;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:9;max-width:90vw}
+.sortb{all:unset;cursor:pointer;font:inherit;font-weight:700;color:inherit;white-space:nowrap;padding:4px 2px;border-radius:4px}.sortb:hover{text-decoration:underline}.sortb:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+th[aria-sort=ascending] .sortb,th[aria-sort=descending] .sortb{color:var(--gold)}
+tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{background:rgba(201,162,39,.12)}
+#hoverCard{position:fixed;z-index:60;display:none;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
+.wprev{width:240px;background:var(--card);color:var(--cardink);border:2px solid #cfc6b4;border-left:6px solid var(--W);border-radius:10px;padding:10px 12px}
+.wprev .wtop{display:flex;align-items:center;gap:8px}.wprev .wn{font-family:Cinzel,serif;font-weight:700;font-size:16px}.wprev .wtx{font-size:13px;line-height:1.35;margin:8px 0}
+.wprev .slots{display:flex;gap:6px}.wprev .slot{width:30px;height:30px;border-radius:50%;border:1.5px dashed #8a7a5c;display:grid;place-items:center;font-weight:700;font-size:13px;color:#2b2118;background:#fffaf0}
 .edit input{width:64px;min-height:32px;padding:2px 6px;font-size:14px;background:#fffaf0;color:#2b2118;border:1px solid #b9a27a;color-scheme:light}
 @media(prefers-reduced-motion:no-preference){.cell.legal{animation:pulse 1.4s ease-in-out infinite}@keyframes pulse{50%{background:color-mix(in srgb,var(--gold) 30%,var(--panel2))}}}
 </style>
@@ -360,7 +367,7 @@ window.addEventListener('hashchange', route);
 function render() {
   const app = $('#app');
   if (view === 'jouer') app.innerHTML = G ? gameHTML() : setupHTML();
-  else if (view === 'simulateur') app.innerHTML = simHTML();
+  else if (view === 'simulateur') { app.innerHTML = simHTML(); restoreSimForm(); }
   else if (view === 'cartes') app.innerHTML = cardsHTML();
   else app.innerHTML = rulesHTML();
   if (view === 'jouer' && G) resolveNames();
@@ -677,81 +684,131 @@ async function resolveNames(ids) {
 
 /* ---------- Simulateur ---------- */
 let simRes = null, simRunning = false;
+const simSort = { cards: { k: 'wr', d: -1 }, wond: { k: 'first', d: -1 } };
+try { const sv = JSON.parse(localStorage.getItem('empires-sim') || 'null'); if (sv && sv.games && sv.cs && sv.sig) simRes = sv; } catch (e) { }
+function saveSim() { try { if (simRes) localStorage.setItem('empires-sim', JSON.stringify(simRes)); else localStorage.removeItem('empires-sim'); } catch (e) { } }
+// Le formulaire de l'atelier garde ses valeurs d'un affichage à l'autre (sinon les réglages reviendraient aux valeurs par défaut)
+let simForm = null;
+function keepSimForm() { simForm = {}; document.querySelectorAll('#app section.panel:first-of-type select, #app section.panel:first-of-type input').forEach(el => { if (el.id) simForm[el.id] = el.type === 'checkbox' ? el.checked : el.value; }); }
+function restoreSimForm() { if (!simForm) return; for (const id in simForm) { const el = document.getElementById(id); if (!el) continue; if (el.type === 'checkbox') el.checked = simForm[id]; else el.value = simForm[id]; } }
 function costModeSim() { const el = $('#scm'); return el ? el.value : 'sum'; }
 function simHTML() {
   return `<section class="panel" style="margin-bottom:14px"><h2>Atelier : simulateur d’équilibrage</h2>
-    <p class="note">Des bots jouent des parties complètes avec les cartes actuelles (y compris vos modifications de l’onglet Cartes). Ils regardent un coup à l’avance et ne voient pas les cartes face cachée : ce sont des joueurs corrects, pas des experts. Utilisez-les pour comparer des réglages, pas comme vérité absolue.</p>
+    <p class="note">Des bots jouent des parties complètes avec les cartes actuelles (y compris vos modifications de l’onglet Cartes). Ils planifient tout leur tour, regardent un tour plus loin et ne connaissent pas les cartes à venir. Les statistiques se cumulent d’un lancement à l’autre tant que le nombre de joueurs, les réglages et les cartes ne changent pas.</p>
     <div class="row">
-      <label class="f">Joueurs<select id="snp"><option>2</option><option selected>3</option><option>4</option></select></label>
-      <label class="f">Parties<select id="sng"><option>20</option><option selected>60</option><option>150</option></select></label>
+      <label class="f">Joueurs<select id="snp">${[2, 3, 4].map(k => `<option ${(simRes ? simRes.n : 3) === k ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
+      <label class="f">Parties à ajouter<select id="sng"><option>20</option><option selected>60</option><option>150</option></select></label>
       <label class="f">Roue de départ (niv. 0→5)<input id="ssw" value="2,2,1,0,0,0" style="width:130px"></label>
       <button class="pri" id="runSim" ${simRunning ? 'disabled' : ''}>${simRunning ? 'Simulation…' : 'Lancer'}</button>
-    </div>${optsForm('s')}<div id="simProg" class="note"></div></section>
+      <button id="resetSim" ${simRunning || !simRes ? 'disabled' : ''}>Remettre les statistiques à zéro</button>
+    </div>${optsForm('s')}<div id="simProg" class="note" aria-live="polite">${simRes ? `${simRes.N} parties cumulées.` : ''}</div></section>
   <div id="simOut">${simRes ? simResultHTML(simRes) : ''}</div>`;
 }
 function runSim() {
+  keepSimForm();
   const n = +$('#snp').value, N = +$('#sng').value;
   const sw = $('#ssw').value.split(',').map(x => +x || 0).slice(0, 6); while (sw.length < 6) sw.push(0);
   const opts = Object.assign(readOpts('s'), { startWheel: sw });
-  const R = { n, N: 0, opts, games: [], cs: {}, wond: {} };
-  simRunning = true; $('#runSim').disabled = true; $('#runSim').textContent = 'Simulation…';
+  const sig = JSON.stringify([n, opts, overrides]);
+  const fresh = !(simRes && simRes.sig === sig);
+  const R = fresh ? { n, sig, N: 0, next: 0, opts, games: [], cs: {}, wond: {} } : simRes; // mêmes réglages : on cumule
+  const before = R.N;
+  simRunning = true; $('#runSim').disabled = true; $('#runSim').textContent = 'Simulation…'; $('#resetSim').disabled = true;
   let s = 0;
   const step = () => {
     const t0 = performance.now();
     while (s < N && performance.now() - t0 < 120) {
-      const g = E.newGame(Array.from({ length: n }, (_, i) => SEATS[i].n), opts, 1000 + s * 7919);
+      const g = E.newGame(Array.from({ length: n }, (_, i) => SEATS[i].n), opts, 1000 + (R.next++) * 7919);
       let guard = 0; try { while (!g.over && guard++ < 3000) E.botTurn(g); } catch (e) { console.warn('Partie interrompue', e); }
       collect(R, g); s++;
     }
-    $('#simProg').textContent = `${s} / ${N} parties`;
+    $('#simProg').textContent = `${s} / ${N} parties${before ? ` (en plus des ${before} déjà cumulées)` : fresh && simRes ? ' (réglages changés : nouvelles statistiques)' : ''}`;
     if (s < N) setTimeout(step, 0);
-    else { simRunning = false; simRes = R; if (view === 'simulateur') render(); }
+    else { simRunning = false; simRes = R; saveSim(); if (view === 'simulateur') render(); }
   };
   setTimeout(step, 10);
 }
 function collect(R, g) {
   if (!g.over) return; R.N++;
   const win = g.winner;
-  R.games.push({ rounds: g.round - 1, reason: g.endReason, win, final: g.final, st: g.players.map(p => p.st), built: g.players.map(p => p.grid.filter(Boolean).length),
+  R.games.push({ rounds: g.round - 1, reason: g.endReason, win, final: g.final.map(f => ({ total: f.total, bat: f.bat, fin: f.fin, wond: f.wond, tokens: f.tokens })), st: g.players.map(p => ({ built: p.st.built, guild: p.st.guild, ejected: p.st.ejected })),
     gcards: g.players.reduce((a, p) => a + (p.guilds ? E.GUILDS.reduce((b, k) => b + p.guilds[k].length, 0) : 0), 0) / g.players.length,
     l2: Object.entries(g.cs || {}).filter(([k]) => k[0] === 'b').reduce((a, [, v]) => a + v.b, 0) / g.players.length });
   for (const id in g.cs || {}) { const c = (R.cs[id] = R.cs[id] || { b: 0, g: 0, held: 0, wins: 0 }); c.b += g.cs[id].b; c.g += g.cs[id].g; }
   g.players.forEach((p, i) => p.grid.forEach(cell => { if (cell) { const c = (R.cs[cell.id] = R.cs[cell.id] || { b: 0, g: 0, held: 0, wins: 0 }); c.held++; if (i === win) c.wins++; } }));
-  g.wonders.forEach(w => { const x = (R.wond[w.id] = R.wond[w.id] || { games: 0, placed: 0 }); x.games++; x.placed += w.slots.length; });
+  const W0 = () => ({ games: 0, placed: 0, pts: 0, first: 0, firstN: 0, wins: 0 });
+  g.wonders.forEach(w => { const x = (R.wond[w.id] = R.wond[w.id] || W0()); x.games++; x.placed += w.slots.length; if (w.slots.includes(win)) x.wins = (x.wins || 0) + 1; });
+  for (const [id, slot, pts] of g.wst || []) { const x = (R.wond[id] = R.wond[id] || W0()); x.pts = (x.pts || 0) + pts; if (slot === 0) { x.first = (x.first || 0) + pts; x.firstN = (x.firstN || 0) + 1; } }
+}
+// En-tête de colonne triable
+function sortTh(tbl, k, label, num) {
+  const s = simSort[tbl], on = s.k === k;
+  return `<th class="${num ? 'n' : ''}" aria-sort="${on ? (s.d > 0 ? 'ascending' : 'descending') : 'none'}"><button class="sortb" data-sort="${tbl}:${k}" title="Trier par ${esc(label.toLowerCase())}">${label}<span aria-hidden="true">${on ? (s.d > 0 ? ' ▲' : ' ▼') : ' ↕'}</span></button></th>`;
+}
+function sortRows(rows, tbl) {
+  const { k, d } = simSort[tbl];
+  return rows.sort((a, b) => { const x = a[k], y = b[k]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return typeof x === 'string' ? d * x.localeCompare(y, 'fr') : d * (x - y); });
 }
 function simResultHTML(R) {
   const avg = f => R.games.reduce((a, g) => a + f(g), 0) / R.games.length;
   const fx = (x, d = 1) => x.toFixed(d).replace('.', ',');
   const n = R.n;
-  const per = k => avg(g => g.st.reduce((a, s) => a + s[k], 0) / n);
+  const per = k => avg(g => g.st.reduce((a, s) => a + (s[k] || 0), 0) / n);
   const bat = avg(g => g.final.reduce((a, f) => a + f.bat, 0) / n), fin = avg(g => g.final.reduce((a, f) => a + f.fin, 0) / n), wo = avg(g => g.final.reduce((a, f) => a + f.wond, 0) / n), tk = avg(g => g.final.reduce((a, f) => a + f.tokens, 0) / n);
   const tot = bat + fin + wo + tk || 1;
-  const merv = R.games.filter(g => g.reason === 'Merveilles').length;
   const seatWins = Array.from({ length: n }, (_, i) => R.games.filter(g => g.win === i).length);
-  const kpis = [['Manches par partie', fx(avg(g => g.rounds))], ['Bâtiments construits / joueur', fx(per('built'))], ['Actions de guilde / joueur', fx(per('guild'))], ['Ouvriers à la retraite / joueur', fx(per('ejected'))], ['Activations / joueur', fx(per('acts'))], ['Score du gagnant', fx(avg(g => Math.max(...g.final.map(f => f.total))))], ['Écart 1er – dernier', fx(avg(g => Math.max(...g.final.map(f => f.total)) - Math.min(...g.final.map(f => f.total))))], ['Cartes en guilde / joueur', fx(avg(g => g.gcards || 0))], ['Bâtiments niv. 2 / joueur', fx(avg(g => g.l2 || 0))], ['Fin : Merveilles / ville / pioche', ['Merveilles', 'Ville complète', 'Pioche épuisée'].map(r => Math.round(100 * R.games.filter(g => g.reason === r).length / R.N) + ' %').join(' / ')]];
+  const kpis = [['Manches par partie', fx(avg(g => g.rounds))], ['Bâtiments construits / joueur', fx(per('built'))], ['Ouvriers à la retraite / joueur', fx(per('ejected'))], ['Score du gagnant', fx(avg(g => Math.max(...g.final.map(f => f.total))))], ['Écart 1er – dernier', fx(avg(g => Math.max(...g.final.map(f => f.total)) - Math.min(...g.final.map(f => f.total))))], ['Cartes de guilde / joueur', fx(avg(g => g.gcards || 0))], ['Bâtiments niv. 2 / joueur', fx(avg(g => g.l2 || 0))], ['Fin : Merveilles / ville / pioche', ['Merveilles', 'Ville complète', 'Pioche épuisée'].map(r => Math.round(100 * R.games.filter(g => g.reason === r).length / R.N) + ' %').join(' / ')]];
   const base = 1 / n;
-  const rows = E.CARDS.map(c => {
+  const rows = sortRows(E.CARDS.map(c => {
     const s = R.cs[c.id] || { b: 0, g: 0, held: 0, wins: 0 };
     const wr = s.held ? s.wins / s.held : null;
-    const flag = s.held >= 6 && wr != null ? (wr > base + 0.15 ? '<span class="hot">forte ?</span>' : wr < base - 0.15 ? '<span class="cold">faible ?</span>' : '') : (s.b < R.N * 0.05 ? '<span class="cold">rarement construite</span>' : '');
-    return { c, s, wr, flag };
-  }).sort((a, b) => (b.wr ?? -1) - (a.wr ?? -1));
-  return `<section class="panel" style="margin-bottom:14px"><h2>Résultats — ${R.N} parties à ${n} joueurs</h2>
+    const flag = s.held >= 12 && wr != null ? (wr > base + 0.15 ? '<span class="hot">forte ?</span>' : wr < base - 0.15 ? '<span class="cold">faible ?</span>' : '') : (s.b < R.N * 0.05 ? '<span class="cold">rarement construite</span>' : '');
+    return { c, s, wr, flag, name: c.name, lvl: c.lvl, cost: E.cardValue(c), pv: c.pv, b: s.b / R.N, held: s.held };
+  }), 'cards');
+  const wrows = sortRows(E.WONDERS.filter(W => R.wond[W.id]).map(W => {
+    const x = R.wond[W.id];
+    return { W, name: W.name, games: x.games, placed: x.placed / x.games, per: x.placed ? (x.pts || 0) / x.placed : null, first: x.firstN ? x.first / x.firstN : null, wr: x.games ? (x.wins || 0) / x.games : null };
+  }), 'wond');
+  return `<section class="panel" style="margin-bottom:14px"><h2>Résultats cumulés — ${R.N} parties à ${n} joueurs</h2>
     <div class="grid2"><div class="scroll"><table>${kpis.map(([k, v]) => `<tr><td>${k}</td><td class="n"><strong>${v}</strong></td></tr>`).join('')}</table></div>
     <div><h3>D’où viennent les points (moyenne par joueur)</h3>
       <div class="barrow" role="img" aria-label="Répartition des points"><i style="width:${100 * bat / tot}%;background:var(--P)"></i><i style="width:${100 * fin / tot}%;background:var(--C)"></i><i style="width:${100 * wo / tot}%;background:var(--W)"></i><i style="width:${100 * tk / tot}%;background:var(--gold)"></i></div>
       <div class="stats" style="margin-top:6px"><span class="chip"><span class="dot" style="background:var(--P)"></span> PV des bâtiments ${fx(bat)}</span><span class="chip"><span class="dot" style="background:var(--C)"></span> Scores de fin ${fx(fin)}</span><span class="chip"><span class="dot" style="background:var(--W)"></span> Merveilles ${fx(wo)}</span></div>
       <h3 style="margin-top:14px">Victoires par place de départ</h3>
       <div class="stats">${seatWins.map((w, i) => `<span class="chip">Siège ${i + 1} : ${Math.round(100 * w / R.N)} %</span>`).join('')}</div>
-      <p class="note">Le premier joueur est tiré au hasard ; un siège qui gagne nettement plus que ${Math.round(100 / n)} % sur beaucoup de parties signalerait un problème d’ordre de tour.</p>
-      <h3 style="margin-top:14px">Merveilles</h3>
-      <div class="stats">${Object.entries(R.wond).map(([id, x]) => `<span class="chip">${esc(E.W_BY_ID[id].name)} : ${fx(x.placed / x.games)} / 3 places</span>`).join('')}</div></div></div></section>
-  <section class="panel"><h2>Cartes</h2>
-    <p class="note">« Victoire du propriétaire » : part des parties gagnées par les joueurs qui avaient la carte dans leur ville à la fin (référence : ${Math.round(100 * base)} %). Les signaux « forte / faible » ne valent qu’avec beaucoup de parties.</p>
-    <div class="scroll"><table class="stack"><thead><tr><th>Carte</th><th class="n">Niv.</th><th class="n">Coût</th><th class="n">Construite / partie</th><th class="n">Jouée en guilde / partie</th><th class="n">Victoire du propriétaire</th><th>Signal</th></tr></thead><tbody>
-    ${rows.map(({ c, s, wr, flag }) => `<tr><td>${esc(c.name)}</td><td class="n">${c.lvl}</td><td class="n">${R.opts.costMode === 'levels' ? c.c.join('+') : E.cardValue(c)}</td><td class="n">${fx(s.b / R.N, 2)}</td><td class="n">${fx(s.g / R.N, 2)}</td><td class="n">${wr == null ? '—' : Math.round(100 * wr) + ' %'}</td><td>${flag}</td></tr>`).join('')}
+      <p class="note">Le premier joueur est tiré au hasard ; un siège qui gagne nettement plus que ${Math.round(100 / n)} % sur beaucoup de parties signalerait un problème d’ordre de tour.</p></div></div></section>
+  <section class="panel" style="margin-bottom:14px"><h2>Merveilles</h2>
+    <p class="note">Cliquez sur un en-tête pour trier. Passez la souris sur une ligne pour voir la Merveille. « Victoire » : part des parties gagnées par un joueur qui y avait un marqueur.</p>
+    <div class="scroll"><table class="stack"><thead><tr>${sortTh('wond', 'name', 'Merveille')}${sortTh('wond', 'games', 'Parties où elle est présente', 1)}${sortTh('wond', 'placed', 'Marqueurs / partie', 1)}${sortTh('wond', 'first', 'PV du 1er marqueur', 1)}${sortTh('wond', 'per', 'PV / marqueur', 1)}${sortTh('wond', 'wr', 'Victoire', 1)}</tr></thead><tbody>
+    ${wrows.map(r => `<tr data-hw="${r.W.id}"><td tabindex="0">${esc(r.name)}</td><td class="n">${r.games}</td><td class="n">${fx(r.placed, 2)}</td><td class="n">${r.first == null ? '—' : fx(r.first)}</td><td class="n">${r.per == null ? '—' : fx(r.per)}</td><td class="n">${r.wr == null ? '—' : Math.round(100 * r.wr) + ' %'}</td></tr>`).join('')}
+    </tbody></table></div></section>
+  <section class="panel"><h2>Bâtiments</h2>
+    <p class="note">Cliquez sur un en-tête pour trier. Passez la souris sur une ligne pour voir la carte. « Victoire du propriétaire » : part des parties gagnées par les joueurs qui avaient la carte dans leur ville à la fin (référence : ${Math.round(100 * base)} %). Les signaux « forte / faible » ne valent qu’avec beaucoup de parties.</p>
+    <div class="scroll"><table class="stack"><thead><tr>${sortTh('cards', 'name', 'Carte')}${sortTh('cards', 'lvl', 'Niv.', 1)}${sortTh('cards', 'cost', 'Coût', 1)}${sortTh('cards', 'pv', 'PV', 1)}${sortTh('cards', 'b', 'Construite / partie', 1)}${sortTh('cards', 'held', 'Fois en ville', 1)}${sortTh('cards', 'wr', 'Victoire du propriétaire', 1)}<th>Signal</th></tr></thead><tbody>
+    ${rows.map(({ c, s, wr, flag, b }) => `<tr data-hc="${c.id}"><td tabindex="0">${esc(c.name)}</td><td class="n">${c.lvl}</td><td class="n">${R.opts.costMode === 'levels' ? c.c.join('+') : E.cardValue(c)}</td><td class="n">${c.pv}</td><td class="n">${fx(b, 2)}</td><td class="n">${s.held}</td><td class="n">${wr == null ? '—' : Math.round(100 * wr) + ' %'}</td><td>${flag}</td></tr>`).join('')}
     </tbody></table></div></section>`;
 }
+// Aperçu d'une carte ou d'une Merveille au survol (ou au focus clavier) d'une ligne
+function wonderPreviewHTML(W) {
+  return `<div class="wprev"><div class="wtop"><img src="img/merveille.png" alt="" width="44" height="44"><div class="wn">${esc(W.name)}</div></div>
+    <div class="wtx">${esc(E.wonderText(W))}</div>
+    <div class="slots">${W.vals.map((v, i) => `<span class="slot" title="${i + 1}ᵉ marqueur">${v}</span>`).join('')}</div></div>`;
+}
+function showHover(el, x, y) {
+  let box = $('#hoverCard'); if (!box) { box = document.createElement('div'); box.id = 'hoverCard'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+  const key = el.dataset.hc ? 'c' + el.dataset.hc : 'w' + el.dataset.hw;
+  if (box.dataset.key !== key) { box.dataset.key = key; box.innerHTML = el.dataset.hc ? cardHTML(E.BY_ID[el.dataset.hc]) : wonderPreviewHTML(E.W_BY_ID[el.dataset.hw]); }
+  box.style.display = 'block';
+  const w = box.offsetWidth, hh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+  let left = x + 18, top = y + 14;
+  if (left + w > vw - 8) left = Math.max(8, x - w - 18);
+  if (top + hh > vh - 8) top = Math.max(8, vh - hh - 8);
+  box.style.left = left + 'px'; box.style.top = top + 'px';
+}
+function hideHover() { const box = $('#hoverCard'); if (box) box.style.display = 'none'; }
+document.addEventListener('mousemove', e => { const el = e.target.closest && e.target.closest('[data-hc],[data-hw]'); if (el) showHover(el, e.clientX, e.clientY); else hideHover(); });
+document.addEventListener('focusin', e => { const el = e.target.closest && e.target.closest('[data-hc],[data-hw]'); if (el) { const r = e.target.getBoundingClientRect(); showHover(el, r.right, r.top); } else hideHover(); });
+document.addEventListener('scroll', hideHover, true);
 
 /* ---------- Cartes (catalogue + réglages partagés) ---------- */
 let cardFilter = 'all';
@@ -892,6 +949,9 @@ document.addEventListener('click', e => {
   if (id === 'startOnline') return startOnline();
   if (id === 'quit') return leaveGame();
   if (id === 'runSim') return runSim();
+  if (id === 'resetSim') { keepSimForm(); simRes = null; saveSim(); return render(); }
+  const sb = e.target.closest('[data-sort]');
+  if (sb) { const [tbl, key] = sb.dataset.sort.split(':'); const s = simSort[tbl]; if (s.k === key) s.d = -s.d; else { s.k = key; s.d = key === 'name' ? 1 : -1; } if (simRes && $('#simOut')) { $('#simOut').innerHTML = simResultHTML(simRes); const nb = document.querySelector(`[data-sort="${sb.dataset.sort}"]`); if (nb) nb.focus(); } return; }
   if (id === 'saveOv') return saveOverrides(collectOverrides());
   if (id === 'resetOv') return saveOverrides({});
   if (id === 'applyJson') { try { saveOverrides(JSON.parse($('#ovJson').value || '{}')); } catch (err) { toast('JSON invalide.'); } return; }
