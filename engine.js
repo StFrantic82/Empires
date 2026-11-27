@@ -68,6 +68,10 @@ const CARDS = [
   { id: 'a49', lvl: 1, g: 'art', gd: true, name: 'Bosquet sacré', t: { C: 2 }, v: 5, c: [1, 3], pv: 2, end: { row: 'C', pts: 2 }, d: D.A },
   { id: 'a50', lvl: 1, g: 'voy', name: 'Relais', t: { J: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'takeGuild' }], d: D.A },
   // Niveau 2
+  // Cadre bronze : payables uniquement avec des ouvriers de niveau 1 ou 2
+  { id: 'a56', lvl: 1, f: 'br', name: 'Lavoir', t: { P: 1 }, v: 3, c: [1, 2], pv: 2, imm: [{ op: 'gain', n: 2, lvl: 1, free: true }], d: D.A },
+  { id: 'a57', lvl: 1, f: 'br', name: 'Camp d’entraînement', t: { M: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.C },
+  { id: 'a58', lvl: 1, f: 'br', name: 'École', t: { S: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'plan', n: 2 }], d: D.A },
   { id: 'b1', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Vignoble', t: { P: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: [{ op: 'gain', n: 4, lvl: 0 }] },
   { id: 'b2', lvl: 2, g: 'mar', req: { tags: { M: 1 } }, name: 'Murailles', t: { M: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
   { id: 'b3', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, f: 'ag', name: 'Étude', t: { S: 1 }, c: [1, 2], pv: 3, imm: [{ op: 'adjImm' }], d: [{ op: 'progress', n: 3, by: 1 }] },
@@ -114,6 +118,8 @@ const CARDS = [
   { id: 'b51', lvl: 2, req: { tags: { C: 1 } }, name: 'Grand-place', t: { C: 1 }, v: 7, c: [2, 4], pv: 0, end: { adjAny: 2 } },
   { id: 'b52', lvl: 2, name: 'Maison des guildes', t: {}, v: 6, c: [2, 3], pv: 2, end: { guildTotal: 2 } },
   { id: 'b55', lvl: 2, req: { tags: { S: 1 } }, name: 'Gnomon', t: { S: 1 }, c: [2, 2], pv: 2, end: { corner: 4 } },
+  { id: 'b56', lvl: 2, f: 'br', req: { tags: { P: 1 } }, name: 'Faubourg', t: { P: 1 }, v: 6, c: [2, 2, 2], pv: 2, end: { bronze: 1 }, d: D.A },
+  { id: 'b57', lvl: 2, f: 'br', req: { tags: { C: 1 } }, name: 'Maison commune', t: { C: 1 }, v: 7, c: [1, 2, 2, 2], pv: 7, d: D.A },
 ];
 // Les bâtiments ne sont plus des cartes de guilde : ils ne gardent un symbole de guilde que s'ils ont une réduction de guilde
 for (const c of CARDS) { if (!c.gd) delete c.g; delete c.d; }
@@ -298,10 +304,12 @@ function effectiveCost(G, pi, card, coverCell, noPlans) {
   if (d && c.length) c[c.length - 1] = Math.max(0, c[c.length - 1] - d);
   return c;
 }
-// Cadre argent / or : le paiement doit contenir au moins un ouvrier de la zone argent (niveau 3+) ou or (niveau 5)
-const FRAME_MIN = { ag: 3, or: 5 };
+// Cadre argent / or : le paiement doit contenir au moins un ouvrier de la zone argent (niveau 3+) ou or (niveau 5).
+// Cadre bronze : uniquement des ouvriers de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
+const FRAME_MIN = { ag: 3, or: 5, br: -2 };
 const frameMin = (G, card) => (G.opts.costMode !== 'levels' && card.f) ? FRAME_MIN[card.f] : 0;
 function payOk(wheel, reqs, pay, minLvl = 0) {
+  if (minLvl < 0) { if (pay.some(l => l > -minLvl)) return false; minLvl = 0; }
   const w = wheel.slice(); for (const l of pay) { if (l < 0 || l > 5 || !(w[l] > 0)) return false; w[l]--; }
   if (typeof reqs === 'number') {
     const sum = pay.reduce((a, b) => a + b, 0);
@@ -318,6 +326,7 @@ function payOk(wheel, reqs, pay, minLvl = 0) {
 }
 // Paiement automatique. Mode 'sum' : 'exact' = le moins de gaspillage puis le moins d'ouvriers ; 'old' = d'abord les plus vieux.
 function autoPay(wheel, reqs, mode = 'exact', minLvl = 0) {
+  if (minLvl < 0) { const w = wheel.map((n, l) => (l > -minLvl ? 0 : n)); return autoPay(w, reqs, mode, 0); }
   if (typeof reqs === 'number') {
     if (minLvl) {
       let best = null;
@@ -603,7 +612,7 @@ function apply(G, a) {
       if (!legalCells(G, pi, card).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
       const reqs = effectiveCost(G, pi, card, a.cell);
-      if (!payOk(p.wheel, reqs, a.pay, frameMin(G, card))) throw new Error(card.f && G.opts.costMode !== 'levels' ? `Il faut un ouvrier de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}` : 'Paiement insuffisant');
+      if (!payOk(p.wheel, reqs, a.pay, frameMin(G, card))) throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Ce bâtiment se paie uniquement avec des ouvriers de la zone bronze (niveaux 1 et 2)' : `Il faut un ouvrier de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant');
       if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true); p.plans -= Math.min(p.plans, before); }
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
@@ -747,6 +756,7 @@ function endPoints(G, pi) {
     else if (e.corner) pts += [0, 2, 6, 8].includes(i) ? e.corner : 0;
     else if (e.guildTotal) pts += Math.floor(GUILDS.reduce((a, g) => a + p.guilds[g].length, 0) / e.guildTotal);
     else if (e.atLvl) pts += p.wheel.slice(e.atLvl).reduce((a, b) => a + b, 0) * e.pts;
+    else if (e.bronze) pts += (p.wheel[1] + p.wheel[2]) * e.bronze;
     else if (e.markers) pts += G.wonders.reduce((a, w) => a + w.slots.filter(x => x === pi).length, 0) * e.markers;
     else if (e.perPlans) pts += (p.plans || 0) * e.perPlans;
     else if (e.guildMax) pts += Math.max(...GUILDS.map(g => p.guilds[g].length)) * e.guildMax;
@@ -1122,6 +1132,7 @@ function cardText(c) {
     else if (e.corner) out.end = `${e.corner} PV si ce bâtiment est dans un coin de votre ville.`;
     else if (e.guildTotal) out.end = `1 PV par ${e.guildTotal} cartes de guilde que vous possédez.`;
     else if (e.atLvl) out.end = `${e.pts} PV par ouvrier de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
+    else if (e.bronze) out.end = `${e.bronze} PV par ouvrier de niveau 1 ou 2 sur votre roue.`;
     else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Merveilles.`;
     else if (e.perPlans) out.end = `${e.perPlans} PV par Plan non utilisé.`;
     else if (e.guildMax) out.end = `${e.guildMax} PV par carte de votre plus grande guilde.`;
@@ -1159,7 +1170,7 @@ function exportTables(opts) {
   const cards = [['ID', 'Nom', 'Niveau', 'Symbole de guilde (réduction)', 'Tags apportés', 'Coût', 'Cadre', 'Sacrifice', 'Prérequis', 'Réduction de guilde', 'PV', 'Immédiat', 'Activation', 'Permanent', 'Fin de partie']];
   for (const c of CARDS) {
     const t = cardText(c);
-    cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Or (niveau 5)' : c.f === 'ag' ? 'Argent (niveau 3+)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
+    cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Or (niveau 5)' : c.f === 'ag' ? 'Argent (niveau 3+)' : c.f === 'br' ? 'Bronze (niveaux 1-2 uniquement)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
   }
   const wonders = [['ID', 'Merveille', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
   for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
