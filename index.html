@@ -117,7 +117,10 @@ label.f{display:grid;gap:4px;font-size:14px;color:var(--mute)}
 .mcost{position:relative;width:30px;height:30px}
 .mcost svg{width:30px;height:30px}
 .mcost span{position:absolute;inset:7px 0 0;text-align:center;color:#fff;font-weight:700;font-size:13px}
-.pv{background:var(--gold);color:#1f1c17;font-weight:700;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-size:13px}
+.pv{background:url(img/pv.png) center/contain no-repeat;color:#1f6b1a;font-weight:800;width:30px;height:30px;display:inline-grid;place-items:center;font-size:13px;line-height:1;flex:none;vertical-align:middle;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+.pv.sm{width:22px;height:22px;font-size:10.5px}.pv.lg{width:40px;height:40px;font-size:16px}
+.pvi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.pvd{color:#1f6b1a;font-weight:800}td .pv,td .pvi{vertical-align:middle}#simOut td{vertical-align:middle}
 .back{background:repeating-linear-gradient(45deg,#5d4a2f 0 8px,#6c573a 8px 16px);color:#f3ead7;display:grid;place-items:center;text-align:center;min-height:230px;padding:10px}
 .back .big{font-family:Cinzel,serif;font-size:20px}
 .gcard{width:120px;min-height:184px;flex:none;border-radius:8px;border:2px solid #5d4a2f;background:var(--card);color:var(--cardink);display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 8px}
@@ -171,7 +174,7 @@ tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{ba
 #hoverCard{position:fixed;z-index:60;display:none;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
 .wprev{width:240px;background:var(--card);color:var(--cardink);border:2px solid #cfc6b4;border-left:6px solid var(--W);border-radius:10px;padding:10px 12px}
 .wprev .wtop{display:flex;align-items:center;gap:8px}.wprev .wn{font-family:Cinzel,serif;font-weight:700;font-size:16px}.wprev .wtx{font-size:13px;line-height:1.35;margin:8px 0}
-.wprev .slots{display:flex;gap:6px}.wprev .slot{width:30px;height:30px;border-radius:50%;border:1.5px dashed #8a7a5c;display:grid;place-items:center;font-weight:700;font-size:13px;color:#2b2118;background:#fffaf0}
+.wprev .slots{display:flex;gap:6px}.pvslot{border:none!important;background:none!important;width:auto!important;height:auto!important}.wprev .slot{width:30px;height:30px;border-radius:50%;border:1.5px dashed #8a7a5c;display:grid;place-items:center;font-weight:700;font-size:13px;color:#2b2118;background:#fffaf0}
 .edit input{width:64px;min-height:32px;padding:2px 6px;font-size:14px;background:#fffaf0;color:#2b2118;border:1px solid #b9a27a;color-scheme:light}
 @media(prefers-reduced-motion:no-preference){.cell.legal{animation:pulse 1.4s ease-in-out infinite}@keyframes pulse{50%{background:color-mix(in srgb,var(--gold) 30%,var(--panel2))}}}
 </style>
@@ -279,6 +282,11 @@ function costHTML(card, cost) {
   return `<div class="cost" title="Coût : somme des niveaux des ouvriers dépensés${card.f ? (card.f === 'or' ? ', dont un ouvrier de niveau 5' : ', dont un ouvrier de niveau 3 ou plus') : ''}">${meepleNum(v, col)}</div>`;
 }
 function meepleNum(v, color = '#5b4a36', stroke = '') { return `<div class="mcost"><svg viewBox="0 0 20 22"><path d="${MEEPLE}" fill="${color}"/></svg><span>${esc(v)}</span></div>`; }
+// Icône de points de victoire : laurier avec la valeur en vert
+function pvIcon(v, cls = '') {
+  if (String(v).includes(',')) return `<span class="pvi pvd" aria-label="${v} PV"><span class="pv sm" aria-hidden="true"></span>${v}</span>`; // valeur décimale : trop large pour le laurier
+  return `<span class="pv ${cls}" title="${v} PV" aria-label="${v} PV">${v}</span>`;
+}
 function cardHTML(card, o = {}) {
   const tx = E.cardText(card);
   const fx = [];
@@ -303,7 +311,7 @@ function cardHTML(card, o = {}) {
   }
   const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par carte ${esc(E.GUILD_NAMES[card.g])} (max 3)">−<img src="img/${card.g}.png" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
-  const giveZone = `<div class="gz"><span class="small" style="color:#6b6457">apporte</span>${tagsHTML(card.t)}${card.pv ? `<span class="pv" title="Points de victoire">${card.pv}</span>` : ''}</div>`;
+  const giveZone = `<div class="gz"><span class="small" style="color:#6b6457">apporte</span>${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
   return `<div class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
     <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
@@ -441,10 +449,10 @@ function optsForm(pref) {
     <label class="f">Marqueurs sur les Merveilles<select id="${pref}wm"><option value="track">Zone de retraite : 2 ouvriers = 1 marqueur</option><option value="auto">1 à chaque retraite</option><option value="consecrate">Consacrer volontairement un vétéran</option></select></label>
     <label class="f">Ouvriers dépensés<select id="${pref}sp"><option value="cycle">Reviennent au niveau 0 (cycle)</option><option value="general">Partent dans la réserve générale</option></select></label>
 </div>
-    <div class="row" style="margin-top:8px;font-size:14px">${[['gd', 'Réduction par guilde'], ['pr', 'Prérequis au niveau 2']].map(([k, l]) => `<label><input type="checkbox" id="${pref}${k}" checked style="min-height:auto"> ${l}</label>`).join('')}</div>`;
+`;
 }
 function readOpts(pref) { const ck = k => { const el = $('#' + pref + k); return el ? el.checked : true; };
-  return { wonderScoring: $('#' + pref + 'ws').value, costMode: $('#' + pref + 'cm').value, endWonders: +$('#' + pref + 'ew').value || 0, copies1: +($('#' + pref + 'cp') || { value: 1 }).value, copies2: +($('#' + pref + 'cp') || { value: 1 }).value, guildDiscount: ck('gd'), prereqs: ck('pr'),
+  return { wonderScoring: $('#' + pref + 'ws').value, costMode: $('#' + pref + 'cm').value, endWonders: +$('#' + pref + 'ew').value || 0, copies1: +($('#' + pref + 'cp') || { value: 1 }).value, copies2: +($('#' + pref + 'cp') || { value: 1 }).value, guildDiscount: true, prereqs: true,
     supply: ($('#' + pref + 'sp') || { value: 'cycle' }).value, wonderMode: ($('#' + pref + 'wm') || { value: 'track' }).value }; }
 function readSeats(pref) { const out = []; for (let i = 0; i < 4; i++) { const v = seatPick[pref][i]; if (v !== 'x') out.push({ i, bot: v === 'b' }); } return out; }
 
@@ -474,7 +482,7 @@ function gameHTML() {
   const wonders = G.wonders.map((w, wi) => {
     const W = E.W_BY_ID[w.id];
     return `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${esc(E.wonderText(W))}</div>
-      <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot" style="background:${seats[w.slots[k]].color};border:1.5px solid #555" title="${esc(seatName(w.slots[k]))}"></span>` : `<span class="slot">${W.vals[k]}</span>`).join('')}</div></div>`;
+      <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot" style="background:${seats[w.slots[k]].color};border:1.5px solid #555" title="${esc(seatName(w.slots[k]))}"></span>` : `<span class="slot pvslot">${pvIcon(W.vals[k], 'sm')}</span>`).join('')}</div></div>`;
   }).join('');
   const market = [1, 2].map(L => {
     const back = '';
@@ -490,7 +498,7 @@ function gameHTML() {
   const panel = actionPanel(my);
   const opps = G.players.map((q, i) => {
     const s = E.scoreOf(G, i);
-    return `<div class="oppc ${i === G.cur ? 'cur' : ''}"><div class="row" style="justify-content:space-between"><strong><span class="dot" style="background:${seats[i].color}"></span> ${esc(seatName(i))}</strong><span class="chip">${s.total} PV</span></div>
+    return `<div class="oppc ${i === G.cur ? 'cur' : ''}"><div class="row" style="justify-content:space-between"><strong><span class="dot" style="background:${seats[i].color}"></span> ${esc(seatName(i))}</strong><span class="chip pvi">${pvIcon(s.total, 'sm')}</span></div>
       <div class="ow" style="margin-top:6px">${q.wheel.map((n, l) => `<span title="niveau ${l}">${l}:${n}</span>`).join('')}</div>
       <div class="small mute">${G.opts.supply === 'cycle' ? `Ouvriers ${E.wheelCount(q) + q.grid.filter(c => c && c.occ).length}` : `Réserve ${q.reserve} · Bloqués ${q.locked}`} · Plans ${q.plans || 0}</div>
       ${q.guilds ? `<div class="row small" style="gap:8px;margin-top:4px">${E.GUILDS.map(g => `<span title="${E.GUILD_NAMES[g]}"><img src="img/${g}.png" alt="${E.GUILD_NAMES[g]}" style="width:16px;height:16px;vertical-align:-3px;border-radius:3px"> ${q.guilds[g].length}</span>`).join('')}</div>` : ''}
@@ -508,7 +516,7 @@ function gameHTML() {
       <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip">${sc.total} PV</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" title="Chaque Plan réduit de 1 le coût d’un bâtiment (utilisé automatiquement)">Plans ${p.plans || 0}</span></div></div>
+          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" title="Chaque Plan réduit de 1 le coût d’un bâtiment (utilisé automatiquement)">Plans ${p.plans || 0}</span></div></div>
         ${panel}
         <div class="me" style="margin-top:12px">
           <div>${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les ouvriers qui dépassent le niveau 5 attendent ici. À ${G.opts.retireStep} : un marqueur sur une Merveille, et ils reviennent au niveau 0."><img src="img/merveille.png" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Retraite</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${MEEPLE}"/></svg>`).join('')}</div>` : ''}
@@ -530,7 +538,7 @@ function cellHTML(p, c, i, my) {
   const card = E.BY_ID[c.id];
   const act = my && !G.pending && !G.actUsed && card.act && !c.occ && E.wheelCount(p) > 0 && !(sel);
   return `<div class="cell ${legal ? 'legal' : ''} ${act ? 'act' : ''}" ${legal ? `data-cell="${i}"` : act ? `data-act="${i}"` : ''} tabindex="${legal || act ? 0 : -1}" title="${esc(Object.values(E.cardText(card)).join(' '))}">
-    <div class="mini"><span class="n">${esc(card.name)}</span>${art(card, 38)}<div class="row" style="gap:3px">${tagsHTML(card.t)}${card.pv ? `<span class="pv" style="width:20px;height:20px;font-size:11px">${card.pv}</span>` : ''}</div></div>
+    <div class="mini"><span class="n">${esc(card.name)}</span>${art(card, 38)}<div class="row" style="gap:3px">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv, 'sm') : ''}</div></div>
     ${c.occ ? `<svg class="occ" viewBox="0 0 20 22"><path d="${MEEPLE}" fill="${WOOD}" stroke="#333"/></svg>` : ''}${legal ? '<span class="chip" style="position:absolute;bottom:4px;left:4px">Recouvrir</span>' : ''}</div>`;
 }
 function affordable(s, cell) {
@@ -585,7 +593,7 @@ function pendingHTML() {
   return '';
 }
 function finalHTML() {
-  const rows = G.final.slice().sort((a, b) => b.total - a.total).map(f => `<tr><td><span class="dot" style="background:${seats[f.i].color}"></span> ${esc(seatName(f.i))}${f.i === G.winner ? ' — gagne' : ''}</td><td class="n">${f.bat}</td><td class="n">${f.fin}</td><td class="n">${f.wond}</td><td class="n"><strong>${f.total}</strong></td></tr>`).join('');
+  const rows = G.final.slice().sort((a, b) => b.total - a.total).map(f => `<tr><td><span class="dot" style="background:${seats[f.i].color}"></span> ${esc(seatName(f.i))}${f.i === G.winner ? ' — gagne' : ''}</td><td class="n">${f.bat}</td><td class="n">${f.fin}</td><td class="n">${f.wond}</td><td class="n">${pvIcon(f.total, 'lg')}</td></tr>`).join('');
   return `<section class="panel prompt" style="margin-bottom:14px"><h2>Fin de partie (${esc(G.endReason)})</h2><div class="scroll"><table><tr><th>Joueur</th><th class="n">Bâtiments</th><th class="n">Fin de partie</th><th class="n">Merveilles</th><th class="n">Total</th></tr>${rows}</table></div></section>`;
 }
 
@@ -757,7 +765,7 @@ function simResultHTML(R) {
   const bat = avg(g => g.final.reduce((a, f) => a + f.bat, 0) / n), fin = avg(g => g.final.reduce((a, f) => a + f.fin, 0) / n), wo = avg(g => g.final.reduce((a, f) => a + f.wond, 0) / n), tk = avg(g => g.final.reduce((a, f) => a + f.tokens, 0) / n);
   const tot = bat + fin + wo + tk || 1;
   const seatWins = Array.from({ length: n }, (_, i) => R.games.filter(g => g.win === i).length);
-  const kpis = [['Manches par partie', fx(avg(g => g.rounds))], ['Bâtiments construits / joueur', fx(per('built'))], ['Ouvriers à la retraite / joueur', fx(per('ejected'))], ['Score du gagnant', fx(avg(g => Math.max(...g.final.map(f => f.total))))], ['Écart 1er – dernier', fx(avg(g => Math.max(...g.final.map(f => f.total)) - Math.min(...g.final.map(f => f.total))))], ['Cartes de guilde / joueur', fx(avg(g => g.gcards || 0))], ['Bâtiments niv. 2 / joueur', fx(avg(g => g.l2 || 0))], ['Fin : Merveilles / ville / pioche', ['Merveilles', 'Ville complète', 'Pioche épuisée'].map(r => Math.round(100 * R.games.filter(g => g.reason === r).length / R.N) + ' %').join(' / ')]];
+  const kpis = [['Manches par partie', fx(avg(g => g.rounds))], ['Bâtiments construits / joueur', fx(per('built'))], ['Ouvriers à la retraite / joueur', fx(per('ejected'))], ['Score du gagnant', pvIcon(fx(avg(g => Math.max(...g.final.map(f => f.total)))), 'lg')], ['Écart 1er – dernier', fx(avg(g => Math.max(...g.final.map(f => f.total)) - Math.min(...g.final.map(f => f.total))))], ['Cartes de guilde / joueur', fx(avg(g => g.gcards || 0))], ['Bâtiments niv. 2 / joueur', fx(avg(g => g.l2 || 0))], ['Fin : Merveilles / ville / pioche', ['Merveilles', 'Ville complète', 'Pioche épuisée'].map(r => Math.round(100 * R.games.filter(g => g.reason === r).length / R.N) + ' %').join(' / ')]];
   const base = 1 / n;
   const rows = sortRows(E.CARDS.map(c => {
     const s = R.cs[c.id] || { b: 0, g: 0, held: 0, wins: 0 };
@@ -780,19 +788,19 @@ function simResultHTML(R) {
   <section class="panel" style="margin-bottom:14px"><h2>Merveilles</h2>
     <p class="note">Cliquez sur un en-tête pour trier. Passez la souris sur une ligne pour voir la Merveille. « Victoire » : part des parties gagnées par un joueur qui y avait un marqueur.</p>
     <div class="scroll"><table class="stack"><thead><tr>${sortTh('wond', 'name', 'Merveille')}${sortTh('wond', 'games', 'Parties où elle est présente', 1)}${sortTh('wond', 'placed', 'Marqueurs / partie', 1)}${sortTh('wond', 'first', 'PV du 1er marqueur', 1)}${sortTh('wond', 'per', 'PV / marqueur', 1)}${sortTh('wond', 'wr', 'Victoire', 1)}</tr></thead><tbody>
-    ${wrows.map(r => `<tr data-hw="${r.W.id}"><td tabindex="0">${esc(r.name)}</td><td class="n">${r.games}</td><td class="n">${fx(r.placed, 2)}</td><td class="n">${r.first == null ? '—' : fx(r.first)}</td><td class="n">${r.per == null ? '—' : fx(r.per)}</td><td class="n">${r.wr == null ? '—' : Math.round(100 * r.wr) + ' %'}</td></tr>`).join('')}
+    ${wrows.map(r => `<tr data-hw="${r.W.id}"><td tabindex="0">${esc(r.name)}</td><td class="n">${r.games}</td><td class="n">${fx(r.placed, 2)}</td><td class="n">${r.first == null ? '—' : pvIcon(fx(r.first), 'lg')}</td><td class="n">${r.per == null ? '—' : pvIcon(fx(r.per), 'lg')}</td><td class="n">${r.wr == null ? '—' : Math.round(100 * r.wr) + ' %'}</td></tr>`).join('')}
     </tbody></table></div></section>
   <section class="panel"><h2>Bâtiments</h2>
     <p class="note">Cliquez sur un en-tête pour trier. Passez la souris sur une ligne pour voir la carte. « Victoire du propriétaire » : part des parties gagnées par les joueurs qui avaient la carte dans leur ville à la fin (référence : ${Math.round(100 * base)} %). Les signaux « forte / faible » ne valent qu’avec beaucoup de parties.</p>
     <div class="scroll"><table class="stack"><thead><tr>${sortTh('cards', 'name', 'Carte')}${sortTh('cards', 'lvl', 'Niv.', 1)}${sortTh('cards', 'cost', 'Coût', 1)}${sortTh('cards', 'pv', 'PV', 1)}${sortTh('cards', 'b', 'Construite / partie', 1)}${sortTh('cards', 'held', 'Fois en ville', 1)}${sortTh('cards', 'wr', 'Victoire du propriétaire', 1)}<th>Signal</th></tr></thead><tbody>
-    ${rows.map(({ c, s, wr, flag, b }) => `<tr data-hc="${c.id}"><td tabindex="0">${esc(c.name)}</td><td class="n">${c.lvl}</td><td class="n">${R.opts.costMode === 'levels' ? c.c.join('+') : E.cardValue(c)}</td><td class="n">${c.pv}</td><td class="n">${fx(b, 2)}</td><td class="n">${s.held}</td><td class="n">${wr == null ? '—' : Math.round(100 * wr) + ' %'}</td><td>${flag}</td></tr>`).join('')}
+    ${rows.map(({ c, s, wr, flag, b }) => `<tr data-hc="${c.id}"><td tabindex="0">${esc(c.name)}</td><td class="n">${c.lvl}</td><td class="n">${R.opts.costMode === 'levels' ? c.c.join('+') : E.cardValue(c)}</td><td class="n">${c.pv ? pvIcon(c.pv, 'sm') : '—'}</td><td class="n">${fx(b, 2)}</td><td class="n">${s.held}</td><td class="n">${wr == null ? '—' : Math.round(100 * wr) + ' %'}</td><td>${flag}</td></tr>`).join('')}
     </tbody></table></div></section>`;
 }
 // Aperçu d'une carte ou d'une Merveille au survol (ou au focus clavier) d'une ligne
 function wonderPreviewHTML(W) {
   return `<div class="wprev"><div class="wtop"><img src="img/merveille.png" alt="" width="44" height="44"><div class="wn">${esc(W.name)}</div></div>
     <div class="wtx">${esc(E.wonderText(W))}</div>
-    <div class="slots">${W.vals.map((v, i) => `<span class="slot" title="${i + 1}ᵉ marqueur">${v}</span>`).join('')}</div></div>`;
+    <div class="slots">${W.vals.map((v, i) => `<span class="slot pvslot" title="${i + 1}ᵉ marqueur">${pvIcon(v, 'sm')}</span>`).join('')}</div></div>`;
 }
 function showHover(el, x, y) {
   let box = $('#hoverCard'); if (!box) { box = document.createElement('div'); box.id = 'hoverCard'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
