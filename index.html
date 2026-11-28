@@ -81,9 +81,10 @@ label.f{display:grid;gap:4px;font-size:14px;color:var(--mute)}
 /* cartes */
 .card{background:var(--card);color:var(--cardink);border-radius:10px;border:2px solid #cfc6b4;width:224px;min-height:224px;flex:none;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.08)}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
-.card.f-ag{border:3px solid #9aa4ae;box-shadow:inset 0 0 0 1px #e4e8ec}
+.card.f-ag{border:3px solid #d99a2b;box-shadow:inset 0 0 0 1px #f6dca6}
 .card.f-or{border:3px solid #c9a227;box-shadow:inset 0 0 0 1px #f3df9a}
-.card.f-br{border:3px solid #a8663a;box-shadow:inset 0 0 0 1px #e3bd9c}
+.card.f-br{border:3px solid #6fae4f;box-shadow:inset 0 0 0 1px #d5ebc0}
+.zone.age{display:inline-flex;align-items:center;gap:3px}.zone.age img{width:13px;height:13px}
 .card.f-ag.sel,.card.f-or.sel,.card.f-br.sel{box-shadow:0 0 0 3px var(--accent)}
 .zone{font-size:11px;font-weight:700;border-radius:4px;padding:0 5px;color:#1f1c17}.card .fx b.zone{color:#1f1c17}
 .card.click{cursor:pointer}
@@ -305,6 +306,12 @@ function art(card, h = 74) {
   const badges = extra.map((k, i) => `<circle cx="${18 + i * 14}" cy="16" r="5" fill="${TAGC[k].replace(/var\(--(\w)\)/, (m, t) => ({ P: '#d98e04', M: '#b3261e', S: '#2e7d5b', C: '#2b5aa8' }[t]))}"/>`).join('');
   return `<svg class="art" viewBox="0 0 ${W} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="${W}" height="${h}" fill="${sky}"/>${mount}${ground}${b}${badges}</svg>`;
 }
+// Âges de l'âme : jeune (1-2), mûre (3-4), ancienne (5) ; les cadres des œuvres en découlent
+const AGES = {
+  br: { label: 'Jeunesse', img: 'age1.svg', bg: '#d5ebc0', txt: 'Uniquement des jeunes âmes (niveaux 1-2).' },
+  ag: { label: 'Maturité', img: 'age2.svg', bg: '#f7d796', txt: 'Au moins une âme mûre (niveau 3 ou plus).' },
+  or: { label: 'Sagesse', img: 'age3.svg', bg: '#f1e2a8', txt: 'Au moins une âme ancienne (niveau 5).' },
+};
 function tagsHTML(t) {
   const out = [];
   const ICON = TAGICON;
@@ -315,8 +322,8 @@ function costHTML(card, cost) {
   const levels = (G ? G.opts.costMode : costModeSim()) === 'levels';
   if (levels && Array.isArray(cost ?? card.c)) return `<div class="cost">${(cost ?? card.c).map(l => meepleNum(l)).join('')}</div>`;
   const v = cost ?? E.cardValue(card);
-  const col = card.f === 'or' ? '#b58e12' : card.f === 'ag' ? '#7d8792' : card.f === 'br' ? '#a8663a' : '#5b4a36';
-  return `<div class="cost" title="Coût : somme des niveaux des âmes dépensées${card.f ? (card.f === 'or' ? ', dont une âme de niveau 5' : card.f === 'br' ? ', uniquement avec des âmes de niveau 1 ou 2' : ', dont une âme de niveau 3 ou plus') : ''}">${meepleNum(v, col)}</div>`;
+  const col = card.f === 'or' ? '#a88a1c' : card.f === 'ag' ? '#c27a12' : card.f === 'br' ? '#4f8a33' : '#5b4a36';
+  return `<div class="cost" title="Coût : somme des niveaux des âmes dépensées${card.f ? (card.f === 'or' ? ' — œuvre de sage : dont une âme ancienne (niveau 5)' : card.f === 'br' ? ' — œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1-2)' : ' — œuvre de maturité : dont une âme mûre (niveau 3 ou plus)') : ''}">${meepleNum(v, col)}</div>`;
 }
 function meepleNum(v, color = '#5b4a36', stroke = '') { return `<div class="mcost"><svg viewBox="0 0 20 22"><path d="${MEEPLE}" fill="${color}"/></svg><span>${esc(v)}</span></div>`; }
 // Icône de points de victoire : laurier avec la valeur en vert
@@ -337,8 +344,7 @@ function cardHTML(card, o = {}) {
   const gi = card.g ? `<img class="gicon" src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}" title="Réduction d’autel : ${esc(E.ALTAR[card.g])}${card.g === 'voy' ? ' (joker : rangée au choix)' : ''}">` : '';
   const sumMode = (G ? G.opts.costMode : costModeSim()) !== 'levels';
   const fr = sumMode && card.f ? card.f : '';
-  if (fr === 'br') fx.unshift(`<div><b class="zone" style="background:#dba77c">Bronze</b> Payez uniquement avec des âmes de niveau 1 ou 2.</div>`);
-  else if (fr) fx.unshift(`<div><b class="zone" style="background:${fr === 'or' ? '#e6c35c' : '#cfd5db'}">${fr === 'or' ? 'Or' : 'Argent'}</b> Payez avec au moins une âme ${fr === 'or' ? 'de niveau 5' : 'de niveau 3 ou plus'}.</div>`);
+  if (fr) { const A = AGES[fr]; fx.unshift(`<div><b class="zone age" style="background:${A.bg}"><img src="img/${A.img}" alt="">${A.label}</b> ${A.txt}</div>`); }
   // Zone de coût (haut gauche) : coût + prérequis + réduction de guilde. Zone d'apport (bas droite) : tags fournis + PV.
   const ICON = TAGICON;
   const reqI = [];
@@ -361,7 +367,7 @@ function cardHTML(card, o = {}) {
 function wheelSVG(p, color, opts = {}) {
   // Même langage que les cartes : parchemin, encre brune, badges meeple chiffrés, or pour les points, violet Sanctuaire
   const cx = 150, cy = 150, R = 116, ink = '#5b4a36', o = [];
-  const fills = ['#e9e1cd', '#eedcbc', '#e8cfa6', '#dfe3e7', '#d2d8de', '#e8c75f']; // 1-2 bronze · 3-4 argent · 5 or
+  const fills = ['#e9e1cd', '#dcebc8', '#cbe2b0', '#f6dca6', '#efc97c', '#f6efd8']; // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
   const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
   const f = n => n.toFixed(1);
   o.push(`<defs>
@@ -375,7 +381,7 @@ function wheelSVG(p, color, opts = {}) {
     const c = 180 + 60 * i, [x0, y0] = pt(R, c - 30), [x1, y1] = pt(R, c + 30);
     const pick = opts.pick && p.wheel[i] > 0;
     o.push(`<path d="M${cx} ${cy} L${f(x0)} ${f(y0)} A${R} ${R} 0 0 1 ${f(x1)} ${f(y1)} Z" fill="${i === 0 ? 'url(#hz)' : fills[i]}" stroke="${pick ? '#c9a227' : ink}" stroke-width="${pick ? 4 : 2}" ${pick ? `data-lvl="${i}" style="cursor:pointer" tabindex="0" role="button" aria-label="Choisir une âme de niveau ${i}"` : ''}/>`);
-    // âmes rangés sur deux arcs
+    // âmes rangées sur deux arcs
     const n = p.wheel[i], slots = [[52, -16], [52, 16], [86, -18], [86, 0], [86, 18], [52, 0]];
     for (let k = 0; k < Math.min(n, 6); k++) {
       const [mx, my] = pt(slots[k][0], c + slots[k][1]);
@@ -384,7 +390,7 @@ function wheelSVG(p, color, opts = {}) {
     if (n > 6) { const [bx, by] = pt(104, c); o.push(`<g pointer-events="none"><circle cx="${f(bx)}" cy="${f(by)}" r="10" fill="${ink}"/><text x="${f(bx)}" y="${f(by + 4)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fbf7ee">×${n}</text></g>`); }
     // badge de niveau : meeple chiffré, comme le coût des cartes
     const [lx, ly] = pt(R + 16, c);
-    o.push(`<g pointer-events="none"><circle cx="${f(lx)}" cy="${f(ly)}" r="14" fill="${i === 5 ? '#c9a227' : i >= 3 ? '#7d8792' : ink}" stroke="#fbf7ee" stroke-width="2"/>
+    o.push(`<g pointer-events="none"><circle cx="${f(lx)}" cy="${f(ly)}" r="14" fill="${i === 5 ? '#b8961f' : i >= 3 ? '#c27a12' : i >= 1 ? '#4f8a33' : ink}" stroke="#fbf7ee" stroke-width="2"/>
       <text x="${f(lx)}" y="${f(ly + 5.5)}" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-weight="700" font-size="16" fill="${i === 5 ? '#1f1c17' : '#fbf7ee'}">${i}</text></g>`);
   }
   o.push(`<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#glow)" pointer-events="none"/>`);
@@ -529,11 +535,11 @@ function gameHTML() {
       <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et le cadre d’une œuvre.">Karma ${p.plans || 0}</span></div></div>
+          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.">Karma ${p.plans || 0}</span></div></div>
         <div id="tPanel">${panel}</div>
         <div class="me" style="margin-top:12px">
           <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/sanctuaire.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${MEEPLE}"/></svg>`).join('')}</div>` : ''}
-            ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Zones : <b class="zone" style="background:#e8cfa6">bronze 1-2</b> <b class="zone" style="background:#d2d8de">argent 3-4</b> <b class="zone" style="background:#e8c75f">or 5</b></p>` : ''}</div>
+            ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Âges : <b class="zone age" style="background:#d5ebc0"><img src="img/age1.svg" alt="">jeune 1-2</b> <b class="zone age" style="background:#f7d796"><img src="img/age2.svg" alt="">mûre 3-4</b> <b class="zone age" style="background:#f1e2a8"><img src="img/age3.svg" alt="">ancienne 5</b></p>` : ''}</div>
           <div><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div>
             <p class="note">Mandala 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. Passez la souris sur une œuvre pour revoir ses effets.</p></div>
         </div>
@@ -581,13 +587,13 @@ function buildInfo(L, idx) {
   if (!all.length) return { ok: false, why: 'Aucun emplacement libre' };
   const plans = all.map(c => buildPlan({ L, idx }, c)).filter(Boolean);
   if (plans.some(x => !x.bypass)) return { ok: true };
-  if (plans.length) return { ok: true, byp: card.req && card.f ? 'prérequis et cadre ignorés' : card.req ? 'prérequis ignoré' : 'cadre ignoré' };
+  if (plans.length) return { ok: true, byp: card.req && card.f ? 'prérequis et âge ignorés' : card.req ? 'prérequis ignoré' : 'âge ignoré' };
   if (!E.prereqOk(G, G.cur, card)) return { ok: false, why: 'Prérequis non rempli' };
   const cells = E.legalCells(G, G.cur, card);
   const fm = E.frameMin(G, card), w = G.players[G.cur].wheel;
-  if (fm === 5 && !w[5]) return { ok: false, why: 'Il faut une âme de niveau 5' };
-  if (fm === 3 && !(w[3] + w[4] + w[5])) return { ok: false, why: 'Il faut une âme de niveau 3 ou plus' };
-  if (fm < 0) return { ok: false, why: 'Pas assez d’âmes de niveau 1 ou 2' };
+  if (fm === 5 && !w[5]) return { ok: false, why: 'Il faut une âme ancienne (niveau 5)' };
+  if (fm === 3 && !(w[3] + w[4] + w[5])) return { ok: false, why: 'Il faut une âme mûre (niveau 3+)' };
+  if (fm < 0) return { ok: false, why: 'Pas assez de jeunes âmes (niveaux 1-2)' };
   return { ok: false, why: 'Âmes insuffisants' };
 }
 // Comment payer cette carte à cet emplacement : paiement normal, ou en dépensant 2 Karma pour ignorer prérequis et cadre
@@ -682,7 +688,7 @@ function scheduleBot() {
 const meTurn = () => G && G.cur === 0 && !G.over;
 const TUTO = [
   { t: 'Bienvenue', p: 'Vous guidez des âmes à travers la roue des renaissances. Leurs œuvres forment votre mandala de 9 cases, et les plus sages atteignent l’Éveil. Cette partie guidée se joue contre un bot : je vous explique chaque étape au fur et à mesure.' },
-  { t: 'La roue du Samsara', s: '#tWheel', p: 'Vos âmes sont sur la roue, de 0 à 5. Leur niveau, c’est leur sagesse et leur valeur : une âme de niveau 3 apporte 3. La roue a trois zones : bronze (1-2), argent (3-4) et or (5).' },
+  { t: 'La roue du Samsara', s: '#tWheel', p: 'Vos âmes sont sur la roue, de 0 à 5. Leur niveau, c’est leur sagesse et leur valeur : une âme de niveau 3 apporte 3. La roue a trois âges : jeunes âmes (1-2), âmes mûres (3-4) et âme ancienne (5).' },
   { t: 'Un tour en deux temps', s: '#tPanel', p: '<strong>1.</strong> Déposez une offrande. <strong>2.</strong> Accomplissez une œuvre, <strong>ou</strong> tournez la roue d’un cran : toutes vos âmes vivent une vie de plus et gagnent un niveau.' },
   { t: 'Les offrandes', s: '#tGuilds', p: 'Chaque offrande va sur l’un de vos trois autels. Elle n’a pas de texte : sa bénédiction dépend de votre matrice des autels. Chaque carte indique ce qu’elle vous rapporterait maintenant.' },
   { t: 'Les trois autels', s: '.matrix', p: '<strong>Vie</strong> : une âme s’incarne. <strong>Enseignement</strong> : des niveaux à répartir. <strong>Karma</strong> : du Karma. Plus un autel est honoré, plus l’offrande suivante est puissante. Quand une colonne contient une offrande sur chaque autel, l’équilibre fait tourner la roue.' },
@@ -694,7 +700,7 @@ const TUTO = [
   { t: 'Le bot joue…', act: true, p: 'Le journal, à droite, raconte ce qu’il fait.', until: () => meTurn() && !G.mainDone && !G.pending },
   { t: 'L’Éveil', s: '.retz', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil et attend ici. Dès que deux âmes sont éveillées, vous posez un marqueur sur un Sanctuaire ; elles renaissent alors au niveau 0, et une nouvelle génération commence.' },
   { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire rapporte des points ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
-  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma réduit de 1 le coût d’une œuvre, automatiquement. Avec 2 Karma, vous pouvez aussi ignorer le prérequis ou le cadre d’une œuvre : ces cartes sont encadrées en bleu.' },
+  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma réduit de 1 le coût d’une œuvre, automatiquement. Avec 2 Karma, vous pouvez aussi ignorer le prérequis ou l’âge exigé d’une œuvre : ces cartes sont encadrées en bleu.' },
   { t: 'À vous de jouer !', p: 'Vous connaissez l’essentiel. Continuez la partie librement ; les règles complètes sont dans l’onglet Règles.' },
 ];
 let tuto = { on: false, i: 0, last: -1 };
@@ -1009,16 +1015,20 @@ function rulesHTML() {
   <tr><td><strong>Autel du Karma</strong> : Karma gagné</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr></tbody></table></div>
   <p><strong>L’équilibre.</strong> Dès qu’une colonne contient une offrande sur chaque autel (votre 1re offrande sur chacun, puis votre 2e, etc.), <strong>votre roue tourne</strong>. Honorer un seul autel renforce ses bénédictions ; honorer les trois fait tourner la roue.</p>
   <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, qui donne sa bénédiction.</p>
-  <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer le prérequis et le cadre d’une œuvre. Le Karma ne vaut aucun point, sauf effet de carte.</p>
+  <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer le prérequis et l’âge exigé d’une œuvre. Le Karma ne vaut aucun point, sauf effet de carte.</p>
   <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
   <h3>Accomplir une œuvre</h3>
-  <p>Le coût est le chiffre en haut à gauche de la carte. Consacrez-y des âmes dont la somme des niveaux atteint ce chiffre ; une âme de niveau 0 n’apporte rien, et l’on ne peut pas ajouter d’âme inutile. <strong>Les âmes consacrées meurent et renaissent au niveau 0</strong> : on perd leur sagesse, pas les âmes elles-mêmes. Exception : les œuvres marquées <strong>Sacrifice</strong> (cadre or) libèrent ces âmes, qui quittent le cycle. Le Karma, les réductions d’autel et certaines œuvres réduisent le coût.</p>
+  <p>Le coût est le chiffre en haut à gauche de la carte. Consacrez-y des âmes dont la somme des niveaux atteint ce chiffre ; une âme de niveau 0 n’apporte rien, et l’on ne peut pas ajouter d’âme inutile. <strong>Les âmes consacrées meurent et renaissent au niveau 0</strong> : on perd leur sagesse, pas les âmes elles-mêmes. Exception : les œuvres marquées <strong>Sacrifice</strong> (œuvres de sage) libèrent ces âmes, qui quittent le cycle. Le Karma, les réductions d’autel et certaines œuvres réduisent le coût.</p>
   <h3>Conditions sur les cartes</h3>
-  <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, 3 au maximum. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre à cadre (bronze, argent ou or) n’a jamais de réduction d’autel : le cadre impose déjà le niveau des âmes à consacrer.</p>
+  <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, 3 au maximum. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre qui exige un âge (jeunesse, maturité, sagesse) n’a jamais de réduction d’autel : l’âge impose déjà le niveau des âmes à consacrer.</p>
   <p><strong>Les quatre tags</strong> ont chacun leur style : <strong>Prospérité</strong> fait grandir la lignée (de nouvelles âmes), <strong>Dévotion</strong> conduit à l’Éveil (âmes très avancées, zone d’Éveil, marqueurs), <strong>Connaissance</strong> fait tourner le cycle (niveaux, roue, réductions, effets permanents), <strong>Arts</strong> embellit le mandala (lignes, colonnes, voisins, coins). Une œuvre porte un tag, deux fois le même, deux tags différents, aucun, ou très rarement les quatre (Unir le royaume).</p>
   <p><strong>Matériel</strong> : 48 œuvres de niveau 1 et 42 de niveau 2 (cartes carrées de 7 × 7 cm), 66 offrandes (41 × 63 mm) et 16 Sanctuaires. Si les offrandes ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p>
-  <h3>Cadres bronze, argent et or</h3>
-  <p>La roue a trois zones : <strong>bronze</strong> (niveaux 1-2), <strong>argent</strong> (3-4) et <strong>or</strong> (5). Une œuvre à cadre argent demande au moins une âme de niveau 3 ou plus ; à cadre or, au moins une âme de niveau 5 : plusieurs jeunes âmes ne suffisent pas. À l’inverse, une œuvre à cadre bronze (Laver le linge au fleuve, Exercer les novices, Ouvrir une école, Peupler les faubourgs, Construire la maison commune) se paie uniquement avec des âmes de niveau 1 ou 2. Avec 2 Karma, on peut ignorer un cadre. Une âme de niveau 5 est donc tiraillée : accomplir une grande œuvre, ou atteindre l’Éveil.</p>
+  <h3>Les âges de l’âme</h3>
+  <p>La roue a trois âges : <strong>jeunes âmes</strong> (niveaux 1-2), <strong>âmes mûres</strong> (3-4) et <strong>âme ancienne</strong> (5). Certaines œuvres exigent un âge :</p>
+  <ul><li><strong>Œuvre de jeunesse</strong> (cadre vert) : uniquement des jeunes âmes (Laver le linge au fleuve, Exercer les novices, Ouvrir une école, Peupler les faubourgs, Construire la maison commune).</li>
+  <li><strong>Œuvre de maturité</strong> (cadre safran) : au moins une âme mûre ; plusieurs jeunes âmes ne suffisent pas.</li>
+  <li><strong>Œuvre de sage</strong> (cadre doré) : au moins une âme ancienne. La plupart sont aussi des Sacrifices : l’âme ancienne quitte le cycle.</li></ul>
+  <p>Le reste du coût se complète normalement. Avec 2 Karma, on peut ignorer l’âge exigé. Une âme ancienne est donc tiraillée : accomplir une œuvre de sage, ou atteindre l’Éveil.</p>
   <h3>Le mandala</h3>
   <p>Une grille de 3 × 3. La première œuvre se place n’importe où, les suivantes à côté d’une œuvre déjà accomplie. Le placement compte : certaines œuvres marquent selon leur ligne, leur colonne, leurs voisines ou leur position dans un coin, et « Débattre des écritures » redéclenche l’effet immédiat de ses voisines.</p>
   <h3>La roue et l’Éveil</h3>

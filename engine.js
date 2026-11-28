@@ -632,12 +632,12 @@ function apply(G, a) {
       const id = G.market[a.L][a.idx]; if (!id) throw new Error('Carte absente');
       const card = BY_ID[id];
       const byp = a.bypass ? BYPASS_COST : 0; // 2 Savoir : ignorer le prérequis et le cadre de ce bâtiment
-      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Karma pour ignorer un prérequis ou un cadre`);
+      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Karma pour ignorer un prérequis ou un âge exigé`);
       if (!legalCells(G, pi, card, !!byp).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
       p.plans -= byp;
       const reqs = effectiveCost(G, pi, card, a.cell);
-      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Cette œuvre se paie uniquement avec des âmes de la zone bronze (niveaux 1 et 2)' : `Il faut une âme de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
+      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1 et 2)' : `${card.f === 'or' ? 'Œuvre de sage : il faut une âme ancienne (niveau 5)' : 'Œuvre de maturité : il faut une âme mûre (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
       if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true); p.plans -= Math.min(p.plans, before); }
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
@@ -647,7 +647,7 @@ function apply(G, a) {
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'build' && (card.t[pm.tag] || 0) > 0) triggers.push(...pm.ops); }
       p.grid[a.cell] = { id, occ: false };
       p.st.built++; G.mainDone = true; G._lastCell = a.cell; cs(G, id).b++;
-      log(G, `${p.name} accomplit « ${card.name} »${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Karma pour ignorer ${card.req && card.f ? 'le prérequis et le cadre' : card.req ? 'le prérequis' : 'le cadre'}` : ''}.`);
+      log(G, `${p.name} accomplit « ${card.name} »${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Karma pour ignorer ${card.req && card.f ? 'le prérequis et l’âge exigé' : card.req ? 'le prérequis' : 'l’âge exigé'}` : ''}.`);
       push(G, (G.opts.turnOnBuild ? [{ op: 'turn', n: 1 }] : []).concat(card.imm || [], triggers), false);
       run(G); return G;
     }
@@ -1166,7 +1166,7 @@ function cardText(c) {
     else if (e.corner) out.end = `${e.corner} PV si cette œuvre est dans un coin de votre mandala.`;
     else if (e.guildTotal) out.end = `1 PV par ${e.guildTotal} offrandes que vous possédez.`;
     else if (e.atLvl) out.end = `${e.pts} PV par âme de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
-    else if (e.bronze) out.end = `${e.bronze} PV par âme de niveau 1 ou 2 sur votre roue.`;
+    else if (e.bronze) out.end = `${e.bronze} PV par jeune âme (niveau 1 ou 2) sur votre roue.`;
     else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Sanctuaires.`;
     else if (e.perPlans) out.end = `${e.perPlans} PV par Karma non dépensé.`;
     else if (e.guildMax) out.end = `${e.guildMax} PV par offrande de votre autel le plus honoré.`;
@@ -1202,21 +1202,21 @@ function exportTables(opts) {
   const o = Object.assign({}, DEFAULT_OPTS, opts || {});
   const fx = GUILD_FIXED;
   const tagStr = t => Object.entries(t).map(([k, v]) => (v > 1 ? v + ' ' : '') + TAG_NAMES[k]).join(', ');
-  const cards = [['ID', 'Nom', 'Niveau', 'Autel (réduction)', 'Tags apportés', 'Coût', 'Cadre', 'Sacrifice', 'Prérequis', 'Réduction d’autel', 'PV', 'Immédiat', 'Activation', 'Permanent', 'Fin de partie']];
+  const cards = [['ID', 'Nom', 'Niveau', 'Autel (réduction)', 'Tags apportés', 'Coût', 'Âge requis', 'Sacrifice', 'Prérequis', 'Réduction d’autel', 'PV', 'Immédiat', 'Activation', 'Permanent', 'Fin de partie']];
   for (const c of CARDS) {
     const t = cardText(c);
-    cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Or (niveau 5)' : c.f === 'ag' ? 'Argent (niveau 3+)' : c.f === 'br' ? 'Bronze (niveaux 1-2 uniquement)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
+    cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Œuvre de sage (une âme ancienne, niveau 5)' : c.f === 'ag' ? 'Œuvre de maturité (une âme mûre, niveau 3+)' : c.f === 'br' ? 'Œuvre de jeunesse (jeunes âmes uniquement, niveaux 1-2)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
   }
   const wonders = [['ID', 'Sanctuaire', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
   for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
-  const theme = { art: 'Vos âmes apprennent : des niveaux à répartir', eru: 'Du Karma : réduit le coût des œuvres, ou fait ignorer un prérequis ou un cadre', mar: 'Une âme s’incarne', voy: 'Joker : autel au choix' };
+  const theme = { art: 'Vos âmes apprennent : des niveaux à répartir', eru: 'Du Karma : réduit le coût des œuvres, ou fait ignorer un prérequis ou un âge exigé', mar: 'Une âme s’incarne', voy: 'Joker : autel au choix' };
   const guilds = [['Autel', 'Bénédiction', 'Nombre d’offrandes', 'Œuvres avec réduction de cet autel']];
   for (const g of ['art', 'eru', 'mar', 'voy']) guilds.push([ALTAR[g], theme[g], GCARDS.filter(c => c.g === g).length, CARDS.filter(c => c.gd && c.g === g).length]);
   const gcards = [['Autel', '1re offrande', '2e offrande', '3e offrande', '4e offrande', '5e offrande', '6e offrande et suivantes', 'Offrandes dans le paquet']];
   for (const g of ['mar', 'art', 'eru']) gcards.push([ALTAR[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
   gcards.push(['Moine errant (joker)', 'Autel au choix : appliquez la bénédiction de cet autel', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
   gcards.push(['Colonne complète', 'Dès qu’une colonne contient une offrande sur chaque autel : la roue tourne', '', '', '', '', '', '']);
-  gcards.push(['Karma', '1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et le cadre d’une œuvre.', '', '', '', '', '', '']);
+  gcards.push(['Karma', '1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.', '', '', '', '', '', '']);
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
