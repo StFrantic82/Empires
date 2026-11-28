@@ -1630,8 +1630,7 @@ function pnpHTML() {
   const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
   const pad = () => `<div class="score-pad"><div class="sp-h"><img src="img/samsara.svg" alt=""> Carnet de score</div><table class="sp-t"><thead><tr><th></th>${[1, 2, 3, 4].map(() => '<th><div class="sp-name"></div></th>').join('')}</tr></thead><tbody>
     ${[['pv', 'PV des œuvres', 'lotus en bas de chaque œuvre de votre mandala'], ['fin', 'Effets « Fin »', 'œuvres qui marquent en fin de partie'], ['sanct', 'Sanctuaires', 'chaque âme posée, avec vos tags en fin de partie']].map(([k, l, d]) => `<tr><th><img src="img/${k === 'sanct' ? 'sanctuaire' : 'pv'}.svg" alt=""><span><b>${l}</b><small>${d}</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>`).join('')}
-    <tr class="sp-tot"><th><span><b>Total</b></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>
-    <tr class="sp-tie"><th><span><b>Égalité</b><small>âmes sur la roue</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr></tbody></table></div>`;
+    <tr class="sp-tot"><th><span><b>Total</b></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr></tbody></table></div>`;
   const scores = sheet('Carnet de score (6 par page, 9,9 cm de large)', `<div class="sp-grid">${pad() + pad() + pad() + pad() + pad() + pad()}</div>`, 'pnp-score');
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
