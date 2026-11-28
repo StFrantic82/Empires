@@ -358,6 +358,17 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .card .fx .pv.sm,.wonder .small .pv.sm,.wtx .pv.sm,.gtip .pv.sm{width:20px;height:20px;font-size:10px;vertical-align:-5px}
 .card .fx .bico,.wonder .bico,.wtx .bico,.gtip .bico{vertical-align:-4px}
 .mk-peek.gsize{align-self:stretch}.mk-peek.gsize .mk-st{flex-direction:column;align-items:center}
+
+/* Offrandes compactes ; rappel de roue au même format */
+.gcard{min-height:0;gap:3px;padding:7px 6px;justify-content:center}
+.gcard img{width:30px;height:30px}.gcard .gn{font-size:12.5px;line-height:1.1}
+.gcard .bless{min-height:36px}
+.mk-peek.gsize{min-height:0;padding:4px 4px 5px;gap:0;justify-content:center;cursor:pointer}
+.mk-peek.gsize:hover{border-color:var(--or)}
+.mk-peek.gsize .wheel{max-width:112px;width:112px}
+.mk-peek.gsize .mk-st{flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px;margin:0;font-size:12px;font-weight:700;color:var(--ink)}
+.mk-peek.gsize .mk-st .dot{width:11px;height:11px}
+.mk-ev{display:inline-flex;align-items:center;gap:2px}.mk-ev img{width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -471,14 +482,16 @@ function tagImg(k) { return `<img class="ti" src="img/${TAGICON[k]}.svg" alt="${
 // Sur les tuiles Sanctuaire, les PV par rang sont déjà sur les cases : le texte commence par un lotus sans chiffre
 function wonderShort(W) { const t = E.wonderText(W), m = t.match(/^\d+ \/ \d+ \/ \d+ PV\s*/); return m ? `<span class="pv sm" title="${esc(W.vals.join(' / '))} PV"></span>` + iconize(t.slice(m[0].length)) : iconize(t); }
 function iconize(raw) {
+  // Chaque pictogramme est mis de côté sous un jeton, pour que les remplacements suivants ne touchent pas à ses attributs (alt, title)
+  const keep = [], tok = html => { keep.push(html); return `\u0001${keep.length - 1}\u0002`; };
   let s = esc(raw);
-  s = s.replace(/(?:l’|l')?Autel (?:du Karma|de la Vie|de l’Enseignement|de l'Enseignement)/g, m => { const g = /Karma/.test(m) ? 'eru' : /Vie/.test(m) ? 'mar' : 'art'; return `<img class="ti" src="img/${g}.svg" alt="${E.ALTAR[g]}" title="${E.ALTAR[g]}">`; });
-  s = s.replace(/1 tag de chaque type/g, () => ['P', 'M', 'S', 'C'].map(tagImg).join(''));
-  s = s.replace(/\btags? (Prospérité|Dévotion|Connaissance|Arts)/g, (m, w) => tagImg(TAGW[w]));
-  s = s.replace(/(Prospérité|Dévotion|Connaissance|Arts)(?![\wÀ-ÿ])/g, (m, w) => tagImg(TAGW[w]));
-  s = s.replace(/(\d+(?: \/ \d+)*) PV/g, (m, ns) => ns.split(' / ').map(n => pvIcon(n, 'sm')).join('<span class="mute">/</span>'));
-  s = s.replace(/(\d+|X) Karma/g, (m, n) => karmaIco(n, 18));
-  return s;
+  s = s.replace(/(?:l’|l')?Autel (?:du Karma|de la Vie|de l’Enseignement|de l'Enseignement)/g, m => { const g = /Karma/.test(m) ? 'eru' : /Vie/.test(m) ? 'mar' : 'art'; return tok(`<img class="ti" src="img/${g}.svg" alt="${E.ALTAR[g]}" title="${E.ALTAR[g]}">`); });
+  s = s.replace(/1 tag de chaque type/g, () => tok(['P', 'M', 'S', 'C'].map(tagImg).join('')));
+  s = s.replace(/\btags? (Prospérité|Dévotion|Connaissance|Arts)/g, (m, w) => tok(tagImg(TAGW[w])));
+  s = s.replace(/(Prospérité|Dévotion|Connaissance|Arts)(?![\wÀ-ÿ])/g, (m, w) => tok(tagImg(TAGW[w])));
+  s = s.replace(/(\d+(?: \/ \d+)*) PV/g, (m, ns) => tok(ns.split(' / ').map(n => pvIcon(n, 'sm')).join('<span class="mute">/</span>')));
+  s = s.replace(/(\d+|X) Karma/g, (m, n) => tok(karmaIco(n, 18)));
+  return s.replace(/\u0001(\d+)\u0002/g, (m, k) => keep[+k]);
 }
 // Pictogrammes des bénédictions : âme gagnée (flamme chiffrée), amélioration (flamme + flèche), Karma (jeton)
 const AGECOL = l => l >= 5 ? '#b8961f' : l >= 3 ? '#c27a12' : l >= 1 ? '#4f8a33' : '#7a6650';
@@ -596,6 +609,7 @@ function askLeave(then) {
   m.onclick = e => { const b = e.target.closest('[data-ld]'); if (b) close(b.dataset.ld === '1'); else if (e.target === m) close(false); };
   m.querySelector('[data-ld="0"]').focus();
 }
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-peek]')) { e.preventDefault(); e.target.click(); } });
 document.addEventListener('click', e => { const pk = e.target.closest('[data-peek]'); if (pk) { e.preventDefault(); const w = $('#tWheel'); if (w) w.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
 document.addEventListener('click', e => {
   const a = e.target.closest('#nav a[data-v="jouer"]'); if (!a || !G) return;
@@ -702,9 +716,8 @@ function gameHTML() {
     return `<div id="tMarket${L}"><h3>Œuvres de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
   }).join('');
   const gpick = my && needGuild() && !G.pending;
-  const PEEK = `<aside class="mk-peek gsize" aria-label="Rappel de votre roue"><div class="mk-h"><span class="dot" style="background:${seats[pi].color}"></span> Roue de ${esc(seatName(pi))}</div>${wheelSVG(p, WOOD, {})}
-          <div class="mk-st"><span class="chip">Karma ${p.plans || 0}</span>${G.opts.wonderMode === 'track' ? `<span class="chip">Éveil ${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div>
-          <a class="small" href="#tWheel" data-peek>Mon plateau ↓</a></aside>`;
+  const PEEK = `<aside class="mk-peek gsize" data-peek tabindex="0" role="button" title="Roue de ${esc(seatName(pi))} — cliquer pour aller au plateau" aria-label="Rappel de la roue de ${esc(seatName(pi))}, Karma ${p.plans || 0}${G.opts.wonderMode === 'track' ? `, Éveil ${p.retired || 0} sur ${G.opts.retireStep}` : ''}. Aller au plateau.">${wheelSVG(p, WOOD, {})}
+          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 17)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/sanctuaire.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
   const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}${PEEK}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
