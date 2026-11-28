@@ -393,6 +393,15 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .mk-peek.gsize .wheel{width:168px;max-width:168px}
 .mk-peek.gsize .mk-st{font-size:13px;gap:8px}
 #tGuilds .gcard{align-self:flex-start}
+
+/* Rappel de roue en haut à droite du Marché, à hauteur du titre ; offrandes à sa hauteur */
+.mk-panel{position:relative}
+.mk-panel>.mk-peek.gsize{position:absolute;top:14px;right:14px;width:200px;margin:0;padding:6px 6px 8px;z-index:2}
+.mk-panel>.mk-peek.gsize .wheel{width:184px;max-width:184px}
+.mk-panel #tGuilds{padding-right:216px}
+#tGuilds .gcard{align-self:stretch;width:128px;min-height:150px;gap:6px}
+#tGuilds .gcard img{width:36px;height:36px}#tGuilds .gcard .gn{font-size:13.5px}
+@media(max-width:700px){.mk-panel>.mk-peek.gsize{position:static;width:auto;margin-bottom:8px}.mk-panel #tGuilds{padding-right:0}}
 </style>
 </head>
 <body>
@@ -745,7 +754,7 @@ function gameHTML() {
   const gpick = my && needGuild() && !G.pending;
   const PEEK = `<aside class="mk-peek gsize" data-peek tabindex="0" role="button" title="Roue de ${esc(seatName(pi))} — cliquer pour aller au plateau" aria-label="Rappel de la roue de ${esc(seatName(pi))}, Karma ${p.plans || 0}${G.opts.wonderMode === 'track' ? `, Éveil ${p.retired || 0} sur ${G.opts.retireStep}` : ''}. Aller au plateau.">${wheelSVG(p, WOOD, {})}
           <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 20)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/eveil.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
-  const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}${PEEK}</div></div>`;
+  const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
   const opps = G.players.map((q, i) => {
@@ -765,7 +774,7 @@ function gameHTML() {
   <section class="panel" style="margin-bottom:14px"><h2>Sanctuaires</h2><div class="wonders">${wonders}</div></section>
   <div class="table">
     <div style="display:grid;gap:14px">
-      <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
+      <section class="panel mk-panel">${PEEK}<h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
           <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
