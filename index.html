@@ -88,6 +88,7 @@ label.f{display:grid;gap:4px;font-size:14px;color:var(--mute)}
 .card.click{cursor:pointer}
 .card.can{outline:3px solid #2e8b3a;outline-offset:1px}.card.can.sel{outline-color:var(--accent)}
 .card.cant .art,.card.cant .fx,.card.cant .ft{opacity:.55}
+.canmsg.byp{background:#1565c0}
 .canmsg{background:#2e8b3a;color:#fff;font-size:11.5px;font-weight:700;text-align:center;padding:2px 4px}
 .card .hd{display:flex;align-items:center;gap:6px;padding:5px 8px 4px}
 .cz{display:flex;align-items:center;gap:3px;background:#efe4cc;border:1px solid #cfc6b4;border-radius:8px;padding:1px 5px 1px 2px;flex:none}
@@ -107,6 +108,15 @@ label.f{display:grid;gap:4px;font-size:14px;color:var(--mute)}
 .card.locked .art{filter:grayscale(.7) opacity(.7)}
 .lockmsg{font-size:11.5px;color:#6a1b9a;font-weight:700;padding:0 8px}
 .guildrows{display:grid;gap:6px;margin-top:10px}
+.matrix{display:grid;gap:3px;margin-top:10px;font-size:11.5px;align-items:stretch}
+.mx-h{text-align:center;font-weight:700;color:var(--mute);font-size:11px}
+.mx-g{display:flex;align-items:center;gap:5px;font-family:Cinzel,serif;font-weight:700;font-size:12px;white-space:nowrap;padding-right:4px}.mx-g img{width:20px;height:20px;border-radius:4px}.mx-f{font-family:inherit;font-weight:400;color:var(--mute);font-size:11px}
+.mx-s{border:1px dashed var(--line);border-radius:5px;text-align:center;padding:4px 1px;color:var(--mute);white-space:nowrap;min-width:0;overflow:hidden}
+.mx-s.on{border:1px solid #5d4a2f;background:var(--card);color:var(--cardink);font-weight:700}
+.mx-s.next{border:2px solid var(--gold);color:var(--ink)}
+.mx-c{text-align:center;color:var(--line);font-size:14px;line-height:1.2}.mx-c.on{color:#2e8b3a;font-weight:700}
+.colb{color:#1f6b1a;font-weight:700;font-size:11.5px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .grow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13px}
 .grow img{width:26px;height:26px;border-radius:5px}
 .grow .gn{font-family:Cinzel,serif;font-weight:700;min-width:84px}.grow .chip{font-size:11.5px;padding:1px 7px;white-space:normal}
@@ -319,7 +329,7 @@ function cardHTML(card, o = {}) {
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz"><span class="small" style="color:#6b6457">apporte</span>${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
   return `<div class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
-    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${o.can ? (o.can.ok ? '<div class="canmsg">✔ Constructible</div>' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
+    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Constructible${o.can.byp ? ` avec ${E.BYPASS_COST} Savoir (${o.can.byp})` : ''}</div>` : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
     <div class="ft"><span class="lv">Niv. ${card.lvl}</span>${giveZone}</div>${o.extra || ''}</div>`;
@@ -411,7 +421,7 @@ function heroHTML() {
     <div class="board"><img src="img/roue.jpg" alt="Le plateau-roue d’Empires, avec les cases 0 à 5 et la flèche vers les Merveilles"><svg viewBox="0 0 100 95" aria-hidden="true">${meeples}</svg></div>
   </section>
   <section class="steps">
-    <div class="step"><span class="num">1</span><div><h3>Prenez une guilde</h3><p>Choisissez une des 4 cartes de guilde visibles et appliquez son effet : ouvriers, expérience ou Plans.</p></div></div>
+    <div class="step"><span class="num">1</span><div><h3>Prenez une guilde</h3><p>Choisissez une des 4 cartes de guilde visibles et appliquez l’effet de sa rangée : ouvriers, expérience ou Savoir.</p></div></div>
     <div class="step"><span class="num">2</span><div><h3>Construisez ou tournez</h3><p>Payez un bâtiment avec la somme des niveaux de vos ouvriers, ou faites tourner votre roue d’un cran pour leur faire gagner un niveau.</p></div></div>
     <div class="step"><span class="num">3</span><div><h3>Visez les Merveilles</h3><p>Après le niveau 5, vos vétérans partent à la retraite. Deux retraités : un marqueur sur une Merveille, et une nouvelle génération.</p></div></div>
   </section>`;
@@ -500,14 +510,14 @@ function gameHTML() {
     return `<div><h3>Bâtiments de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
   }).join('');
   const gpick = my && needGuild() && !G.pending;
-  const guildRow = `<div><h3>Cartes de guilde <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la carte de guilde ${esc(c.name)}"` : ''}><img src="img/${c.g}.png" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${esc(E.opsTxt(c.d))}</div></div>`; }).join('') || '<span class="note">Plus de cartes de guilde.</span>'}</div></div>`;
+  const guildRow = `<div><h3>Cartes de guilde <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la carte de guilde ${esc(c.name)}"` : ''}><img src="img/${c.g}.png" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus de cartes de guilde.</span>'}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
   const opps = G.players.map((q, i) => {
     const s = E.scoreOf(G, i);
     return `<div class="oppc ${i === G.cur ? 'cur' : ''}"><div class="row" style="justify-content:space-between"><strong><span class="dot" style="background:${seats[i].color}"></span> ${esc(seatName(i))}</strong><span class="chip pvi">${pvIcon(s.total, 'sm')}</span></div>
       <div class="ow" style="margin-top:6px">${q.wheel.map((n, l) => `<span title="niveau ${l}">${l}:${n}</span>`).join('')}</div>
-      <div class="small mute">${G.opts.supply === 'cycle' ? `Ouvriers ${E.wheelCount(q) + q.grid.filter(c => c && c.occ).length}` : `Réserve ${q.reserve} · Bloqués ${q.locked}`} · Plans ${q.plans || 0}</div>
+      <div class="small mute">${G.opts.supply === 'cycle' ? `Ouvriers ${E.wheelCount(q) + q.grid.filter(c => c && c.occ).length}` : `Réserve ${q.reserve} · Bloqués ${q.locked}`} · Savoir ${q.plans || 0}</div>
       ${q.guilds ? `<div class="row small" style="gap:8px;margin-top:4px">${E.GUILDS.map(g => `<span title="${E.GUILD_NAMES[g]}"><img src="img/${g}.png" alt="${E.GUILD_NAMES[g]}" style="width:16px;height:16px;vertical-align:-3px;border-radius:3px"> ${q.guilds[g].length}</span>`).join('')}</div>` : ''}
       <div class="minicity">${q.grid.map(c => c ? `<div data-hc="${c.id}" tabindex="0" style="background:${TAGC[Object.keys(E.BY_ID[c.id].t)[0]] || '#7a6a55'};color:#fff;cursor:help">${esc(E.BY_ID[c.id].name)}</div>` : '<div></div>').join('')}</div></div>`;
   }).join('');
@@ -523,11 +533,11 @@ function gameHTML() {
       <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" title="Chaque Plan réduit de 1 le coût d’un bâtiment (utilisé automatiquement)">Plans ${p.plans || 0}</span></div></div>
+          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" title="1 Savoir = 1 de moins sur le coût d’un bâtiment (utilisé automatiquement). 2 Savoir = ignorer le prérequis et le cadre d’un bâtiment.">Savoir ${p.plans || 0}</span></div></div>
         ${panel}
         <div class="me" style="margin-top:12px">
           <div>${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les ouvriers qui dépassent le niveau 5 attendent ici. À ${G.opts.retireStep} : un marqueur sur une Merveille, et ils reviennent au niveau 0."><img src="img/merveille.png" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Retraite</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${MEEPLE}"/></svg>`).join('')}</div>` : ''}
-            <div class="guildrows">${E.GUILDS.map(g => `<div class="grow"><img src="img/${g}.png" alt=""><span class="gn">${E.GUILD_NAMES[g]} · ${p.guilds[g].length}</span>${p.guilds[g].map(id => `<span class="chip" title="${esc(E.opsTxt(E.BY_ID[id].d))}">${esc(shortFx(E.BY_ID[id].d))}</span>`).join('')}</div>`).join('')}</div>${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Zones : <b class="zone" style="background:#e8cfa6">bronze 1-2</b> <b class="zone" style="background:#d2d8de">argent 3-4</b> <b class="zone" style="background:#e8c75f">or 5</b></p>` : ''}</div>
+            ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Zones : <b class="zone" style="background:#e8cfa6">bronze 1-2</b> <b class="zone" style="background:#d2d8de">argent 3-4</b> <b class="zone" style="background:#e8c75f">or 5</b></p>` : ''}</div>
           <div><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div>
             <p class="note">Ville 3 × 3 : chaque nouveau bâtiment touche un bâtiment déjà construit. Passez la souris sur un bâtiment pour revoir ses effets.</p></div>
         </div>
@@ -539,8 +549,28 @@ function gameHTML() {
     </aside>
   </div>`;
 }
+// Ce qu'une carte de guilde rapporte à ce joueur, selon le rang qu'elle prendrait dans sa rangée
+function guildGain(p, g) {
+  if (g === 'voy') return 'Joker : rangée au choix, avec l’effet de cette rangée.';
+  const k = p.guilds[g].length + 1, col = E.GUILDS.every(x => x === g || p.guilds[x].length >= k);
+  return `<span class="small mute">${k === 1 ? '1ʳᵉ' : k + 'ᵉ'} carte de votre rangée</span><br><strong>${esc(E.matrixText(g, k))}</strong>${col ? '<br><span class="colb">+ colonne complète : la roue tourne</span>' : ''}`;
+}
+const MSHORT = { mar: k => 'niv. ' + Math.min(5, k - 1), art: k => '+' + k, eru: k => k + ' Sav.' };
+// Matrice de guildes du plateau : 3 rangées, l'effet grandit avec le rang ; colonne complète = la roue tourne
+function matrixHTML(p) {
+  const cols = E.guildColumns(p), maxLen = Math.max(6, ...E.GUILDS.map(g => p.guilds[g].length));
+  const W = Math.min(maxLen, 8);
+  const head = `<div class="mx-h"></div>${Array.from({ length: W }, (_, i) => `<div class="mx-h">${i + 1 === W && maxLen > W ? i + 1 + '+' : i + 1}</div>`).join('')}`;
+  const rows = ['mar', 'art', 'eru'].map(g => {
+    const n = p.guilds[g].length;
+    return `<div class="mx-g" title="${esc(E.guildText(g))}"><img src="img/${g}.png" alt=""><span>${E.GUILD_NAMES[g]}</span></div>${Array.from({ length: W }, (_, i) => { const k = i + 1, on = k <= n || (k === W && n > W); return `<div class="mx-s ${on ? 'on' : ''} ${k === n + 1 ? 'next' : ''}" title="${esc(E.matrixText(g, k))}${on ? ' (carte posée)' : ''}">${MSHORT[g](k)}${on ? '<span class="vh"> (posée)</span>' : ''}</div>`; }).join('')}`;
+  }).join('');
+  const foot = `<div class="mx-g mx-f" title="Dès qu’une colonne contient une carte de chaque guilde, votre roue tourne">Colonne</div>${Array.from({ length: W }, (_, i) => `<div class="mx-c ${i < cols ? 'on' : ''}" title="${i < cols ? 'Colonne complète : la roue a tourné' : 'Colonne incomplète'}">↻${i < cols ? '<span class="vh"> complète</span>' : ''}</div>`).join('')}`;
+  return `<div class="matrix" style="grid-template-columns:minmax(92px,auto) repeat(${W},1fr)" role="group" aria-label="Matrice de guildes : Marchands ${p.guilds.mar.length}, Artisans ${p.guilds.art.length}, Érudits ${p.guilds.eru.length}, ${cols} colonne${cols > 1 ? 's' : ''} complète${cols > 1 ? 's' : ''}">${head}${rows}${foot}</div>
+    <p class="note" style="margin:.4em 0 0">Chaque carte se pose à la suite dans sa rangée et donne l’effet de sa case. Une colonne complète fait tourner la roue.</p>`;
+}
 function cellHTML(p, c, i, my) {
-  const legal = my && sel && canBuildNow() && E.legalCells(G, G.cur, E.BY_ID[G.market[sel.L][sel.idx]]).includes(i) && affordable(sel, i);
+  const legal = my && sel && canBuildNow() && affordable(sel, i);
   if (!c) return `<div class="cell ${legal ? 'legal' : ''}" ${legal ? `data-cell="${i}" tabindex="0" role="button"` : ''}>${legal ? 'Construire ici' : ''}</div>`;
   const card = E.BY_ID[c.id];
   const act = my && !G.pending && !G.actUsed && card.act && !c.occ && E.wheelCount(p) > 0 && !(sel);
@@ -551,19 +581,34 @@ function cellHTML(p, c, i, my) {
 // Puis-je construire cette carte du marché avec ma roue actuelle ? Sinon, pourquoi.
 function buildInfo(L, idx) {
   const card = E.BY_ID[G.market[L][idx]];
+  const all = E.legalCells(G, G.cur, card, true);
+  if (!all.length) return { ok: false, why: 'Aucun emplacement libre' };
+  const plans = all.map(c => buildPlan({ L, idx }, c)).filter(Boolean);
+  if (plans.some(x => !x.bypass)) return { ok: true };
+  if (plans.length) return { ok: true, byp: card.req && card.f ? 'prérequis et cadre ignorés' : card.req ? 'prérequis ignoré' : 'cadre ignoré' };
   if (!E.prereqOk(G, G.cur, card)) return { ok: false, why: 'Prérequis non rempli' };
   const cells = E.legalCells(G, G.cur, card);
-  if (!cells.length) return { ok: false, why: 'Aucun emplacement libre' };
-  if (cells.some(c => affordable({ L, idx }, c))) return { ok: true };
   const fm = E.frameMin(G, card), w = G.players[G.cur].wheel;
   if (fm === 5 && !w[5]) return { ok: false, why: 'Il faut un ouvrier de niveau 5' };
   if (fm === 3 && !(w[3] + w[4] + w[5])) return { ok: false, why: 'Il faut un ouvrier de niveau 3 ou plus' };
   if (fm < 0) return { ok: false, why: 'Pas assez d’ouvriers de niveau 1 ou 2' };
   return { ok: false, why: 'Ouvriers insuffisants' };
 }
+// Comment payer cette carte à cet emplacement : paiement normal, ou en dépensant 2 Savoir pour ignorer prérequis et cadre
+function buildPlan(s, cell) {
+  const card = E.BY_ID[G.market[s.L][s.idx]], p = G.players[G.cur];
+  if (E.legalCells(G, G.cur, card).includes(cell)) {
+    const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell), payMode, E.frameMin(G, card));
+    if (pay) return { pay };
+  }
+  if (G.opts.matrix && (p.plans || 0) >= E.BYPASS_COST && (card.req || card.f) && E.legalCells(G, G.cur, card, true).includes(cell)) {
+    p.plans -= E.BYPASS_COST; const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell), payMode, 0); p.plans += E.BYPASS_COST;
+    if (pay) return { pay, bypass: true };
+  }
+  return null;
+}
 function affordable(s, cell) {
-  const card = E.BY_ID[G.market[s.L][s.idx]], reqs = E.effectiveCost(G, G.cur, card, cell);
-  return !!E.autoPay(G.players[G.cur].wheel, reqs, payMode, E.frameMin(G, card));
+  return !!buildPlan(s, cell);
 }
 let pickFor = null; // {kind:'activate', cell} | {kind:'token'}
 function pickingLevel() { return !!pickFor || (G.pending && G.pending.type === 'progress'); }
@@ -602,8 +647,8 @@ function pendingHTML() {
     const lbl = pd.label === 'line' ? ['La ligne', 'La colonne'] : pd.options.map(o => E.opsTxt(o));
     return `<div class="row"><strong>${pd.label === 'line' ? 'Activer quelle ligne de la ville ?' : 'Choisissez :'}</strong>${lbl.map((t, i) => `<button data-res="${i}">${esc(t)}</button>`).join('')}</div>`;
   }
-  if (pd.type === 'guildRow') return `<div><strong>${esc(E.BY_ID[pd.id].name)} est une carte Voyageurs : dans quelle rangée de guilde la ranger ?</strong><div class="row" style="margin-top:6px">${pd.options.map(g => `<button data-ress="${g}"><img src="img/${g}.png" alt="" style="width:20px;height:20px;vertical-align:-5px;border-radius:3px"> ${E.GUILD_NAMES[g]} (${p.guilds[g].length})</button>`).join('')}</div></div>`;
-  if (pd.type === 'takeGuild') return `<div><strong>Prenez une carte de guilde et appliquez son effet :</strong><div class="row" style="margin-top:6px">${pd.options.map(i => { const c = E.BY_ID[G.grow[i]]; return `<button data-res="${i}"><img src="img/${c.g}.png" alt="" style="width:18px;height:18px;vertical-align:-4px;border-radius:3px"> ${esc(c.name)} : ${esc(shortFx(c.d))}</button>`; }).join('')}</div></div>`;
+  if (pd.type === 'guildRow') return `<div><strong>${esc(E.BY_ID[pd.id].name)} est une carte Voyageurs : dans quelle rangée de guilde la ranger ?</strong><div class="row" style="margin-top:6px">${pd.options.map(g => `<button data-ress="${g}"><img src="img/${g}.png" alt="" style="width:20px;height:20px;vertical-align:-5px;border-radius:3px"> ${E.GUILD_NAMES[g]} : ${esc(E.matrixText(g, p.guilds[g].length + 1))}${E.GUILDS.every(x => x === g || p.guilds[x].length >= p.guilds[g].length + 1) ? ' + la roue tourne' : ''}</button>`).join('')}</div></div>`;
+  if (pd.type === 'takeGuild') return `<div><strong>Prenez une carte de guilde et appliquez son effet :</strong><div class="row" style="margin-top:6px">${pd.options.map(i => { const c = E.BY_ID[G.grow[i]]; return `<button data-res="${i}"><img src="img/${c.g}.png" alt="" style="width:18px;height:18px;vertical-align:-4px;border-radius:3px"> ${esc(c.name)}${c.g === 'voy' ? ' (joker)' : ' : ' + esc(E.matrixText(c.g, p.guilds[c.g].length + 1))}</button>`; }).join('')}</div></div>`;
   if (pd.type === 'retire') { const need = E.retireNeed(p, G);
     return `<div><strong>Un ouvrier dépasse la case 5. Que fait-il ?</strong><div class="row" style="margin-top:6px"><button data-ress="zone">Attendre dans la zone de retraite (${(p.retired || 0) + 1} / ${need}${(p.retired || 0) + 1 >= need ? ' : marqueur Merveille !' : ''})</button><button data-ress="zero">Revenir tout de suite au niveau 0</button></div></div>`; }
   if (pd.type === 'eject') return `<div><strong>Un ouvrier dépasse la case 5 et part à la retraite. Sur quelle Merveille ?</strong><div class="row" style="margin-top:6px">${pd.options.map(wi => { const W = E.W_BY_ID[G.wonders[wi].id]; return `<button data-res="${wi}">${esc(W.name)} (+${E.wonderPoints(G, G.cur, wi, G.wonders[wi].slots.length)} PV)</button>`; }).join('')}</div></div>`;
@@ -903,28 +948,38 @@ function rulesHTML() {
   <p>Chaque joueur commence avec 5 ouvriers en bois sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2). Tous les autres ouvriers forment la réserve générale, commune. Chaque joueur a des marqueurs à sa couleur pour les Merveilles. Marché : 4 bâtiments visibles de niveau 1 et 4 de niveau 2, et une rangée de 4 cartes de guilde visibles (paquet séparé de 66 petites cartes). Merveilles : nombre de joueurs + 2, tirées au hasard parmi 16, en rangée au-dessus des bâtiments de niveau 2.</p>
   <h3>Tour de jeu</h3>
   <p><strong>Chaque tour se joue en deux temps :</strong></p>
-  <ul><li><strong>1. Prenez une carte de guilde</strong> parmi les 4 visibles et appliquez son effet. Les cartes de guilde forment un paquet à part de petites cartes (41 × 63 mm) : Artisans (faire progresser des ouvriers), Marchands (gagner des ouvriers), Érudits (gagner des Plans) et Voyageurs (joker : un effet au choix, rangée au choix). Rangez la carte à gauche de votre plateau, dans la rangée de sa guilde. Il n’y a pas de cascade : seule la nouvelle carte agit. <strong>Garde-fou</strong> : si l’effet ne peut pas s’appliquer (case 0 pleine, roue vide), prenez 1 Plan à la place. <strong>Plan</strong> : jeton qui réduit de 1 le coût de votre prochaine construction ; utilisé automatiquement, il ne vaut aucun point. Vos rangées de guilde servent aux réductions de guilde et à certains scores de bâtiments (Forum, Grand marché, Comptoir).</li>
+  <ul><li><strong>1. Prenez une carte de guilde</strong> parmi les 4 visibles. Les cartes de guilde forment un paquet à part de petites cartes (41 × 63 mm) sans texte : Marchands, Artisans, Érudits, et quelques Voyageurs (joker). Posez la carte sur votre plateau, à la suite dans la rangée de sa guilde, et appliquez l’effet de la case qu’elle occupe (voir « La matrice de guildes »).</li>
   <li><strong>2. Puis, au choix : construisez un bâtiment</strong> (prenez une carte visible, payez son coût, posez-la dans votre ville à droite du plateau ; le marché est complété aussitôt) <strong>ou tournez votre roue d’un cran</strong>.</li></ul>
-  <p><strong>À 2 joueurs</strong>, le second joueur commence avec 1 Plan.</p>
+  <p><strong>À 2 joueurs</strong>, le second joueur commence avec 1 Savoir.</p>
+  <h3>La matrice de guildes</h3>
+  <p>Votre plateau porte trois rangées. Plus une rangée est longue, plus son effet est fort : la carte que vous posez donne l’effet de son rang.</p>
+  <div class="scroll"><table><thead><tr><th>Carte n°</th><th class="n">1</th><th class="n">2</th><th class="n">3</th><th class="n">4</th><th class="n">5</th><th class="n">6 et plus</th></tr></thead><tbody>
+  <tr><td><strong>Marchands</strong> : gagnez 1 ouvrier de niveau…</td><td class="n">0</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td></tr>
+  <tr><td><strong>Artisans</strong> : niveaux à répartir entre vos ouvriers</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr>
+  <tr><td><strong>Érudits</strong> : Savoir gagné</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr></tbody></table></div>
+  <p><strong>Colonne complète.</strong> Dès qu’une colonne contient une carte de chaque guilde (votre 1re carte de chaque rangée, puis votre 2e de chaque, etc.), <strong>tournez votre roue</strong>. Se spécialiser renforce une rangée ; se diversifier fait tourner la roue.</p>
+  <p><strong>Voyageurs (joker).</strong> La carte va dans la rangée de votre choix et donne l’effet de cette rangée.</p>
+  <p><strong>Savoir.</strong> Une ressource qui se cumule. <strong>1 Savoir</strong> réduit de 1 le coût d’un bâtiment (utilisé automatiquement quand vous construisez). <strong>2 Savoir</strong> permettent d’ignorer le prérequis et le cadre d’un bâtiment pour une construction. Le Savoir ne vaut aucun point en fin de partie, sauf effet de carte.</p>
+  <p>Vos rangées servent aussi aux réductions de guilde et à certains scores (Forum, Grand marché, Comptoir, Grand Bazar). Le premier ouvrier des Marchands arrive au niveau 0 : il n’est gagné que s’il y a moins de 3 ouvriers dans votre case 0.</p>
 
   <h3>Payer un bâtiment</h3>
-  <p>Le coût est un chiffre, en haut à gauche de la carte. Dépensez des ouvriers de votre roue dont la somme des niveaux atteint ce chiffre ; un ouvrier de niveau 0 ne vaut rien. Il est interdit d’ajouter un ouvrier inutile. <strong>Les ouvriers dépensés retournent au niveau 0 de votre roue</strong> : payer, c’est perdre l’expérience de ses ouvriers, pas les ouvriers eux-mêmes. Exception : les bâtiments marqués <strong>Sacrifice</strong> (à cadre or) font quitter la roue aux ouvriers dépensés. Les réductions (Plans, guildes, bâtiments) s’appliquent au chiffre.</p>
+  <p>Le coût est un chiffre, en haut à gauche de la carte. Dépensez des ouvriers de votre roue dont la somme des niveaux atteint ce chiffre ; un ouvrier de niveau 0 ne vaut rien. Il est interdit d’ajouter un ouvrier inutile. <strong>Les ouvriers dépensés retournent au niveau 0 de votre roue</strong> : payer, c’est perdre l’expérience de ses ouvriers, pas les ouvriers eux-mêmes. Exception : les bâtiments marqués <strong>Sacrifice</strong> (à cadre or) font quitter la roue aux ouvriers dépensés. Les réductions (Savoir, guildes, bâtiments) s’appliquent au chiffre.</p>
   <h3>Pourquoi ce tour de jeu</h3>
-  <p>Avec l’ancien tour (guilde ou construction), les simulations donnaient environ 10 actions de guilde pour 5 à 6 bâtiments. Avec « une carte de guilde, puis construire ou tourner la roue », on construit environ deux tours sur trois : 9 à 10 tours et 6 à 7 bâtiments par joueur, et la partie se termine tantôt par les Merveilles, tantôt par une ville complète. Les bâtiments et les guildes sont deux paquets séparés : personne ne peut vous prendre un bâtiment en guilde.</p>
+  <p>Avec l’ancien tour (guilde ou construction), les simulations donnaient environ 10 actions de guilde pour 5 à 6 bâtiments. Avec « une carte de guilde, puis construire ou tourner la roue », on construit environ trois tours sur quatre : 8 à 9 tours et 6 à 7 bâtiments par joueur, et la partie se termine tantôt par les Merveilles, tantôt par une ville complète. Les bâtiments et les guildes sont deux paquets séparés : personne ne peut vous prendre un bâtiment en guilde.</p>
   <h3>Conditions sur les cartes (une seule par carte)</h3>
   <p><strong>Réduction de guilde</strong> (quelques cartes) : le bâtiment coûte 1 de moins par carte de sa guilde dans votre rangée, 3 de moins au maximum. <strong>Prérequis de tags</strong> (la plupart des cartes de niveau 2) : il faut déjà avoir ces tags dans sa ville ; le Joker ne compte pas. <strong>Prérequis Merveille</strong> (les cartes les plus fortes) : avoir au moins 1 marqueur sur une Merveille. Les cartes à prérequis coûtent 1 de moins qu’avant ; les cartes à réduction de guilde coûtent 2 de plus, pour que la réduction soit un vrai avantage.</p>
   <p><strong>Nombre de cartes</strong> : 48 bâtiments de niveau 1 et 42 de niveau 2 (cartes carrées de 7 × 7 cm, un exemplaire de chacun), 66 cartes de guilde (41 × 63 mm) et 16 Merveilles. Si les cartes de guilde ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p><p><strong>Les quatre tags</strong> ont chacun leur style : <strong>Prospérité</strong> fait grandir la population (gagner des ouvriers), <strong>Militaire</strong> forme des vétérans (ouvriers de haut niveau, zone de retraite, marqueurs), <strong>Science</strong> fait tourner le moteur (progression, roue, réductions, effets permanents), <strong>Culture</strong> marque des points (placement dans la ville, lignes, colonnes, voisins). Une carte porte un tag, deux fois le même, deux tags différents, aucun, ou très rarement les quatre (Palais).</p>
   <h3>Cadres bronze, argent et or</h3>
-  <p>La roue a trois zones : <strong>bronze</strong> (niveaux 1-2), <strong>argent</strong> (3-4) et <strong>or</strong> (5). Un bâtiment à cadre argent se paie avec au moins un ouvrier de niveau 3 ou plus ; à cadre or, avec au moins un ouvrier de niveau 5. Plusieurs jeunes ouvriers ne suffisent pas. Le reste du coût se complète normalement. Les cadres touchent quelques cartes de niveau 1 (Marché, Palissade, Caserne en argent ; Ferme, Villa en or) et la plupart des grandes cartes de niveau 2 (Trésor royal, Fortifications, Académie, Panthéon, Palais en or). Un ouvrier en zone or est donc tiraillé : il peut payer un grand bâtiment, ou partir à la retraite sur une Merveille. À l’inverse, un bâtiment à <strong>cadre bronze</strong> (Lavoir, Camp d’entraînement, École, Faubourg, Maison commune) se paie uniquement avec des ouvriers de niveau 1 ou 2 : il récompense les joueurs qui ont beaucoup de jeunes ouvriers.</p>
+  <p>La roue a trois zones : <strong>bronze</strong> (niveaux 1-2), <strong>argent</strong> (3-4) et <strong>or</strong> (5). Un bâtiment à cadre argent se paie avec au moins un ouvrier de niveau 3 ou plus ; à cadre or, avec au moins un ouvrier de niveau 5. Plusieurs jeunes ouvriers ne suffisent pas. Le reste du coût se complète normalement. Les cadres touchent quelques cartes de niveau 1 (Marché, Palissade, Caserne en argent ; Ferme, Villa en or) et la plupart des grandes cartes de niveau 2 (Trésor royal, Fortifications, Académie, Panthéon, Palais en or). Avec 2 Savoir, on peut ignorer le cadre d’un bâtiment. Un ouvrier en zone or est donc tiraillé : il peut payer un grand bâtiment, ou partir à la retraite sur une Merveille. À l’inverse, un bâtiment à <strong>cadre bronze</strong> (Lavoir, Camp d’entraînement, École, Faubourg, Maison commune) se paie uniquement avec des ouvriers de niveau 1 ou 2 : il récompense les joueurs qui ont beaucoup de jeunes ouvriers.</p>
   <h3>Ville</h3>
   <p>Grille 3 × 3. Le premier bâtiment se place n’importe où, les suivants à côté d’un bâtiment existant. Le placement compte : certains bâtiments marquent selon leur ligne, leur colonne, leurs voisins ou leur position dans un coin, et l’Étude redéclenche l’effet immédiat de ses voisins.</p>
   <h3>La roue</h3>
-  <p><strong>Un cycle continu.</strong> Un ouvrier qui entre sur votre roue y reste. « Tournez votre roue » fait avancer tous vos ouvriers d’une case. Un ouvrier qui dépasse le niveau 5 part à la retraite, et vous choisissez : soit il revient tout de suite au niveau 0, soit il attend dans la <strong>zone de retraite</strong> de votre plateau (2 emplacements). Quand elle est pleine, vous posez un marqueur sur une Merveille de votre choix (place libre la plus à gauche), puis les 2 ouvriers reviennent ensemble au niveau 0. Pendant leur attente, ils ne servent à rien. « Gagnez un ouvrier de niveau 0 » en prend un dans la réserve générale, s’il y a moins de 3 ouvriers dans votre case 0 ; sinon, le garde-fou des guildes donne un Plan. Un ouvrier gagné à un niveau supérieur n’a pas cette limite. On ne perd des ouvriers qu’avec les bâtiments Sacrifice.</p>
+  <p><strong>Un cycle continu.</strong> Un ouvrier qui entre sur votre roue y reste. « Tournez votre roue » fait avancer tous vos ouvriers d’une case. Un ouvrier qui dépasse le niveau 5 part à la retraite, et vous choisissez : soit il revient tout de suite au niveau 0, soit il attend dans la <strong>zone de retraite</strong> de votre plateau (2 emplacements). Quand elle est pleine, vous posez un marqueur sur une Merveille de votre choix (place libre la plus à gauche), puis les 2 ouvriers reviennent ensemble au niveau 0. Pendant leur attente, ils ne servent à rien. « Gagnez un ouvrier de niveau 0 » en prend un dans la réserve générale, s’il y a moins de 3 ouvriers dans votre case 0 ; sinon il n’est pas gagné. Un ouvrier gagné à un niveau supérieur n’a pas cette limite. On ne perd des ouvriers qu’avec les bâtiments Sacrifice.</p>
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
   <h3>Merveilles et fin de partie</h3>
   <p>Chaque Merveille a 3 places de valeur dégressive. Par défaut, les points sont comptés <strong>à l’arrivée de l’ouvrier</strong>, avec vos tags à ce moment-là (option : en fin de partie). Un joueur peut poser plusieurs marqueurs sur la même Merveille. Si toutes les places sont prises, aucun marqueur n’est posé. La fin est déclenchée quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville atteint 9 bâtiments. On termine alors le tour de table. Égalité : le plus d’ouvriers sur la roue.</p>
   <h3>Équilibrage</h3>
-  <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 9 à 10 tours et 6 à 7 bâtiments par joueur, un score gagnant proche de 42 PV, et une fin par les Merveilles dans environ 4 parties sur 10 (les autres par une ville complète), à 2, 3 et 4 joueurs. <strong>Idées retirées</strong> pour alléger le jeu : l’activation d’un bâtiment en y posant un ouvrier (très peu utilisée ; ces effets sont devenus des effets immédiats), les effets « reprenez un ouvrier », les jetons Bonus (remplacés par des PV), le déblocage d’ouvriers (remplacé par « gagnez un ouvrier de niveau 2 »). Cartes atypiques conservées : la Grue (un bâtiment de niveau 2 peut la recouvrir) et quatre cartes « si vous avez 1 tag de chaque type ».</p>
+  <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 8 à 9 tours et 6 à 7 bâtiments par joueur, et une fin par les Merveilles dans environ une partie sur trois (les autres par une ville complète), à 2, 3 et 4 joueurs. Les trois rangées de guilde sont choisies à parts à peu près égales. <strong>Idées retirées</strong> pour alléger le jeu : l’activation d’un bâtiment en y posant un ouvrier (très peu utilisée ; ces effets sont devenus des effets immédiats), les effets « reprenez un ouvrier », les jetons Bonus (remplacés par des PV), le déblocage d’ouvriers (remplacé par « gagnez un ouvrier de niveau 2 »), les Plans et les cartes de guilde à effets variés (remplacés par la matrice de guildes et le Savoir). Cartes atypiques conservées : la Grue (un bâtiment de niveau 2 peut la recouvrir) et quatre cartes « si vous avez 1 tag de chaque type ».</p>
   <h3>Questions encore ouvertes</h3>
   <ul><li>Roue de départ (5 ouvriers : 2 au niveau 0, 2 au niveau 1, 1 au niveau 2).</li><li>Valeur des Merveilles, non réglées une par une.</li><li>Les bots jouent correctement mais pas comme des experts : tout est à confirmer en vraies parties.</li></ul>
   </section>`;
@@ -993,9 +1048,9 @@ document.addEventListener('click', e => {
   if (ds.guild) return act({ type: 'guild', L: +ds.guild });
   if (ds.cell != null && sel) {
     const cell = +ds.cell, card = E.BY_ID[G.market[sel.L][sel.idx]];
-    const pay = E.autoPay(G.players[G.cur].wheel, E.effectiveCost(G, G.cur, card, cell), payMode, E.frameMin(G, card));
-    if (!pay) return toast('Vous ne pouvez pas payer ce bâtiment.');
-    return act({ type: 'build', L: sel.L, idx: sel.idx, cell, pay });
+    const bp = buildPlan(sel, cell);
+    if (!bp) return toast('Vous ne pouvez pas payer ce bâtiment.');
+    return act({ type: 'build', L: sel.L, idx: sel.idx, cell, pay: bp.pay, bypass: !!bp.bypass });
   }
   if (ds.act != null) { pickFor = { kind: 'activate', cell: +ds.act }; return render(); }
   if (id === 'useToken') { pickFor = { kind: 'token' }; return render(); }

@@ -32,7 +32,7 @@ Le second argument est un objet JSON d'options qui remplace les valeurs de `DEFA
 
 À son tour, un joueur :
 
-1. prend une des 4 cartes de guilde visibles et applique son effet ;
+1. prend une des 4 cartes de guilde visibles, la pose dans sa rangée et applique l'effet de son rang (matrice de guildes : ouvriers, niveaux ou Savoir ; une colonne complète fait tourner la roue) ;
 2. puis construit un bâtiment **ou** tourne sa roue d'un cran.
 
 La partie se termine quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville compte 9 bâtiments. Les règles complètes sont dans l'onglet « Règles » de l'app.

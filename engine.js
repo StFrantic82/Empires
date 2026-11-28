@@ -90,7 +90,7 @@ const CARDS = [
   { id: 'b17', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'or', sx: true, name: 'Académie', t: { S: 3 }, v: 7, c: [3, 3], pv: 4, perm: { discount: 1 }, d: [{ op: 'turn', n: 2 }, { op: 'progress', n: 1, by: 1 }] },
   { id: 'b18', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Panthéon', t: { C: 3 }, c: [3, 4], pv: 8, d: [{ op: 'vp', n: 3 }] },
   { id: 'b19', lvl: 2, g: 'voy', req: { tags: { all: 1 } }, f: 'ag', name: 'Palais', t: { P: 1, M: 1, S: 1, C: 1 }, c: [1, 2, 3], pv: 6, d: [{ op: 'turn', n: 2 }] },
-  { id: 'b20', lvl: 2, g: 'mar', req: { wonder: 1 }, name: 'Chancellerie', t: {}, c: [1, 2], pv: 4, imm: [{ op: 'retrigger', times: 2 }], d: [{ op: 'retrigger', times: 1 }] },
+  { id: 'b20', lvl: 2, g: 'mar', req: { wonder: 1 }, name: 'Chancellerie', t: {}, v: 4, c: [1, 3], pv: 4, imm: [{ op: 'retrigger', times: 2 }], d: [{ op: 'retrigger', times: 1 }] },
   { id: 'b21', lvl: 2, g: 'eru', gd: true, name: 'Hôtel des monnaies', t: { J: 1 }, c: [1, 1, 2], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 5 }], d: [{ op: 'gain', n: 1, lvl: 4 }] },
   { id: 'b22', lvl: 2, g: 'art', gd: true, name: 'Grand marché', t: {}, end: { guild: 'mar', pts: 1 }, c: [1, 3, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 4 }], d: [{ op: 'gain', n: 2, lvl: 2 }] },
   { id: 'b23', lvl: 2, g: 'mar', gd: true, name: 'Jardins', t: { J: 1 }, v: 8, c: [2, 2, 3], pv: 2, end: { lines: 2 }, d: [{ op: 'vp', n: 2 }] },
@@ -106,7 +106,7 @@ const CARDS = [
   { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Halle aux grains', t: { P: 1 }, c: [2, 2], pv: 4, perm: { cap: 2 }, d: D.A },
   { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Conservatoire', t: { S: 1 }, c: [2, 2], pv: 3, perm: { discount: 1, tag: 'S' }, d: D.A },
   { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Arc de triomphe', t: { M: 1 }, c: [3, 5], pv: 5, end: { markers: 2 }, d: D.A },
-  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Oracle', t: { S: 1 }, c: [2, 2], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
+  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Oracle', t: { S: 1 }, v: 5, c: [2, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
   { id: 'b46', lvl: 2, g: 'eru', gd: true, name: 'Archives impériales', t: { S: 1 }, c: [2, 4], pv: 2, end: { guildMax: 1 }, d: D.A },
   { id: 'b49', lvl: 2, g: 'eru', req: { wonder: 1 }, name: 'Hospice des vétérans', t: { C: 1 }, c: [2, 3], pv: 3, perm: { retireLvl: 2 }, d: D.A },
   { id: 'b50', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Caserne des vétérans', t: { M: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'zone', n: 1, min: 3 }], d: D.A },
@@ -127,12 +127,8 @@ for (const c of CARDS) { if (!c.gd) delete c.g; delete c.d; }
 const GCARDS = [];
 {
   const P = (n, by) => ({ op: 'progress', n, by, fb: true }), W = (n, lvl) => ({ op: 'gain', n, lvl, fb: true }), K = n => ({ op: 'plan', n });
-  const SETS = {
-    art: [[6, [P(1, 1)]], [5, [P(2, 1)]], [4, [P(1, 2)]], [2, [P(3, 1)]], [1, [P(1, 3)]], [1, [P(1, 1), K(1)]], [1, [P(1, 1), W(1, 0)]]],
-    mar: [[6, [W(1, 0)]], [5, [W(2, 0)]], [4, [W(1, 1)]], [2, [W(1, 2)]], [1, [W(3, 0)]], [1, [W(1, 0), K(1)]], [1, [W(1, 0), P(1, 1)]]],
-    eru: [[7, [K(1)]], [6, [K(2)]], [2, [K(3)]], [2, [K(1), P(1, 1)]], [2, [K(1), W(1, 0)]], [1, [K(2), W(1, 0)]]],
-    voy: [[4, [{ op: 'choice', options: [[P(1, 1)], [W(1, 0)], [K(1)]] }]], [2, [{ op: 'choice', options: [[P(2, 1)], [W(2, 0)], [K(2)]] }]]],
-  };
+  // Les cartes n'ont pas de texte : l'effet dépend du rang de la carte dans sa rangée (matrice du plateau).
+  const SETS = { art: [[20, []]], mar: [[20, []]], eru: [[20, []]], voy: [[6, []]] };
   let n = 0;
   for (const g of ['art', 'mar', 'eru', 'voy']) for (const [k, d] of SETS[g]) for (let i = 0; i < k; i++) GCARDS.push({ id: 'g' + (++n), guild: true, g, name: GUILD_NAMES[g], d });
 }
@@ -182,6 +178,7 @@ const DEFAULT_OPTS = {
   guildDiscount: true,           // symbole de guilde : −1 par carte de cette guilde (max 3)
   prereqs: true,                 // prérequis de tags / de Merveille au niveau 2
   guildFrom: 'gdeck',            // 'market' : la carte de guilde est une carte visible ; 'deck' : dessus d'une pioche
+  matrix: true,                  // matrice de guildes : l'effet d'une carte dépend de son rang dans sa rangée ; une colonne complète fait tourner la roue
   guildChoice: true,             // chaque tour : une carte de guilde, puis construire OU tourner la roue d'un cran
   guildThenBuild: false,         // après une action de guilde, on peut aussi construire dans le même tour
   turnOnBuild: false,            // construire fait aussi tourner la roue d'un cran
@@ -307,6 +304,7 @@ function effectiveCost(G, pi, card, coverCell, noPlans) {
 // Cadre argent / or : le paiement doit contenir au moins un ouvrier de la zone argent (niveau 3+) ou or (niveau 5).
 // Cadre bronze : uniquement des ouvriers de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
 const FRAME_MIN = { ag: 3, or: 5, br: -2 };
+const BYPASS_COST = 2;
 const frameMin = (G, card) => (G.opts.costMode !== 'levels' && card.f) ? FRAME_MIN[card.f] : 0;
 function payOk(wheel, reqs, pay, minLvl = 0) {
   if (minLvl < 0) { if (pay.some(l => l > -minLvl)) return false; minLvl = 0; }
@@ -384,8 +382,8 @@ function prereqOk(G, pi, card) {
   }
   return true;
 }
-function legalCells(G, pi, card) {
-  if (!prereqOk(G, pi, card)) return [];
+function legalCells(G, pi, card, bypass) {
+  if (!bypass && !prereqOk(G, pi, card)) return [];
   const g = G.players[pi].grid, out = [];
   const any = g.some(Boolean);
   for (let i = 0; i < 9; i++) {
@@ -430,7 +428,8 @@ function run(G) {
       case 'guildAct': {
         let g = op.g;
         if (g === 'max') g = GUILDS.slice().sort((a, b) => p.guilds[b].length - p.guilds[a].length)[0];
-        for (const id of p.guilds[g].slice(-(op.times || 1))) push(G, BY_ID[id].d, false);
+        if (G.opts.matrix) { const k = p.guilds[g].length; if (k) for (let i = 0; i < (op.times || 1); i++) push(G, matrixOps(g, k), false); } // rejoue l'effet de la rangée à son rang actuel
+        else for (const id of p.guilds[g].slice(-(op.times || 1))) push(G, BY_ID[id].d, false);
         break;
       }
       case 'zone': {
@@ -532,7 +531,29 @@ function retireNeed(p, G) {
   for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.retire) n += pm.retire; }
   return Math.max(1, n);
 }
+// Matrice de guildes. Rang k = position de la carte dans sa rangée.
+//   Marchands : 1 ouvrier de niveau k − 1 (0, 1, 2, 3, 4, puis 5)   Artisans : k niveaux à répartir   Érudits : k Savoir
+// Une colonne complète (une carte de chaque guilde) fait tourner la roue.
+function matrixOps(g, k) {
+  if (g === 'mar') return [{ op: 'gain', n: 1, lvl: Math.min(5, k - 1), free: k > 1 }];
+  if (g === 'art') return [{ op: 'progress', n: k, by: 1 }];
+  return [{ op: 'plan', n: k }];
+}
+function matrixText(g, k) {
+  if (g === 'mar') return `Gagnez 1 ouvrier de niveau ${Math.min(5, k - 1)}`;
+  if (g === 'art') return `${k} niveau${k > 1 ? 'x' : ''} à répartir entre vos ouvriers`;
+  return `Gagnez ${k} Savoir`;
+}
+function guildColumns(p) { return Math.min(...GUILDS.map(x => p.guilds[x].length)); }
+function matrixEffect(G, pi, g) {
+  const p = G.players[pi], k = p.guilds[g].length + 1;
+  const before = guildColumns(p), after = Math.min(...GUILDS.map(x => p.guilds[x].length + (x === g ? 1 : 0)));
+  const ops = matrixOps(g, k);
+  if (after > before) { ops.push({ op: 'turn', n: 1 }); p.st.cols = (p.st.cols || 0) + 1; log(G, `${p.name} complète une colonne de guildes : sa roue tourne.`); }
+  push(G, ops, false);
+}
 function chainGuild(G, pi, g) {
+  if (G.opts.matrix) return matrixEffect(G, pi, g);
   if (G.opts.guildFixed) { // la nouvelle carte + chaque carte déjà posée (selon guildChain) donnent l'effet de la guilde
     const n = G.opts.guildChain ? Math.min(G.opts.guildChain, G.players[pi].guilds[g].length) : 0;
     for (let i = 0; i <= n; i++) push(G, G.opts.guildFixed[g], false);
@@ -609,10 +630,13 @@ function apply(G, a) {
       if (bonus) G.bonusBuilt = true; else G.lastMain = 'build';
       const id = G.market[a.L][a.idx]; if (!id) throw new Error('Carte absente');
       const card = BY_ID[id];
-      if (!legalCells(G, pi, card).includes(a.cell)) throw new Error('Emplacement interdit');
+      const byp = a.bypass ? BYPASS_COST : 0; // 2 Savoir : ignorer le prérequis et le cadre de ce bâtiment
+      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Savoir pour ignorer un prérequis ou un cadre`);
+      if (!legalCells(G, pi, card, !!byp).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
+      p.plans -= byp;
       const reqs = effectiveCost(G, pi, card, a.cell);
-      if (!payOk(p.wheel, reqs, a.pay, frameMin(G, card))) throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Ce bâtiment se paie uniquement avec des ouvriers de la zone bronze (niveaux 1 et 2)' : `Il faut un ouvrier de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant');
+      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Ce bâtiment se paie uniquement avec des ouvriers de la zone bronze (niveaux 1 et 2)' : `Il faut un ouvrier de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
       if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true); p.plans -= Math.min(p.plans, before); }
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
@@ -622,7 +646,7 @@ function apply(G, a) {
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'build' && (card.t[pm.tag] || 0) > 0) triggers.push(...pm.ops); }
       p.grid[a.cell] = { id, occ: false };
       p.st.built++; G.mainDone = true; G._lastCell = a.cell; cs(G, id).b++;
-      log(G, `${p.name} construit ${card.name}${cover ? ' (sur la Grue)' : ''}.`);
+      log(G, `${p.name} construit ${card.name}${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Savoir pour ignorer ${card.req && card.f ? 'le prérequis et le cadre' : card.req ? 'le prérequis' : 'le cadre'}` : ''}.`);
       push(G, (G.opts.turnOnBuild ? [{ op: 'turn', n: 1 }] : []).concat(card.imm || [], triggers), false);
       run(G); return G;
     }
@@ -644,7 +668,7 @@ function apply(G, a) {
       const extra = [];
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'discard' && (!pm.g || pm.g === card.g)) extra.push(...pm.ops); }
       const place = G.opts.guildRows === false ? [] : [{ op: 'guildPlace', id }];
-      const own = G.opts.guildFixed ? [] : card.d;
+      const own = G.opts.guildFixed || G.opts.matrix ? [] : card.d;
       const turn = G.opts.guildTurn && !G.opts.guildChoice ? [{ op: 'turn', n: 1 }] : [];
       push(G, turn.concat(place, own, extra), false);
       run(G); return G;
@@ -712,7 +736,7 @@ function resolve(G, v) {
     const card = BY_ID[id], extra = [];
     for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'discard' && (!pm.g || pm.g === card.g)) extra.push(...pm.ops); }
     log(G, `${p.name} prend une carte de guilde ${card.name} grâce à un bâtiment.`);
-    push(G, [{ op: 'guildPlace', id }].concat(card.d, extra));
+    push(G, [{ op: 'guildPlace', id }].concat(G.opts.matrix ? [] : card.d, extra));
   }
   else if (pd.type === 'retire') {
     G.pending = null;
@@ -806,6 +830,15 @@ function mainOptions(G) {
         const key = cell + ':' + pay.join(','); if (seen.has(key)) continue; seen.add(key);
         out.push({ type: 'build', L, idx, cell, pay });
       }
+    }
+    // Aucun moyen normal : 2 Savoir permettent d'ignorer le prérequis et le cadre
+    if (!seen.size && G.opts.matrix && (p.plans || 0) >= BYPASS_COST && (card.req || card.f)) {
+      p.plans -= BYPASS_COST;
+      for (const cell of legalCells(G, pi, card, true)) {
+        const pay = autoPay(p.wheel, effectiveCost(G, pi, card, cell), 'exact', 0); if (!pay) continue;
+        out.push({ type: 'build', L, idx, cell, pay, bypass: true });
+      }
+      p.plans += BYPASS_COST;
     }
   });
   if (G.opts.guildChoice && !G.mainDone) { const g = out.filter(a => a.type === 'guild'); return g.length ? g : [{ type: 'rest' }]; }
@@ -1091,14 +1124,14 @@ function opTxt(o) {
     case 'recall': return typeof o.n === 'number' ? (o.n >= 9 ? 'Reprenez tous vos ouvriers posés sur vos cartes' : `Reprenez ${o.n} ouvrier${o.n > 1 ? 's' : ''} posé${o.n > 1 ? 's' : ''} sur vos cartes`) : `Reprenez jusqu’à X ouvriers posés sur vos cartes (X = nb de Militaire)`;
     case 'token': return `Gagnez ${o.n} jeton${o.n > 1 ? 's' : ''} Bonus`;
     case 'takeGuild': return 'Prenez une carte de guilde visible et appliquez son effet';
-    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Plan${o.n > 1 ? 's' : ''} (−1 au coût d’un prochain bâtiment)` : `Gagnez 1 Plan par ${TAG_NAMES[o.n.c]}${o.n.max ? ` (max ${o.n.max})` : ''}`;
+    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Savoir` : `Gagnez 1 Savoir par ${TAG_NAMES[o.n.c]}${o.n.max ? ` (max ${o.n.max})` : ''}`;
     case 'retrigger': return o.times > 1 ? `Déclenchez ${o.times} fois l’effet immédiat d’un de vos bâtiments` : `Déclenchez l’effet immédiat d’un de vos bâtiments`;
     case 'adjImm': return 'Déclenchez l’effet immédiat de chaque bâtiment adjacent';
     case 'line': return `Activez gratuitement les cartes de sa ligne ou de sa colonne`;
     case 'choice': return o.options.map(ops => ops.map(opTxt).join(' + ')).join(' OU ');
     case 'if': return `Si vous avez 1 tag de chaque type : ${o.then.map(opTxt).join(' + ').replace(/^./, c => c.toLowerCase())}`;
     case 'vp': return typeof o.n === 'number' ? `Marquez ${o.n} PV` : `Gagnez 1 PV par ${TAG_NAMES[o.n.c]}`;
-    case 'guildAct': return `Réactivez ${o.times > 1 ? 'les ' + o.times + ' dernières cartes' : 'la dernière carte'} de ${o.g === 'max' ? 'votre plus grande guilde' : 'votre guilde ' + GUILD_NAMES[o.g]}`;
+    case 'guildAct': return `Rejouez ${o.times > 1 ? o.times + ' fois ' : ''}l’effet de ${o.g === 'max' ? 'votre plus longue rangée de guilde' : 'votre rangée ' + GUILD_NAMES[o.g]}, à son rang actuel`;
     case 'zone': return `Envoyez ${o.n} ouvrier${o.n > 1 ? 's' : ''} de niveau ${o.min} ou plus dans votre zone de retraite`;
   }
   return '';
@@ -1134,7 +1167,7 @@ function cardText(c) {
     else if (e.atLvl) out.end = `${e.pts} PV par ouvrier de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
     else if (e.bronze) out.end = `${e.bronze} PV par ouvrier de niveau 1 ou 2 sur votre roue.`;
     else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Merveilles.`;
-    else if (e.perPlans) out.end = `${e.perPlans} PV par Plan non utilisé.`;
+    else if (e.perPlans) out.end = `${e.perPlans} PV par Savoir non dépensé.`;
     else if (e.guildMax) out.end = `${e.guildMax} PV par carte de votre plus grande guilde.`;
     else if (e.guild) out.end = `${e.pts} PV par carte ${GUILD_NAMES[e.guild]} dans votre guilde.`;
     else if (e.guildEach) out.end = `${e.guildEach} PV par série Artisans + Érudits + Marchands.`;
@@ -1152,6 +1185,7 @@ function cardText(c) {
 }
 function guildText(g, opts) {
   const fx = (opts && opts.guildFixed) || GUILD_FIXED;
+  if (!opts || opts.matrix !== false) return g === 'voy' ? 'Joker : rangez-la dans la rangée de votre choix et appliquez l’effet de cette rangée.' : { mar: 'Gagnez 1 ouvrier de niveau 0 / 1 / 2 / 3 / 4 / 5 selon le rang de la carte.', art: '1 / 2 / 3 / 4 / 5 / 6… niveaux à répartir selon le rang de la carte.', eru: 'Gagnez 1 / 2 / 3 / 4 / 5 / 6… Savoir selon le rang de la carte.' }[g];
   if (g === 'voy') return 'Joker : rangez-la dans la guilde de votre choix, qui s’active.';
   return opsTxt(fx[g]) + (fx[g].some(o => o.fb) ? ' Si c’est impossible, prenez 1 Plan à la place.' : '');
 }
@@ -1174,11 +1208,14 @@ function exportTables(opts) {
   }
   const wonders = [['ID', 'Merveille', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
   for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
-  const theme = { art: 'Faire progresser des ouvriers', eru: 'Gagner des Plans', mar: 'Gagner des ouvriers', voy: 'Joker : rangée au choix, un effet au choix parmi les trois' };
+  const theme = { art: 'Expérience : des niveaux à répartir', eru: 'Savoir : une ressource qui réduit les coûts ou fait ignorer un prérequis ou un cadre', mar: 'Population : gagner des ouvriers', voy: 'Joker : rangée au choix' };
   const guilds = [['Guilde', 'Thème', 'Nombre de cartes de guilde', 'Bâtiments avec réduction de cette guilde']];
   for (const g of ['art', 'eru', 'mar', 'voy']) guilds.push([GUILD_NAMES[g], theme[g], GCARDS.filter(c => c.g === g).length, CARDS.filter(c => c.gd && c.g === g).length]);
-  const gcards = [['Guilde', 'Effet', 'Exemplaires']];
-  { const seen = {}; for (const c of GCARDS) { const k = c.g + '|' + opsTxt(c.d); seen[k] = (seen[k] || 0) + 1; } for (const k in seen) { const [g, t] = k.split('|'); gcards.push([GUILD_NAMES[g], t, seen[k]]); } }
+  const gcards = [['Rangée', '1re carte', '2e carte', '3e carte', '4e carte', '5e carte', '6e carte et suivantes', 'Cartes dans le paquet']];
+  for (const g of ['mar', 'art', 'eru']) gcards.push([GUILD_NAMES[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
+  gcards.push(['Voyageurs (joker)', 'Rangée au choix : appliquez l’effet de cette rangée', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
+  gcards.push(['Colonne complète', 'Dès qu’une colonne contient une carte de chaque guilde : tournez votre roue', '', '', '', '', '', '']);
+  gcards.push(['Savoir', '1 Savoir = 1 de moins sur le coût d’un bâtiment (utilisé automatiquement). 2 Savoir = ignorer le prérequis et le cadre d’un bâtiment.', '', '', '', '', '', '']);
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
@@ -1192,7 +1229,7 @@ const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
   cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
-  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, exportTables, opsTxt,
+  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, exportTables, opsTxt, matrixOps, matrixText, guildColumns, BYPASS_COST,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Empires = API;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
