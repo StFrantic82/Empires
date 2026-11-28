@@ -573,6 +573,12 @@ aside .city .cell{min-height:84px}
 .pnp-card .hdtags .tagi{width:16px;height:16px}.pnp-card .pv.big{width:26px;height:26px;font-size:11px}.pnp-card .card .ft{min-height:0}
 .cell .mini .hdtags{display:none}
 .card .nm{min-width:0;font-size:14px;line-height:1.1;overflow-wrap:break-word;hyphens:auto}.hdtags .tagi{width:26px;height:26px}.hdtags .tags{flex-wrap:wrap;justify-content:flex-end;max-width:56px}
+
+/* Titre dans le bandeau du bas ; le haut garde coût, prérequis et tags */
+.card .hd .hdsp{flex:1}.hdtags .tags{max-width:none;flex-wrap:nowrap}
+.card .ft{gap:6px}.ftn{display:flex;flex-direction:column;min-width:0;flex:1}.ftn .nm{font-size:14px;line-height:1.12}.ftn .lv{font-size:10.5px}
+.pnp-card .ftn .nm{font-size:10px}.pnp-card .ftn .lv{font-size:7px}
+.card .ft .tagi{width:30px;height:30px}.card .gz{gap:5px}.pnp-card .card .ft .tagi{width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -717,7 +723,7 @@ function pvIcon(v, cls = '') {
 function cardHTML(card, o = {}) {
   const tx = E.cardText(card);
   const fx = [];
-  if (tx.req) fx.push(`<div><b class="k-req">Prérequis</b>${iconize(tx.req)}</div>`);
+  // le prérequis n'est pas répété dans le texte : ses icônes sont à côté du coût
   if (tx.sx) fx.push(`<div><b class="k-sx">Sacrifice</b>${iconize(tx.sx)}</div>`);
   if (tx.gd) fx.push(`<div><b class="k-gd">Autel −1</b>${iconize(tx.gd)}</div>`);
   if (tx.imm) fx.push(`<div><b class="k-imm">Immédiat</b>${iconize(tx.imm)}</div>`);
@@ -743,10 +749,10 @@ function cardHTML(card, o = {}) {
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz">${card.pv ? pvIcon(card.pv, 'big') : ''}</div>`, tagZone = `<div class="hdtags">${tagsHTML(card.t)}</div>`;
   return `<div data-tip="${card.id}" class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
-    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span>${tagZone}</div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${o.can.bypCost} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
+    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${o.can.bypCost} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
-    <div class="ft"><span class="lv">Niv. ${card.lvl}</span>${giveZone}</div>${o.extra || ''}</div>`;
+    <div class="ft"><span class="lv">Niv. ${card.lvl}</span><div class="gz">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv, 'big') : ''}</div></div>${o.extra || ''}</div>`;
 }
 
 /* ---------- Roue ---------- */
@@ -1519,7 +1525,7 @@ function rulesFigs() {
   const mid = { wheel: [1, 0, 2, 1, 1, 1], guilds: { mar: ['x', 'x'], art: ['x', 'x', 'x'], eru: ['x'] }, retired: 1, plans: 3 };
   const ex = E.CARDS.find(c => c.f === 'ag' && c.req && c.req.tags && c.imm) || E.CARDS[0];
   const W = E.WONDERS[0];
-  const legend = [['Coût', 'flamme chiffrée en haut à gauche : somme des niveaux des âmes dépensées'], ['Prérequis', 'icônes à côté du coût : tags (ou une âme sur un Sanctuaire) à avoir déjà'], ['Âge exigé', 'bandeau coloré sous le coût'], ['Effets', 'Immédiat, Activation, Permanent, Fin de partie, Sacrifice'], ['Apport', 'en bas à droite : tags fournis et PV']];
+  const legend = [['Coût', 'flamme chiffrée en haut à gauche : somme des niveaux des âmes dépensées'], ['Prérequis', 'icônes à côté du coût : tags (ou une âme sur un Sanctuaire) à avoir déjà'], ['Âge exigé', 'bandeau coloré sous le coût'], ['Effets', 'Immédiat, Activation, Permanent, Fin de partie, Sacrifice'], ['Apport', 'bandeau du bas : tags apportés et PV']];
   const icons = [[soulIco(3, 26), 'Âme (ici de niveau 3)'], [upIco(2, 20), 'Niveaux à répartir'], [karmaIco(2, 26), 'Karma'], [pvIcon(3), 'Points de victoire'], [TURNICO, 'La roue tourne'], ['<img class="ri" src="img/eveil.svg" alt="">', 'Éveil'], ['<img class="ri" src="img/sanctuaire.svg" alt="">', 'Sanctuaire'],
     ...['P', 'M', 'S', 'C'].map(k => [`<img class="ri" src="img/${TAGICON[k]}.svg" alt="">`, E.TAG_NAMES[k]]), ...['mar', 'art', 'eru', 'voy'].map(g => [`<img class="ri" src="img/${g}.svg" alt="">`, E.ALTAR[g]])];
   return {
