@@ -334,7 +334,7 @@ function cardHTML(card, o = {}) {
   if (tx.act) fx.push(`<div><b class="k-act">Activation</b>${esc(tx.act)}</div>`);
   if (tx.perm) fx.push(`<div><b class="k-perm">Permanent</b>${esc(tx.perm)}</div>`);
   if (tx.end) fx.push(`<div><b class="k-end">Fin</b>${esc(tx.end)}</div>`);
-  const gi = card.g ? `<img class="gicon" src="img/${card.g}.png" alt="${esc(E.GUILD_NAMES[card.g])}" title="Réduction d’autel : ${esc(E.ALTAR[card.g])}${card.g === 'voy' ? ' (joker : rangée au choix)' : ''}">` : '';
+  const gi = card.g ? `<img class="gicon" src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}" title="Réduction d’autel : ${esc(E.ALTAR[card.g])}${card.g === 'voy' ? ' (joker : rangée au choix)' : ''}">` : '';
   const sumMode = (G ? G.opts.costMode : costModeSim()) !== 'levels';
   const fr = sumMode && card.f ? card.f : '';
   if (fr === 'br') fx.unshift(`<div><b class="zone" style="background:#dba77c">Bronze</b> Payez uniquement avec des âmes de niveau 1 ou 2.</div>`);
