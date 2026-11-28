@@ -656,6 +656,12 @@ aside .city .cell{min-height:84px}
 .sp-t tbody th{text-align:left;width:62mm;font-weight:400}.sp-t tbody th{display:table-cell}.sp-t tbody th img{width:7mm;height:7mm;vertical-align:middle;margin-right:2mm}
 .sp-t tbody th span{display:inline-flex;flex-direction:column;vertical-align:middle}.sp-t small{font-size:7pt;color:#8a7a5c}
 .sp-tot th,.sp-tot td{background:#f3e8d0;font-size:12pt}.sp-tie td{height:9mm}
+.wc-h span,.cell .mini .n,.gcard .gn{white-space:nowrap;overflow:hidden;min-width:0;display:block}.cell .mini .n{max-width:100%}
+/* bandeau du bas −10 % */
+.card .ft,.cards>.card .ft,.card .ft.ft3,.pnp-card>.card .ft{min-height:36px;padding-top:2px;padding-bottom:2px}
+.ft3 .ftt .tagi,.card .ft .tagi{width:19px;height:19px}
+.card .ft .pv.big,.pv.big{width:33px!important;height:33px!important;font-size:12px!important;padding-top:3.1px!important}
+.card .ft .lv{font-size:9.5px}
 </style>
 </head>
 <body>
@@ -921,13 +927,14 @@ window.addEventListener('hashchange', route);
 // Cartes à taille fixe : si les effets débordent, on réduit leur texte pas à pas
 function fitCards() {
   // titres sur une seule ligne : on réduit la police des noms longs
-  document.querySelectorAll('.card .nm').forEach(n => { let s = parseFloat(getComputedStyle(n).fontSize), g = 0; while (n.scrollWidth > n.clientWidth + 1 && s > 9 && g++ < 14) { s -= .5; n.style.fontSize = s + 'px'; } });
+  document.querySelectorAll('.card .nm, .wc-h span, .cell .mini .n, .gcard .gn').forEach(n => { n.style.fontSize = ''; let s = parseFloat(getComputedStyle(n).fontSize), g = 0; while (n.scrollWidth > n.clientWidth + 1 && s > 7 && g++ < 24) { s -= .5; n.style.fontSize = s + 'px'; } });
   document.querySelectorAll('.card').forEach(c => {
     const fx = c.querySelector('.fx'); if (!fx) return;
     let s = parseFloat(getComputedStyle(fx).fontSize), guard = 0;
     while ((c.scrollHeight > c.clientHeight + 1 || fx.scrollWidth > fx.clientWidth + 1) && s > 8 && guard++ < 14) { s -= .5; fx.style.fontSize = s + 'px'; fx.querySelectorAll('b').forEach(b => b.style.fontSize = Math.max(7, s - 1.5) + 'px'); }
   });
 }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try { fitCards(); } catch (e) { } });
 function render() {
   navSync();
   const app = $('#app');
@@ -1474,7 +1481,7 @@ function showHover(el, x, y) {
   let box = $('#hoverCard'); if (!box) { box = document.createElement('div'); box.id = 'hoverCard'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
   const key = el.dataset.hc ? 'c' + el.dataset.hc : 'w' + el.dataset.hw;
   if (box.dataset.key !== key) { box.dataset.key = key; box.innerHTML = el.dataset.hc ? cardHTML(E.BY_ID[el.dataset.hc]) + `<div class="tp-under">${cardPlain(E.BY_ID[el.dataset.hc])}</div>` : wonderPreviewHTML(E.W_BY_ID[el.dataset.hw]); }
-  box.style.display = 'block';
+  box.style.display = 'block'; fitCards();
   const w = box.offsetWidth, hh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
   let left = x + 18, top = y + 14;
   if (left + w > vw - 8) left = Math.max(8, x - w - 18);

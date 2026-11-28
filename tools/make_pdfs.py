@@ -9,7 +9,7 @@ async def main():
         pg = await b.new_page(viewport={'width': 1200, 'height': 900})
         await pg.add_init_script("Object.defineProperty(window,'EMPIRES_FIREBASE',{value:null,writable:false})")
         url = (ROOT / 'index.html').as_uri()
-        await pg.goto(url + '#imprimer'); await pg.wait_for_timeout(1200)
+        await pg.goto(url + '#imprimer'); await pg.wait_for_timeout(1200); await pg.evaluate('document.fonts.ready.then(() => fitCards())'); await pg.wait_for_timeout(300)
         await pg.pdf(path=str(ROOT / 'pnp.pdf'), format='A4', print_background=True, prefer_css_page_size=True)
         await pg.goto(url + '#regles'); await pg.wait_for_timeout(1200)
         await pg.emulate_media(media='print')
