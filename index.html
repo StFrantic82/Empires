@@ -509,6 +509,21 @@ aside .city .cell{min-height:84px}
 .wc-rank{width:16px;color:#6e4128;font-weight:700}
 .wc-sc{display:flex;align-items:center;gap:3px}.wc-sc .pv.sm{width:20px;height:20px;font-size:9.5px}.wc-x{display:inline-flex;align-items:center;gap:2px;font-size:8.5px}.wc-x .ti{width:13px;height:13px}
 .wc-art{height:20mm}
+
+/* Cartes : bandeaux haut et bas fixes et plus grands ; l'illustration prend toute la place libre */
+.card{display:flex;flex-direction:column}
+.card .hd{flex:none;min-height:44px;padding:5px 8px;background:linear-gradient(180deg,#fbf4e4,#f3e8d0);border-bottom:1px solid #e2d4b6}
+.card .nm{font-size:15px}
+.card .mcost,.card .mcost svg{width:34px;height:34px}.card .mcost span{inset:11px 0 0;font-size:14px}
+.card .czreq img,.card .czgd img{width:19px;height:19px}
+.card svg.art{flex:1 1 84px;height:auto;min-height:84px}
+.card .fx{flex:none;padding:6px 8px}
+.card .ft{flex:none;margin-top:0;min-height:40px;padding:4px 8px;background:linear-gradient(0deg,#fbf4e4,#f3e8d0);border-top:1px solid #e2d4b6}
+.card .tagi{width:26px;height:26px}.card .ft .pv{width:36px;height:36px;font-size:14px}
+.card .agebar,.card .canmsg,.card .lockmsg{flex:none}
+.pnp-card .card .hd{min-height:0;padding:2px 5px}.pnp-card .card svg.art{flex:1 1 14mm;min-height:12mm}.pnp-card .card .ft{min-height:0;padding:2px 5px}
+.pnp-card .card .tagi{width:15px;height:15px}.pnp-card .card .ft .pv{width:20px;height:20px;font-size:9px}.pnp-card .mcost,.pnp-card .mcost svg{width:22px;height:22px}.pnp-card .mcost span{inset:7px 0 0;font-size:10px}.pnp-card .card .nm{font-size:10.5px}
+.cell .mini svg{flex:1 1 38px}
 </style>
 </head>
 <body>
