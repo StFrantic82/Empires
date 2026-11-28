@@ -564,6 +564,15 @@ aside .city .cell{min-height:84px}
   .rules-doc .rrow>div[style*="width:220px"]{width:150px!important}
 }
 .pnp-rules .rrow:has(.card){flex-wrap:wrap}.pnp-rules .rrow:has(.card)>div{flex:none}.pnp-rules .rrow:has(.card) .rleg{max-width:none}
+
+/* Tags en haut à droite, PV agrandis dans le bandeau du bas */
+.card .hd{gap:5px}.hdtags{flex:none;display:flex}.hdtags .tags{gap:2px}.hdtags .tagi{width:28px;height:28px}
+.card .ft{min-height:52px}.cards>.card .ft{min-height:50px}
+.pv.big{width:48px;height:48px;font-size:18px}
+.card .ft .lv{font-size:12px}
+.pnp-card .hdtags .tagi{width:16px;height:16px}.pnp-card .pv.big{width:26px;height:26px;font-size:11px}.pnp-card .card .ft{min-height:0}
+.cell .mini .hdtags{display:none}
+.card .nm{min-width:0;font-size:14px;line-height:1.1;overflow-wrap:break-word;hyphens:auto}.hdtags .tagi{width:26px;height:26px}.hdtags .tags{flex-wrap:wrap;justify-content:flex-end;max-width:56px}
 </style>
 </head>
 <body>
@@ -732,9 +741,9 @@ function cardHTML(card, o = {}) {
   }
   const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par offrande sur votre ${esc(E.ALTAR[card.g])}">−<img src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
-  const giveZone = `<div class="gz">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
+  const giveZone = `<div class="gz">${card.pv ? pvIcon(card.pv, 'big') : ''}</div>`, tagZone = `<div class="hdtags">${tagsHTML(card.t)}</div>`;
   return `<div data-tip="${card.id}" class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
-    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${o.can.bypCost} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
+    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span>${tagZone}</div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${o.can.bypCost} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
     <div class="ft"><span class="lv">Niv. ${card.lvl}</span>${giveZone}</div>${o.extra || ''}</div>`;
