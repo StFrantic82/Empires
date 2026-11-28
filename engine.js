@@ -34,7 +34,7 @@ const CARDS = [
   { id: 'a6', lvl: 1, g: 'mar', name: 'Accueillir les voyageurs', t: { P: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: { c: 'P' }, lvl: 0 }], d: D.B },
   { id: 'a7', lvl: 1, g: 'eru', f: 'ag', name: 'Tenir le marché', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 3 }], d: D.C },
   { id: 'a8', lvl: 1, f: 'or', sx: true, name: 'Cultiver la rizière', t: { P: 2 }, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: D.D },
-  { id: 'a9', lvl: 1, g: 'art', name: 'Veiller au monastère', t: { M: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'progress', n: 1, by: { c: 'M', max: 3 } }], d: D.A },
+  { id: 'a9', lvl: 1, g: 'art', name: 'Veiller au monastère', t: { M: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'progress', n: 1, by: { c: 'M' } }], d: D.A },
   { id: 'a10', lvl: 1, g: 'mar', name: 'Gravir la montagne sacrée', t: { M: 1 }, c: [1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: { c: 'M', max: 5 } }], d: D.B },
   { id: 'a11', lvl: 1, f: 'ag', name: 'Ériger la porte du temple', t: { M: 1 }, v: 4, c: [1, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.C },
   { id: 'a12', lvl: 1, g: 'voy', f: 'ag', name: 'Méditer en silence', t: { M: 2 }, c: [2, 2], pv: 2, imm: [{ op: 'retrigger', times: 1 }], d: D.D },
@@ -84,7 +84,7 @@ const CARDS = [
   { id: 'b10', lvl: 2, g: 'eru', req: { tags: { P: 1, S: 1 } }, f: 'ag', name: 'Soigner les malades', t: { P: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'takeGuild' }, { op: 'turn', n: 1 }], d: [{ op: 'turn', n: 2 }] },
   { id: 'b11', lvl: 2, g: 'art', req: { tags: { P: 1, C: 1 } }, f: 'ag', name: 'Ouvrir les bains publics', t: { P: 1, C: 1 }, c: [3, 3], pv: 2, end: { perWheel: 0.5 }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
   { id: 'b12', lvl: 2, g: 'mar', req: { tags: { M: 1, S: 1 } }, name: 'Instruire les moines', t: { M: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 2, by: 2 }], d: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'b13', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'ag', name: 'Célébrer les éveillés', t: { M: 1, C: 1 }, c: [2, 2], pv: 5, imm: [{ op: 'gain', n: { c: 'wondW', max: 2 }, lvl: 3, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
+  { id: 'b13', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'ag', name: 'Célébrer les éveillés', t: { M: 1, C: 1 }, c: [2, 2], pv: 5, imm: [{ op: 'gain', n: { c: 'wondW' }, lvl: 3, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
   { id: 'b14', lvl: 2, g: 'voy', req: { tags: { S: 1, C: 1 } }, f: 'ag', name: 'Fonder la bibliothèque', t: { S: 1, C: 1 }, v: 6, c: [2, 2], pv: 2, end: { perTag: ['S', 'C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
   { id: 'b15', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Remplir le trésor', t: { P: 3 }, c: [3, 3], pv: 4, imm: [{ op: 'gain', n: 3, lvl: 2 }], d: [{ op: 'gain', n: 5, lvl: 0 }] },
   { id: 'b16', lvl: 2, g: 'mar', req: { wonder: 1 }, f: 'or', sx: true, name: 'Ériger le grand stupa', t: { M: 3 }, c: [3, 3], pv: 6, imm: [{ op: 'gain', n: 2, lvl: 2, free: true }], d: [{ op: 'recall', n: 9 }, { op: 'gain', n: 1, lvl: 2, free: true }] },
@@ -176,7 +176,7 @@ const DEFAULT_OPTS = {
   market: 4,
   costMode: 'sum',               // 'sum' | 'levels'
   guildRows: true,               // les cartes jouées en guilde restent devant le joueur
-  guildDiscount: true,           // symbole de guilde : −1 par carte de cette guilde (max 3)
+  guildDiscount: true,           // symbole d'autel : −1 par offrande sur cet autel, sans plafond
   prereqs: true,                 // prérequis de tags / de Merveille au niveau 2
   guildFrom: 'gdeck',            // 'market' : la carte de guilde est une carte visible ; 'deck' : dessus d'une pioche
   matrix: true,                  // matrice de guildes : l'effet d'une carte dépend de son rang dans sa rangée ; une colonne complète fait tourner la roue
@@ -283,18 +283,21 @@ function discountFor(G, pi, card) {
     const pm = BY_ID[cell.id].perm;
     if (pm && pm.discount && (!pm.tag || (card.t[pm.tag] || 0) > 0) && (!pm.lvl || pm.lvl === card.lvl)) d += pm.discount;
   }
-  if (card.gd && G.opts.guildDiscount !== false && card.g !== 'voy') d += Math.min(3, (G.players[pi].guilds || {})[card.g]?.length || 0);
+  if (card.gd && G.opts.guildDiscount !== false && card.g !== 'voy') d += (G.players[pi].guilds || {})[card.g]?.length || 0; // pas de plafond
   return d;
 }
 // Mode 'sum' : renvoie un nombre ; mode 'levels' : une liste de niveaux minimum
-function effectiveCost(G, pi, card, coverCell, noPlans) {
+// Âge exigé : une œuvre de maturité coûte au moins 3, une œuvre de sage au moins 5 (on dépense forcément cette âme) ;
+// les réductions ne descendent pas en dessous, sauf si l'âge est ignoré avec du Karma.
+const AGE_FLOOR = { ag: 3, or: 5 };
+function effectiveCost(G, pi, card, coverCell, noPlans, ignoreAge) {
   const p = G.players[pi];
   const crane = coverCell != null && p.grid[coverCell] ? BY_ID[p.grid[coverCell].id] : null;
   if (G.opts.costMode !== 'levels') {
     let v = cardValue(card) - discountFor(G, pi, card);
     if (crane) v -= cardValue(crane);
     if (!noPlans) v -= p.plans || 0;
-    return Math.max(0, v);
+    return Math.max(ignoreAge ? 0 : (AGE_FLOOR[card.f] || 0), v);
   }
   let c = card.c.slice().sort((a, b) => a - b);
   if (crane) c.shift();
@@ -636,9 +639,9 @@ function apply(G, a) {
       if (!legalCells(G, pi, card, !!byp).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
       p.plans -= byp;
-      const reqs = effectiveCost(G, pi, card, a.cell);
+      const reqs = effectiveCost(G, pi, card, a.cell, false, !!byp);
       if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1 et 2)' : `${card.f === 'or' ? 'Œuvre de sage : il faut une âme ancienne (niveau 5)' : 'Œuvre de maturité : il faut une âme mûre (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
-      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true); p.plans -= Math.min(p.plans, before); }
+      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true, !!byp); p.plans -= Math.max(0, Math.min(p.plans, before - reqs)); } // Karma réellement utilisé
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
       if (cover) { G.disc[1].push(p.grid[a.cell].id); }
@@ -836,7 +839,7 @@ function mainOptions(G) {
     if (!seen.size && G.opts.matrix && (p.plans || 0) >= BYPASS_COST && (card.req || card.f)) {
       p.plans -= BYPASS_COST;
       for (const cell of legalCells(G, pi, card, true)) {
-        const pay = autoPay(p.wheel, effectiveCost(G, pi, card, cell), 'exact', 0); if (!pay) continue;
+        const pay = autoPay(p.wheel, effectiveCost(G, pi, card, cell, false, true), 'exact', 0); if (!pay) continue;
         out.push({ type: 'build', L, idx, cell, pay, bypass: true });
       }
       p.plans += BYPASS_COST;
@@ -1110,22 +1113,22 @@ function botTurn(G, noise = 0.6, level) {
 function nTxt(v) {
   if (typeof v === 'number') return String(v);
   const lbl = { P: 'nb de Prospérité', M: 'nb de Dévotion', S: 'nb de Connaissance', C: 'nb de Arts', diff: 'nb de tags différents', wondW: 'nb de Sanctuaires où vous êtes', PM: 'nb de Prospérité + Dévotion' }[v.c];
-  return 'X' + (v.max ? ` (max ${v.max})` : '') + ` — X = ${lbl}`;
+  return 'X' + ` — X = ${lbl}`;
 }
 function opTxt(o) {
   switch (o.op) {
     case 'gain': {
       const n = typeof o.n === 'number' ? o.n : 'X', l = typeof o.lvl === 'number' ? o.lvl : 'X';
       const x = typeof o.n !== 'number' ? o.n : (typeof o.lvl !== 'number' ? o.lvl : null);
-      return `Gagnez ${n} âme${n === 1 ? '' : 's'} de niveau ${l}` + (x ? ` (${nTxt(x).replace(/^X( \(max \d\))? — /, '').replace(/^/, 'X = ').replace('X = X = ', 'X = ')}${x.max ? `, max ${x.max}` : ''})` : '');
+      return `Gagnez ${n} âme${n === 1 ? '' : 's'} de niveau ${l}` + (x ? ` (${nTxt(x).replace(/^X( \(max \d\))? — /, '').replace(/^/, 'X = ').replace('X = X = ', 'X = ')})` : '');
     }
     case 'turn': return o.n === 1 ? 'Tournez votre roue' : `Tournez votre roue ${o.n} fois`;
-    case 'progress': return typeof o.by !== 'number' ? `Faites progresser 1 âme de X niveaux (X = nb de ${TAG_NAMES[o.by.c]}, max ${o.by.max})` : o.n === 1 ? `Faites progresser 1 âme de ${o.by} niveau${o.by > 1 ? 'x' : ''}` : `Faites progresser jusqu’à ${o.n} âmes de ${o.by} niveau${o.by > 1 ? 'x' : ''}`;
-    case 'unlock': return typeof o.n === 'number' ? `Débloquez ${o.n} âme${o.n > 1 ? 's' : ''}` : `Débloquez 1 âme par Sanctuaire où vous êtes présent (max ${o.n.max})`;
+    case 'progress': return typeof o.by !== 'number' ? `Faites progresser 1 âme de X niveaux (X = nb de ${TAG_NAMES[o.by.c]})` : o.n === 1 ? `Faites progresser 1 âme de ${o.by} niveau${o.by > 1 ? 'x' : ''}` : `Faites progresser jusqu’à ${o.n} âmes de ${o.by} niveau${o.by > 1 ? 'x' : ''}`;
+    case 'unlock': return typeof o.n === 'number' ? `Débloquez ${o.n} âme${o.n > 1 ? 's' : ''}` : `Débloquez 1 âme par Sanctuaire où vous êtes présent`;
     case 'recall': return typeof o.n === 'number' ? (o.n >= 9 ? 'Reprenez tous vos âmes posées sur vos cartes' : `Reprenez ${o.n} âme${o.n > 1 ? 's' : ''} posé${o.n > 1 ? 's' : ''} sur vos cartes`) : `Reprenez jusqu’à X âmes posées sur vos cartes (X = nb de Dévotion)`;
     case 'token': return `Gagnez ${o.n} jeton${o.n > 1 ? 's' : ''} Bonus`;
     case 'takeGuild': return 'Prenez une offrande visible et appliquez son effet';
-    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Karma` : `Gagnez 1 Karma par ${TAG_NAMES[o.n.c]}${o.n.max ? ` (max ${o.n.max})` : ''}`;
+    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Karma` : `Gagnez 1 Karma par ${TAG_NAMES[o.n.c]}`;
     case 'retrigger': return o.times > 1 ? `Déclenchez ${o.times} fois l’effet immédiat d’une de vos œuvres` : `Déclenchez l’effet immédiat d’une de vos œuvres`;
     case 'adjImm': return 'Déclenchez l’effet immédiat de chaque œuvre adjacente';
     case 'line': return `Activez gratuitement les cartes de sa ligne ou de sa colonne`;
@@ -1180,7 +1183,7 @@ function cardText(c) {
     else out.req = 'Avoir ' + Object.entries(c.req.tags).map(([k, n]) => `${n} ${TAG_NAMES[k]}`).join(' et ') + '.';
   }
   if (c.sx) out.sx = 'Les âmes dépensées pour cette œuvre quittent le cycle (réserve générale).';
-  if (c.gd && c.g !== 'voy') out.gd = `Coûte 1 de moins par offrande sur votre ${ALTAR[c.g]} (max 3).`;
+  if (c.gd && c.g !== 'voy') out.gd = `Coûte 1 de moins par offrande sur votre ${ALTAR[c.g]}.`;
   if (c.d) out.disc = opsTxt(c.d);
   return out;
 }

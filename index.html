@@ -374,6 +374,10 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 #tipBox>div,.tp-under>div{margin:2px 0}#tipBox b,.tp-under b{color:#7a3b1e}
 .tp-n{font-family:'Yatra One',serif;font-size:15px;color:#6e4128;margin-bottom:3px!important}
 .tp-under{width:224px;margin-top:6px;background:#fffaf0;color:#34291f;border:1px solid #cdbb9a;border-radius:10px;padding:7px 10px;font-size:12.5px;line-height:1.35}.tp-under .tp-n{display:none}
+
+.agebar{display:flex;align-items:center;gap:4px;font-size:11px;line-height:1.2;color:#34291f;padding:2px 8px;margin:0 6px 4px;border-radius:5px}
+.agebar img{width:13px;height:13px}.agebar b{font-weight:800}
+.agebar.miss{outline:2px solid #b3261e;color:#7a1414;font-weight:700}
 </style>
 </head>
 <body>
@@ -524,7 +528,10 @@ function cardHTML(card, o = {}) {
   const gi = card.g ? `<img class="gicon" src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}" title="Réduction d’autel : ${esc(E.ALTAR[card.g])}${card.g === 'voy' ? ' (joker : rangée au choix)' : ''}">` : '';
   const sumMode = (G ? G.opts.costMode : costModeSim()) !== 'levels';
   const fr = sumMode && card.f ? card.f : '';
-  if (fr) { const A = AGES[fr]; fx.unshift(`<div><b class="zone age" style="background:${A.bg}"><img src="img/${A.img}" alt="">${A.label}</b> ${A.txt}</div>`); }
+  // Âge exigé : affiché une seule fois, dans le bandeau du haut sous le coût (en rouge s'il manque)
+  const ageMiss = o.can && !o.can.ok && o.can.age;
+  const AGESHORT = { br: 'jeunes âmes seulement (1-2)', ag: 'une âme mûre (3+)', or: 'une âme ancienne (5)' };
+  const ageBar = fr ? `<div class="agebar ${ageMiss ? 'miss' : ''}" style="background:${AGES[fr].bg}" title="${esc(AGES[fr].txt)}"><img src="img/${AGES[fr].img}" alt=""><span><b>${AGES[fr].label}</b> · ${AGESHORT[fr]}${ageMiss ? ' : manquante' : ''}</span></div>` : '';
   // Zone de coût (haut gauche) : coût + prérequis + réduction de guilde. Zone d'apport (bas droite) : tags fournis + PV.
   const ICON = TAGICON;
   const reqI = [];
@@ -533,11 +540,11 @@ function cardHTML(card, o = {}) {
     else if (card.req.tags.all) ['P', 'M', 'S', 'C'].forEach(k => reqI.push(`<img src="img/${ICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="1 tag de chaque type">`));
     else Object.entries(card.req.tags).forEach(([k, n]) => { for (let i = 0; i < n; i++) reqI.push(`<img src="img/${ICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="Prérequis : ${E.TAG_NAMES[k]}">`); });
   }
-  const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par carte ${esc(E.GUILD_NAMES[card.g])} (max 3)">−<img src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
+  const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par offrande sur votre ${esc(E.ALTAR[card.g])}">−<img src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
   return `<div data-tip="${card.id}" class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
-    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${E.BYPASS_COST} Karma (${o.can.byp})` : ''}</div>` : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
+    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${E.BYPASS_COST} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
     <div class="ft"><span class="lv">Niv. ${card.lvl}</span>${giveZone}</div>${o.extra || ''}</div>`;
@@ -802,10 +809,10 @@ function buildInfo(L, idx) {
   if (!E.prereqOk(G, G.cur, card)) return { ok: false, why: 'Prérequis non rempli' };
   const cells = E.legalCells(G, G.cur, card);
   const fm = E.frameMin(G, card), w = G.players[G.cur].wheel;
-  if (fm === 5 && !w[5]) return { ok: false, why: 'Il faut une âme ancienne (niveau 5)' };
-  if (fm === 3 && !(w[3] + w[4] + w[5])) return { ok: false, why: 'Il faut une âme mûre (niveau 3+)' };
-  if (fm < 0) return { ok: false, why: 'Pas assez de jeunes âmes (niveaux 1-2)' };
-  return { ok: false, why: 'Âmes insuffisants' };
+  if (fm === 5 && !w[5]) return { ok: false, why: 'Il faut une âme ancienne (niveau 5)', age: true };
+  if (fm === 3 && !(w[3] + w[4] + w[5])) return { ok: false, why: 'Il faut une âme mûre (niveau 3+)', age: true };
+  if (fm < 0) return { ok: false, why: 'Pas assez de jeunes âmes (niveaux 1-2)', age: true };
+  return { ok: false, why: 'Âmes insuffisantes' };
 }
 // Comment payer cette carte à cet emplacement : paiement normal, ou en dépensant 2 Karma pour ignorer prérequis et cadre
 function buildPlan(s, cell) {
@@ -815,7 +822,7 @@ function buildPlan(s, cell) {
     if (pay) return { pay };
   }
   if (G.opts.matrix && (p.plans || 0) >= E.BYPASS_COST && (card.req || card.f) && E.legalCells(G, G.cur, card, true).includes(cell)) {
-    p.plans -= E.BYPASS_COST; const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell), payMode, 0); p.plans += E.BYPASS_COST;
+    p.plans -= E.BYPASS_COST; const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell, false, true), payMode, 0); p.plans += E.BYPASS_COST;
     if (pay) return { pay, bypass: true };
   }
   return null;
@@ -1259,11 +1266,12 @@ function rulesHTML() {
   <p><strong>L’équilibre.</strong> Dès qu’une colonne contient une offrande sur chaque autel (votre 1re offrande sur chacun, puis votre 2e, etc.), <strong>votre roue tourne</strong>. Honorer un seul autel renforce ses bénédictions ; honorer les trois fait tourner la roue.</p>
   <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, qui donne sa bénédiction.</p>
   <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer le prérequis et l’âge exigé d’une œuvre. Le Karma ne vaut aucun point, sauf effet de carte.</p>
+  <p><strong>Âge exigé et réductions.</strong> Une œuvre de maturité coûte toujours au moins 3, une œuvre de sage au moins 5 : il faut de toute façon y dépenser cette âme. Les réductions (Karma, autels, effets) ne descendent pas en dessous ; le Karma en trop n’est pas dépensé.</p>
   <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
   <h3>Accomplir une œuvre</h3>
   <p>Le coût est le chiffre en haut à gauche de la carte. Consacrez-y des âmes dont la somme des niveaux atteint ce chiffre ; une âme de niveau 0 n’apporte rien, et l’on ne peut pas ajouter d’âme inutile. <strong>Les âmes consacrées meurent et renaissent au niveau 0</strong> : on perd leur sagesse, pas les âmes elles-mêmes. Exception : les œuvres marquées <strong>Sacrifice</strong> (œuvres de sage) libèrent ces âmes, qui quittent le cycle. Le Karma, les réductions d’autel et certaines œuvres réduisent le coût.</p>
   <h3>Conditions sur les cartes</h3>
-  <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, 3 au maximum. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre qui exige un âge (jeunesse, maturité, sagesse) n’a jamais de réduction d’autel : l’âge impose déjà le niveau des âmes à consacrer.</p>
+  <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, sans limite. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre qui exige un âge (jeunesse, maturité, sagesse) n’a jamais de réduction d’autel : l’âge impose déjà le niveau des âmes à consacrer.</p>
   <p><strong>Les quatre tags</strong> ont chacun leur style : <strong>Prospérité</strong> fait grandir la lignée (de nouvelles âmes), <strong>Dévotion</strong> conduit à l’Éveil (âmes très avancées, zone d’Éveil, marqueurs), <strong>Connaissance</strong> fait tourner le cycle (niveaux, roue, réductions, effets permanents), <strong>Arts</strong> embellit le mandala (lignes, colonnes, voisins, coins). Une œuvre porte un tag, deux fois le même, deux tags différents, aucun, ou très rarement les quatre (Unir le royaume).</p>
   <p><strong>Matériel</strong> : 48 œuvres de niveau 1 et 42 de niveau 2 (cartes carrées de 7 × 7 cm), 66 offrandes (41 × 63 mm) et 16 Sanctuaires. Si les offrandes ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p>
   <h3>Les âges de l’âme</h3>
