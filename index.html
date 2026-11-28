@@ -474,6 +474,9 @@ aside .city .cell{min-height:84px}
   h3{break-after:avoid}
   #app>section.panel h2{font-size:22pt}
 }
+
+.panel>h2.h-sanct::before{background-image:url(img/sanctuaire.svg)!important;width:22px;height:22px}
+.wonder .wn{display:flex;align-items:center;gap:5px}.wico{width:18px;height:18px;flex:none}
 </style>
 </head>
 <body>
@@ -817,7 +820,7 @@ function gameHTML() {
   const p = G.players[G.cur], my = isMyTurn(), pi = G.cur;
   const wonders = G.wonders.map((w, wi) => {
     const W = E.W_BY_ID[w.id];
-    return `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
+    return `<div class="wonder"><div class="wn"><img class="wico" src="img/sanctuaire.svg" alt="">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
       <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot taken" style="background:${seats[w.slots[k]].color}" title="${esc(seatName(w.slots[k]))} : ${W.vals[k]} PV"></span>` : `<span class="slot pvslot" title="${W.vals[k]} PV pour le ${k === 0 ? '1er' : k === 1 ? '2e' : '3e'} marqueur">${pvIcon(W.vals[k])}</span>`).join('')}</div></div>`;
   }).join('');
   const market = [1, 2].map(L => {
@@ -848,7 +851,7 @@ function gameHTML() {
     <div class="row"><span class="chip">Manche ${G.round}</span><span class="chip">Sanctuaires : ${E.placedOnWonders(G)} / ${G.endAt} marqueurs</span>${G.endTriggered && !G.over ? '<span class="chip hot">Dernier tour de table</span>' : ''}</div>
     <div class="row">${mode === 'local' ? '' : `<span class="chip">En ligne</span>`}<button id="quit">Quitter la partie</button></div>
   </div>
-  <section class="panel" style="margin-bottom:14px"><h2>Sanctuaires</h2><div class="wonders">${wonders}</div></section>
+  <section class="panel" style="margin-bottom:14px"><h2 class="h-sanct">Sanctuaires</h2><div class="wonders">${wonders}</div></section>
   <div class="table">
     <div style="display:grid;gap:14px">
       <section class="panel mk-panel ${G.pending && my ? 'prompt' : ''}">
@@ -1249,7 +1252,7 @@ function simResultHTML(R) {
       <h3 style="margin-top:14px">Victoires par place de départ</h3>
       <div class="stats">${seatWins.map((w, i) => `<span class="chip">Siège ${i + 1} : ${Math.round(100 * w / R.N)} %</span>`).join('')}</div>
       <p class="note">Le premier joueur est tiré au hasard ; un siège qui gagne nettement plus que ${Math.round(100 / n)} % sur beaucoup de parties signalerait un problème d’ordre de tour.</p></div></div></section>
-  <section class="panel" style="margin-bottom:14px"><h2>Sanctuaires</h2>
+  <section class="panel" style="margin-bottom:14px"><h2 class="h-sanct">Sanctuaires</h2>
     <p class="note">Cliquez sur un en-tête pour trier. Passez la souris sur une ligne pour voir le Sanctuaire. « Victoire » : part des parties gagnées par un joueur qui y avait un marqueur.</p>
     <div class="scroll"><table class="stack"><thead><tr>${sortTh('wond', 'name', 'Sanctuaire')}${sortTh('wond', 'games', 'Parties où elle est présente', 1)}${sortTh('wond', 'placed', 'Marqueurs / partie', 1)}${sortTh('wond', 'first', 'PV du 1er marqueur', 1)}${sortTh('wond', 'per', 'PV / marqueur', 1)}${sortTh('wond', 'wr', 'Victoire', 1)}</tr></thead><tbody>
     ${wrows.map(r => `<tr data-hw="${r.W.id}"><td tabindex="0">${esc(r.name)}</td><td class="n">${r.games}</td><td class="n">${fx(r.placed, 2)}</td><td class="n">${r.first == null ? '—' : pvIcon(fx(r.first), 'lg')}</td><td class="n">${r.per == null ? '—' : pvIcon(fx(r.per), 'lg')}</td><td class="n">${r.wr == null ? '—' : Math.round(100 * r.wr) + ' %'}</td></tr>`).join('')}
@@ -1325,7 +1328,7 @@ function cardsHTML() {
       <label>Valeur <input data-ov="${c.id}:v" type="number" min="0" max="20" value="${E.cardValue(c)}"></label>
       <label>PV <input data-ov="${c.id}:pv" type="number" min="0" max="20" value="${c.pv}"></label>
       <label>Niveaux <input data-ov="${c.id}:c" value="${c.c.join(',')}" style="width:70px"></label></div>` : '' })).join('')}</div>
-  <section class="panel" style="margin-top:16px"><h2>Sanctuaires</h2><div class="wonders">${E.WONDERS.map(W => `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
+  <section class="panel" style="margin-top:16px"><h2 class="h-sanct">Sanctuaires</h2><div class="wonders">${E.WONDERS.map(W => `<div class="wonder"><div class="wn"><img class="wico" src="img/sanctuaire.svg" alt="">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
     <label class="f edit" style="margin-top:6px">Valeurs (1er/2e/3e)<input data-wov="${W.id}" value="${W.vals.join(',')}" style="width:100px"></label></div>`).join('')}</div>
     <details style="margin-top:12px"><summary>Mode avancé : modifier les effets en JSON</summary>
       <p class="note">Collez un objet { "cards": { "a1": { … } }, "wonders": { … } }. Les champs remplacent ceux de la carte d’origine (effets : imm, act, perm, end, d).</p>
