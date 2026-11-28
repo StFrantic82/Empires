@@ -387,6 +387,12 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .minicity div.legal{outline:2px solid var(--or);outline-offset:-1px;background:color-mix(in srgb,var(--or) 35%,var(--panel));color:var(--brown);font-weight:700;cursor:pointer}
 .minicity div.legal[data-hc]{outline-width:3px}
 @media(prefers-reduced-motion:no-preference){.minicity div.legal:not([data-hc]){animation:pulse 1.4s ease-in-out infinite}}
+
+/* Rappel de roue agrandi (+50 %) ; les offrandes gardent leur hauteur compacte */
+.mk-peek.gsize{width:180px}
+.mk-peek.gsize .wheel{width:168px;max-width:168px}
+.mk-peek.gsize .mk-st{font-size:13px;gap:8px}
+#tGuilds .gcard{align-self:flex-start}
 </style>
 </head>
 <body>
@@ -738,7 +744,7 @@ function gameHTML() {
   }).join('');
   const gpick = my && needGuild() && !G.pending;
   const PEEK = `<aside class="mk-peek gsize" data-peek tabindex="0" role="button" title="Roue de ${esc(seatName(pi))} — cliquer pour aller au plateau" aria-label="Rappel de la roue de ${esc(seatName(pi))}, Karma ${p.plans || 0}${G.opts.wonderMode === 'track' ? `, Éveil ${p.retired || 0} sur ${G.opts.retireStep}` : ''}. Aller au plateau.">${wheelSVG(p, WOOD, {})}
-          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 17)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/eveil.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
+          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 20)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/eveil.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
   const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}${PEEK}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
