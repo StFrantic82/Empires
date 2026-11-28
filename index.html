@@ -467,6 +467,13 @@ aside .city .cell{min-height:84px}
 .rgloss div{display:flex;align-items:center;gap:8px;font-size:14px}.rgloss .ri{width:24px;height:24px}
 .rmand{display:grid;grid-template-columns:repeat(3,70px);gap:4px;justify-content:center}.rmand div{height:44px;border:1px dashed var(--line);border-radius:6px;overflow:hidden}.rmand .on{border-style:solid}.rmand svg{width:100%;height:100%}
 .pnp-rules .rfig{break-inside:avoid;background:#fbf7ee}.pnp-rules .card{width:180px}
+
+@media print{
+  .panel{box-shadow:none!important;border:none!important;max-width:none!important;background:#fff!important}
+  .rfig{break-inside:avoid;background:#fbf7ee!important}
+  h3{break-after:avoid}
+  #app>section.panel h2{font-size:22pt}
+}
 </style>
 </head>
 <body>
@@ -767,7 +774,7 @@ function setupHTML() {
       ${seatsHTML('l')}
       <button class="big" id="startLocal">Jouer</button>
       <button class="tutoBtn" id="tutoBtn">🎓 Tutoriel : apprendre à jouer</button>
-      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="#regles">Règles illustrées</a><button id="homePnp">Print &amp; Play (PDF)</button><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
+      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="regles.pdf" target="_blank" rel="noopener">Règles illustrées (PDF)</a><a href="pnp.pdf" target="_blank" rel="noopener">Print &amp; Play (PDF)</a><a href="#regles">Règles en ligne</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
     </div>
   </section>
   ${remoteOpen ? `<div class="home-remote">${`  <section class="panel remote" id="remote"><h2>Jouer à distance</h2>
@@ -1386,7 +1393,7 @@ function pnpHTML() {
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
     <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Cartes au format 63 × 88 mm.</p>
-    <button class="pri" id="pnpPrint">Imprimer / PDF</button></section>
+    <a class="cta" href="pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
   <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
 
