@@ -169,6 +169,7 @@ function applyOverrides(ov) {
 }
 
 const DEFAULT_OPTS = {
+  soulCap: 12,                   // âmes à la couleur de chaque joueur (roue + activations + Éveil + Sanctuaires)
   startWheel: [2, 2, 1, 0, 0, 0], // ouvriers par niveau 0..5
   reserve: 6, locked: 4,
   endWonders: 0,                 // 0 = auto : 5 × nb joueurs
@@ -443,9 +444,12 @@ function push(G, ops, front = true) {
   const items = ops.map(op => ({ op }));
   if (front) G.queue.unshift(...items); else G.queue.push(...items);
 }
+// Âmes possédées par un joueur : sur sa roue, sur ses œuvres (activations), dans sa zone d'Éveil et sur les Sanctuaires
+function soulsOwned(G, pi) { const p = G.players[pi]; return wheelCount(p) + p.grid.filter(c => c && c.occ).length + (p.retired || 0) + G.wonders.reduce((a, w) => a + w.slots.filter(x => x === pi).length, 0); }
+function soulsLeft(G, pi) { return G.opts.soulCap ? Math.max(0, G.opts.soulCap - soulsOwned(G, pi)) : Infinity; }
 function gain(G, pi, n, lvl, free) {
   const p = G.players[pi]; lvl = Math.max(0, Math.min(5, lvl));
-  let k = G.opts.supply === 'cycle' ? n : Math.min(n, p.reserve);
+  let k = G.opts.supply === 'cycle' ? Math.min(n, soulsLeft(G, pi)) : Math.min(n, p.reserve);
   if (G.opts.recruitCap && !free && lvl === 0) { let cap = G.opts.recruitCap; for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.cap) cap += pm.cap; } k = Math.min(k, Math.max(0, cap - p.wheel[0])); }
   if (G.opts.supply !== 'cycle') p.reserve -= k;
   p.wheel[lvl] += k; p.st.gained += k; return k;
@@ -562,9 +566,11 @@ function addToZone(G, pi) {
   p.retired = (p.retired || 0) + 1;
   if (p.retired >= retireNeed(p, G)) {
     const k = p.retired; p.retired = 0;
-    let back = 0; for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.retireLvl) back = Math.max(back, pm.retireLvl); }
-    if (G.opts.supply === 'cycle') p.wheel[back] += k;
-    log(G, `${p.name} : ${k} âmes éveillées : un marqueur sur un Sanctuaire ; elles renaissent au niveau ${back}.`);
+    let back = -1; for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.retireLvl) back = Math.max(back, pm.retireLvl); }
+    // l'une des âmes éveillées se pose sur un Sanctuaire (elle sert de marqueur) ; les autres retournent dans la réserve du joueur
+    // (sauf Accueillir les sages : elles renaissent sur la roue)
+    if (G.opts.supply === 'cycle' && back >= 0) p.wheel[back] += k - 1;
+    log(G, `${p.name} : ${k} âmes éveillées : l’une rejoint un Sanctuaire${k > 1 ? (back >= 0 ? `, ${k - 1 > 1 ? 'les autres renaissent' : 'l’autre renaît'} au niveau ${back}` : `, ${k - 1 > 1 ? 'les autres retournent' : 'l’autre retourne'} dans la réserve`) : ''}.`);
     G.queue.unshift({ op: { op: 'eject', marker: true, noReturn: true } });
   }
 }
@@ -623,7 +629,7 @@ function retriggerCells(G, pi) {
   // pas de boucle : on ne redéclenche ni un autre redéclenchement, ni l'Étude (qui active des cartes)
   return G.players[pi].grid.map((c, i) => { if (!c || !BY_ID[c.id].imm) return -1; const j = JSON.stringify(BY_ID[c.id].imm); return j.includes('retrigger') || j.includes('"line"') || j.includes('adjImm') ? -1 : i; }).filter(i => i >= 0);
 }
-const WONDER_BY = { lines: 'nb de lignes et colonnes complètes de votre mandala', lvl2: 'nb d’œuvres de niveau 2', diff: 'nb de types de tags différents', vets: 'nb d’âmes de niveau 5 sur votre roue', sets: 'nb de séries d’offrandes (une sur chaque autel)' };
+const WONDER_BY = { lines: 'nb de lignes et colonnes complètes de votre mandala', lvl2: 'nb d’œuvres de niveau 2', diff: 'nb de tags différents', vets: 'nb d’âmes de niveau 5 sur votre roue', sets: 'nb de séries d’offrandes (une sur chaque autel)' };
 function wonderCount(p, k) {
   if (k === 'lines') { let L = 0; for (let i = 0; i < 3; i++) { if ([0, 1, 2].every(j => p.grid[i * 3 + j])) L++; if ([0, 1, 2].every(j => p.grid[j * 3 + i])) L++; } return L; }
   if (k === 'lvl2') return p.grid.filter(c => c && BY_ID[c.id].lvl === 2).length;
@@ -1196,7 +1202,7 @@ function cardText(c) {
     else if (pm.discount) out.perm = `Vos œuvres${pm.tag ? ' ' + TAG_NAMES[pm.tag] : ''}${pm.lvl ? ' de niveau ' + pm.lvl : ''} coûtent ${pm.discount} de moins.`;
     else if (pm.onMarker) out.perm = `Quand vous posez un marqueur sur un Sanctuaire : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
     else if (pm.cap) out.perm = `Votre case 0 peut accueillir ${3 + pm.cap} nouvelles âmes au lieu de 3.`;
-    else if (pm.retireLvl) out.perm = `Vos âmes éveillées renaissent au niveau ${pm.retireLvl} au lieu de 0.`;
+    else if (pm.retireLvl) out.perm = `Quand vous posez une âme sur un Sanctuaire, l’autre âme éveillée renaît au niveau ${pm.retireLvl} sur votre roue au lieu de retourner dans votre réserve.`;
     else if (pm.actBack) out.perm = `Vos âmes posées sur des œuvres reviennent au niveau ${pm.actBack} au lieu de 0.`;
     else if (pm.retire) out.perm = `Votre zone d’Éveil se déclenche avec ${3 + pm.retire} âmes au lieu de 3.`;
     else if (pm.crane) out.perm = 'Une œuvre de niveau 2 peut recouvrir cet échafaudage : payez seulement la différence de coût.';
@@ -1274,7 +1280,7 @@ function exportTables(opts) {
 }
 const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
-  reqMissing, bypassInfo, bypassPlan, cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
+  soulsOwned, soulsLeft, reqMissing, bypassInfo, bypassPlan, cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
   retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, KARMA_PER_DISCOUNT, matrixOps, matrixText, jokerOps, jokerText, guildColumns, BYPASS_COST,
 };
