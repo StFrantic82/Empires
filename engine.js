@@ -31,7 +31,7 @@ const CARDS = [
   { id: 'a3', lvl: 1, g: 'eru', name: 'Copier les sutras', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'S', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.C },
   { id: 'a4', lvl: 1, g: 'voy', name: 'Inspirer les poètes', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'C', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.E },
   { id: 'a5', lvl: 1, g: 'art', name: 'Ouvrir une échoppe', t: { P: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: { c: 'P', max: 5 } }], d: D.A },
-  { id: 'a6', lvl: 1, g: 'mar', name: 'Accueillir les voyageurs', t: { P: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: { c: 'P' }, lvl: 0 }], d: D.B },
+  { id: 'a6', lvl: 1, g: 'mar', name: 'Accueillir les voyageurs', t: { P: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: { c: 'P' }, lvl: 1 }], d: D.B },
   { id: 'a7', lvl: 1, g: 'eru', f: 'ag', name: 'Tenir le marché', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 3 }], d: D.C },
   { id: 'a8', lvl: 1, f: 'or', sx: true, name: 'Cultiver la rizière', t: { P: 2 }, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: D.D },
   { id: 'a9', lvl: 1, g: 'art', name: 'Veiller au monastère', t: { M: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'progress', n: 1, by: { c: 'M' } }], d: D.A },
@@ -41,10 +41,10 @@ const CARDS = [
   { id: 'a14', lvl: 1, g: 'mar', name: 'Brûler l’encens', t: { C: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'M', pts: 2 }, d: D.B },
   { id: 'a15', lvl: 1, g: 'eru', name: 'Bain rituel au fleuve', t: { C: 1 }, v: 3, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }], end: { col: 'S', pts: 2 }, d: D.C },
   { id: 'a16', lvl: 1, g: 'mar', name: 'Chanter les mantras', t: { C: 1 }, c: [1], pv: 1, end: { col: 'C', pts: 2 }, d: D.E },
-  { id: 'a17', lvl: 1, name: 'Ouvrir la route des caravanes', t: { P: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 2, lvl: 3, free: true }]), d: D.A },
-  { id: 'a18', lvl: 1, name: 'Rassembler les ordres', t: { M: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 1, lvl: 5, free: true }]), d: D.B },
+  { id: 'a17', lvl: 1, name: 'Ouvrir la route des caravanes', t: { P: 1 }, v: 3, c: [1, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.A },
+  { id: 'a18', lvl: 1, name: 'Rassembler les ordres', t: { M: 1 }, v: 3, c: [1, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 3, free: true }], d: D.B },
   { id: 'a19', lvl: 1, name: 'Unir les savoirs', t: { S: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'progress', n: 3, by: 2 }]), d: D.C },
-  { id: 'a20', lvl: 1, name: 'Jouer le grand drame', t: { C: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'vp', n: 5 }]), d: D.A },
+  { id: 'a20', lvl: 1, name: 'Jouer le grand drame', t: { C: 1 }, v: 3, c: [1, 2], pv: 1, end: { allTypes: 5 }, d: D.A },
   { id: 'a23', lvl: 1, name: 'Dresser l’échafaudage', t: {}, v: 2, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], perm: { crane: true }, d: D.D },
   { id: 'a21', lvl: 1, g: 'art', gd: true, name: 'Réunir les fidèles', t: { J: 1 }, end: { guildMax: 1 }, v: 8, c: [1, 2, 4], pv: 5, d: D.D },
   { id: 'a22', lvl: 1, f: 'or', sx: true, name: 'Recevoir un mécène', t: {}, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.D },
@@ -55,12 +55,12 @@ const CARDS = [
   { id: 'a29', lvl: 1, g: 'art', name: 'Planter un verger', t: { P: 1 }, c: [1], pv: 1, end: { row: 'P', pts: 1 }, d: D.A },
   { id: 'a30', lvl: 1, g: 'mar', gd: true, name: 'Garder les troupeaux', t: { P: 1 }, v: 5, c: [1, 3], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 2 }], d: D.A },
   { id: 'a32', lvl: 1, g: 'art', name: 'Façonner les bols', t: {}, c: [1, 1], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.A },
-  { id: 'a34', lvl: 1, g: 'art', name: 'Fondre la cloche', t: { M: 1 }, c: [1, 2], pv: 1, imm: [{ op: 'plan', n: 3 }], d: D.A },
+  { id: 'a34', lvl: 1, g: 'art', name: 'Fondre la cloche', t: { M: 1 }, c: [1, 2], pv: 2, imm: [{ op: 'plan', n: 4 }], d: D.A },
   { id: 'a35', lvl: 1, g: 'eru', name: 'Tisser les robes', t: { M: 1 }, v: 2, c: [1, 2], pv: 2, perm: { discount: 1, tag: 'M' }, d: D.A },
   { id: 'a38', lvl: 1, g: 'eru', name: 'Allumer les lampes', t: { M: 1 }, c: [1, 1], pv: 1, end: { row: 'M', pts: 2 }, d: D.A },
   { id: 'a39', lvl: 1, g: 'mar', f: 'or', sx: true, name: 'Danse des anciens', t: { M: 1, C: 1 }, c: [5], pv: 3, end: { atLvl: 5, pts: 2 }, d: D.A },
-  { id: 'a40', lvl: 1, g: 'art', name: 'Observer le soleil', t: { S: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }, { op: 'plan', n: 1 }], d: D.A },
-  { id: 'a42', lvl: 1, g: 'eru', name: 'Classer les rouleaux', t: { S: 1 }, v: 2, c: [1, 2], pv: 1, perm: { on: 'discard', g: 'eru', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
+  { id: 'a40', lvl: 1, g: 'art', name: 'Observer le soleil', t: { S: 1 }, v: 3, c: [1, 2], pv: 1, imm: [{ op: 'turn', n: 1 }, { op: 'plan', n: 1 }], d: D.A },
+  { id: 'a42', lvl: 1, g: 'eru', name: 'Classer les rouleaux', t: { S: 1 }, v: 2, c: [1, 2], pv: 2, perm: { on: 'discard', g: 'eru', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
   { id: 'a43', lvl: 1, g: 'art', name: 'Dessiner les plans du temple', t: { S: 2 }, c: [1, 1], pv: 3, perm: { discount: 1, lvl: 2 }, d: D.A },
   { id: 'a44', lvl: 1, g: 'eru', name: 'Creuser le puits', t: { S: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 1 }], d: D.A },
   { id: 'a45', lvl: 1, g: 'mar', name: 'Aménager la source', t: { S: 1, C: 1 }, c: [2, 2], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'S', pts: 1 }, d: D.A },
@@ -82,7 +82,7 @@ const CARDS = [
   { id: 'b7', lvl: 2, g: 'voy', req: { tags: { S: 1 } }, name: 'Calculer le cours des astres', t: { S: 1 }, v: 3, c: [2, 2], pv: 4, perm: { keep5: true }, d: [{ op: 'turn', n: 2 }] },
   { id: 'b8', lvl: 2, g: 'art', req: { tags: { C: 1 } }, name: 'Irriguer la vallée', t: { C: 1 }, v: 2, c: [1, 1], pv: 2, end: { row: 'P', pts: 2 }, d: [{ op: 'vp', n: 2 }] },
   { id: 'b10', lvl: 2, g: 'eru', req: { tags: { P: 1, S: 1 } }, f: 'ag', name: 'Soigner les malades', t: { P: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'takeGuild' }, { op: 'turn', n: 1 }], d: [{ op: 'turn', n: 2 }] },
-  { id: 'b11', lvl: 2, g: 'art', req: { tags: { P: 1, C: 1 } }, f: 'ag', name: 'Ouvrir les bains publics', t: { P: 1, C: 1 }, c: [3, 3], pv: 2, end: { perWheel: 0.5 }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
+  { id: 'b11', lvl: 2, g: 'art', req: { tags: { P: 1, C: 1 } }, f: 'ag', name: 'Ouvrir les bains publics', t: { P: 1, C: 1 }, v: 4, c: [3, 3], pv: 3, end: { perWheel: 0.5 }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
   { id: 'b12', lvl: 2, g: 'mar', req: { tags: { M: 1, S: 1 } }, name: 'Instruire les moines', t: { M: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 2, by: 2 }], d: [{ op: 'progress', n: 3, by: 1 }] },
   { id: 'b13', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'ag', name: 'Célébrer les éveillés', t: { M: 1, C: 1 }, c: [2, 2], pv: 5, imm: [{ op: 'gain', n: { c: 'wondW' }, lvl: 3, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
   { id: 'b14', lvl: 2, g: 'voy', req: { tags: { S: 1, C: 1 } }, f: 'ag', name: 'Fonder la bibliothèque', t: { S: 1, C: 1 }, v: 6, c: [2, 2], pv: 2, end: { perTag: ['S', 'C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
@@ -97,17 +97,17 @@ const CARDS = [
   { id: 'b23', lvl: 2, g: 'mar', gd: true, name: 'Dessiner le jardin sec', t: { J: 1 }, v: 8, c: [2, 2, 3], pv: 2, end: { lines: 2 }, d: [{ op: 'vp', n: 2 }] },
   // Niveau 2 — nouveaux bâtiments
   { id: 'b26', lvl: 2, g: 'eru', req: { tags: { P: 1, M: 1 } }, name: 'Offrir un banquet au temple', t: { P: 1, M: 1 }, c: [2, 3], pv: 1, end: { atLvl: 3, pts: 1 }, d: D.A },
-  { id: 'b28', lvl: 2, g: 'art', req: { tags: { S: 1 } }, name: 'Former les maîtres', t: { S: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'build', tag: 'S', ops: [{ op: 'progress', n: 1, by: 1 }] }, d: D.A },
+  { id: 'b28', lvl: 2, g: 'art', req: { tags: { S: 1 } }, name: 'Former les maîtres', t: { S: 1 }, v: 3, c: [2, 2], pv: 4, perm: { on: 'build', tag: 'S', ops: [{ op: 'progress', n: 1, by: 1 }] }, d: D.A },
   { id: 'b31', lvl: 2, g: 'mar', f: 'or', sx: true, req: { wonder: 1 }, name: 'Convoquer le concile', t: { M: 1, S: 1 }, c: [3, 5], pv: 6, imm: [{ op: 'guildAct', g: 'max', times: 2 }], d: D.A },
   { id: 'b32', lvl: 2, g: 'eru', req: { tags: { C: 1 } }, name: 'Purifier les eaux', t: { C: 1 }, v: 6, c: [2, 2], pv: 1, end: { guild: 'art', pts: 1 }, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.A },
   { id: 'b33', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Honorer les sages', t: { M: 1 }, c: [2, 3], pv: 3, end: { atLvl: 5, pts: 2 }, d: D.A },
   { id: 'b34', lvl: 2, g: 'art', gd: true, req: { tags: { P: 1 } }, name: 'Ouvrir les ateliers', t: {}, v: 5, c: [3, 3], pv: 3, imm: [{ op: 'guildAct', g: 'art', times: 1 }], d: D.A },
-  { id: 'b37', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Prélever l’octroi', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'vp', n: 1 }] }, d: D.A },
-  { id: 'b38', lvl: 2, g: 'eru', f: 'or', sx: true, req: { tags: { P: 2 } }, name: 'Fonder la banque du temple', t: { P: 1 }, c: [3, 5], pv: 4, imm: [{ op: 'plan', n: 3 }], end: { perPlans: 1 }, d: D.A },
-  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Nourrir les orphelins', t: { P: 1 }, c: [2, 2], pv: 4, perm: { on: 'build', tag: 'P', ops: [{ op: 'gain', n: 1, lvl: 1 }] }, d: D.A },
-  { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Compiler l’encyclopédie', t: { S: 1 }, c: [2, 2], pv: 3, perm: { discount: 1, tag: 'S' }, d: D.A },
-  { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Bâtir la porte des éveillés', t: { M: 1 }, c: [3, 5], pv: 5, end: { markers: 2 }, d: D.A },
-  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Consulter l’oracle', t: { S: 1 }, v: 5, c: [2, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
+  { id: 'b37', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Prélever l’octroi', t: { P: 1 }, v: 3, c: [2, 2], pv: 4, end: { guild: 'art', pts: 1 }, d: D.A },
+  { id: 'b38', lvl: 2, g: 'eru', f: 'or', sx: true, req: { tags: { P: 2 } }, name: 'Fonder la banque du temple', t: { P: 1 }, v: 6, c: [3, 5], pv: 5, imm: [{ op: 'plan', n: 3 }], end: { perPlans: 1 }, d: D.A },
+  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Nourrir les orphelins', t: { P: 1 }, c: [2, 2], pv: 4, perm: { on: 'build', tag: 'P', ops: [{ op: 'gain', n: 1, lvl: 2 }] }, d: D.A },
+  { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Compiler l’encyclopédie', t: { S: 1 }, v: 3, c: [1, 2], pv: 4, perm: { discount: 1, tag: 'S' }, d: D.A },
+  { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Bâtir la porte des éveillés', t: { M: 1 }, c: [3, 5], pv: 4, end: { markers: 1 }, d: D.A },
+  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Consulter l’oracle', t: { S: 1 }, v: 6, c: [3, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
   { id: 'b46', lvl: 2, g: 'eru', gd: true, name: 'Conserver les archives', t: {}, c: [2, 4], pv: 2, end: { guildMax: 1 }, d: D.A },
   { id: 'b49', lvl: 2, g: 'eru', req: { wonder: 1 }, name: 'Accueillir les sages', t: { C: 1 }, c: [2, 3], pv: 3, perm: { retireLvl: 2 }, d: D.A },
   { id: 'b50', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Guider vers l’Éveil', t: { M: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'zone', n: 1, min: 3 }], d: D.A },
@@ -116,10 +116,10 @@ const CARDS = [
   { id: 'a52', lvl: 1, name: 'Stocker les récoltes', t: { P: 1 }, c: [1, 1], pv: 1, end: { adjTag: 'P', pts: 2 } },
   { id: 'a53', lvl: 1, name: 'Planter une borne', t: {}, c: [1], pv: 1, end: { corner: 4 } },
   { id: 'a55', lvl: 1, name: 'Sonner le tambour', t: { M: 1 }, c: [1, 2], pv: 2, end: { adjTag: 'M', pts: 2 } },
-  { id: 'b51', lvl: 2, req: { tags: { C: 1 } }, name: 'Ouvrir la grand-place', t: { C: 1 }, v: 7, c: [2, 4], pv: 0, end: { adjAny: 2 } },
+  { id: 'b51', lvl: 2, req: { tags: { C: 1 } }, name: 'Ouvrir la grand-place', t: { C: 1 }, v: 5, c: [2, 4], pv: 1, end: { adjAny: 2 } },
   { id: 'b52', lvl: 2, name: 'Bâtir la maison des offrandes', t: {}, v: 6, c: [2, 3], pv: 2, end: { guildTotal: 2 } },
   { id: 'b55', lvl: 2, req: { tags: { C: 1 } }, name: 'Aménager le jardin d’angle', t: { C: 1 }, c: [2, 2], pv: 2, end: { corner: 4 } },
-  { id: 'b56', lvl: 2, f: 'br', req: { tags: { P: 1 } }, name: 'Peupler les faubourgs', t: { P: 1 }, v: 6, c: [2, 2, 2], pv: 2, end: { bronze: 1 }, d: D.A },
+  { id: 'b56', lvl: 2, f: 'br', req: { tags: { P: 1 } }, name: 'Peupler les faubourgs', t: { P: 1 }, v: 4, c: [2, 2, 2], pv: 3, end: { bronze: 1 }, d: D.A },
   { id: 'b57', lvl: 2, f: 'br', req: { tags: { C: 1 } }, name: 'Construire la maison commune', t: { C: 1 }, v: 7, c: [1, 2, 2, 2], pv: 7, d: D.A },
 ];
 // Les bâtiments ne sont plus des cartes de guilde : ils ne gardent un symbole de guilde que s'ils ont une réduction de guilde
@@ -150,14 +150,14 @@ const WONDERS = [
   { id: 'M7', name: 'Potala', vals: [3, 2, 1], by: 'lvl2' },
   { id: 'M8', name: 'Mont Wutai', vals: [3, 2, 1], by: 'diff' },
   { id: 'M9', name: 'Bodh-Gaya', vals: [2, 1, 1], by: 'vets' },
-  { id: 'M10', name: 'Lumbini', vals: [3, 2, 1], by: 'sets' },
+  { id: 'M10', name: 'Lumbini', vals: [4, 3, 2], by: 'sets' },
   // Peu de points, mais un effet immédiat : du tempo
-  { id: 'M11', name: 'Varanasi', vals: [5, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
-  { id: 'M12', name: 'Tōdai-ji', vals: [6, 4, 3], bonus: [{ op: 'plan', n: 2 }] },
-  { id: 'M13', name: 'Kinkaku-ji', vals: [6, 4, 3], bonus: [{ op: 'takeGuild' }] },
-  { id: 'M14', name: 'Mont Kōya', vals: [6, 4, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
-  { id: 'M15', name: 'Shaolin', vals: [6, 4, 3], bonus: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'M16', name: 'Kushinagar', vals: [6, 4, 3], bonus: [{ op: 'zone', n: 1, min: 3 }] },
+  { id: 'M11', name: 'Varanasi', vals: [6, 4, 3], bonus: [{ op: 'retrigger', times: 1 }] },
+  { id: 'M12', name: 'Tōdai-ji', vals: [7, 5, 3], bonus: [{ op: 'plan', n: 2 }] },
+  { id: 'M13', name: 'Kinkaku-ji', vals: [7, 5, 3], bonus: [{ op: 'takeGuild' }] },
+  { id: 'M14', name: 'Mont Kōya', vals: [7, 5, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
+  { id: 'M15', name: 'Shaolin', vals: [7, 5, 3], bonus: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'M16', name: 'Kushinagar', vals: [7, 5, 3], bonus: [{ op: 'zone', n: 1, min: 3 }] },
 ];
 const W_BY_ID = Object.fromEntries(WONDERS.map(w => [w.id, w]));
 const BASE_WONDERS = JSON.parse(JSON.stringify(WONDERS));
@@ -173,7 +173,7 @@ const DEFAULT_OPTS = {
   startWheel: [2, 2, 1, 0, 0, 0], // ouvriers par niveau 0..5
   reserve: 6, locked: 4,
   endWonders: 0,                 // 0 = auto : 5 × nb joueurs
-  wonderScoring: 'arrival',      // 'arrival' | 'end'
+  wonderScoring: 'end',          // les Sanctuaires se comptent en fin de partie (aucun PV pendant la partie)
   market: 4,
   costMode: 'sum',               // 'sum' | 'levels'
   guildRows: true,               // les cartes jouées en guilde restent devant le joueur
@@ -235,7 +235,13 @@ function newGame(names, opts = {}, seed) {
   // Fin : 3 âmes par joueur + 2 sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), sans dépasser le nombre de places
   G.endAt = o.endWonders || Math.min(3 * n + 2, 3 * G.wonders.length);
   G.start = G.cur = Math.floor(rnd(G) * n);
-  if (n === 2 && o.secondPlan !== false) G.players[(G.start + 1) % 2].plans = 1; // à 2 joueurs, le second joueur commence avec 1 Plan
+  // compensation selon l'ordre du tour (k = 0 pour le premier joueur)
+  // compensation par défaut : les joueurs suivants commencent avec des âmes en plus (le 1er joueur prend les meilleures places des Sanctuaires)
+  if (o.seatSouls === undefined) o.seatSouls = { 2: [null, 1], 3: [null, 1, 2], 4: [null, 1, 2, 2] }[n];
+  for (let k = 1; k < n; k++) { const p = G.players[(G.start + k) % n];
+    if (o.seatKarma) p.plans += o.seatKarma[k] || 0;
+    if (o.seatSouls && o.seatSouls[k] != null) for (const l of [].concat(o.seatSouls[k])) p.wheel[l]++; }
+  if (n === 2 && o.secondPlan !== false && !o.seatKarma && !o.seatSouls) G.players[(G.start + 1) % 2].plans = 1;
   log(G, `Partie lancée — ${G.players[G.cur].name} commence.`);
   return G;
 }
@@ -843,6 +849,7 @@ function endPoints(G, pi) {
     else if (e.guildMax) pts += Math.max(...GUILDS.map(g => p.guilds[g].length)) * e.guildMax;
     else if (e.guild) pts += p.guilds[e.guild].length * e.pts;
     else if (e.guildEach) pts += Math.min(...GUILDS.map(g => p.guilds[g].length)) * e.guildEach;
+    else if (e.allTypes) { const t = tagCounts(p); pts += TAGS.every(k => t[k] >= 1) || (t.J && TAGS.filter(k => t[k] >= 1).length >= 3) ? e.allTypes : 0; }
     else if (e.lines) {
       let L = 0; for (let k = 0; k < 3; k++) { if ([0, 1, 2].every(j => p.grid[k * 3 + j])) L++; if ([0, 1, 2].every(j => p.grid[j * 3 + k])) L++; }
       pts += L * e.lines;
@@ -1224,6 +1231,7 @@ function cardText(c) {
     else if (e.guild) out.end = `${e.pts} PV par offrande sur votre ${ALTAR[e.guild]}.`;
     else if (e.guildEach) out.end = `${e.guildEach} PV par série d’offrandes (une sur chaque autel).`;
     else if (e.lines) out.end = `${e.lines} PV par ligne ou colonne complète de votre mandala.`;
+    else if (e.allTypes) out.end = `${e.allTypes} PV si vous avez 1 tag de chaque type.`;
   }
   if (c.req) {
     if (c.req.wonder) out.req = c.req.wonder > 1 ? `Avoir des âmes sur ${c.req.wonder} Sanctuaires.` : 'Avoir au moins 1 âme sur un Sanctuaire.';

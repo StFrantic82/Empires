@@ -674,6 +674,16 @@ aside .city .cell{min-height:84px}
 .wc-pl .wc-slot{width:7mm;height:7mm}.wc-v{display:inline-flex;align-items:center;gap:1px;font-weight:800;color:#4a2a6a}.wc-v i{font-style:normal;font-size:12px}
 .wc-v .pv.sm{width:24px!important;height:24px!important;font-size:9.5px!important;padding-top:2.3px!important}
 .wonders .wc-fx{font-size:11px}.wonders .wc-v .pv.sm{width:28px!important;height:28px!important;font-size:11px!important;padding-top:2.6px!important}
+
+/* Carnet de score : 9,9 cm de large, 6 par page */
+.sp-grid{display:grid;grid-template-columns:repeat(2,99mm);gap:3mm 2mm;justify-content:center}
+.sp-grid .score-pad{width:99mm;box-sizing:border-box;margin:0;padding:2.5mm 3mm}
+.sp-grid .sp-h{font-size:10.5pt;margin-bottom:1.5mm;gap:2mm}.sp-grid .sp-h img{width:7mm}
+.sp-grid .sp-t{font-size:7pt}.sp-grid .sp-t th,.sp-grid .sp-t td{padding:.8mm 1mm;height:8.5mm}
+.sp-grid .sp-t thead th{height:7mm}.sp-grid .sp-name{height:4.5mm}
+.sp-grid .sp-t tbody th{width:34mm}.sp-grid .sp-t tbody th img{width:4.5mm;height:4.5mm;margin-right:1mm}.sp-grid .sp-t small{font-size:5.5pt}
+.sp-grid .sp-tot th,.sp-grid .sp-tot td{font-size:8.5pt}.sp-grid .sp-tie td{height:6mm}
+.tutoBtn{background:#5a3a22!important;color:#fff6e4!important;border:2px solid #c9a96a!important;box-shadow:0 2px 0 rgba(60,30,10,.3)}.tutoBtn:hover{filter:brightness(1.12)}
 </style>
 </head>
 <body>
@@ -856,7 +866,7 @@ function cardHTML(card, o = {}) {
 function wheelSVG(p, color, opts = {}) {
   // Même langage que les cartes : parchemin, encre brune, badges meeple chiffrés, or pour les points, violet Sanctuaire
   const cx = 150, cy = 150, R = 116, ink = '#5b4a36', o = [];
-  const fills = ['#e9e1cd', '#cfe5bd', '#cfe5bd', '#f9cdaa', '#f9cdaa', '#dfcbee']; // teintes des âmes : vert (jeunes), orange (mûres), violet (ancienne) // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
+  const fills = ['#f3ead7', '#f3ead7', '#f3ead7', '#f3ead7', '#f3ead7', '#f3ead7']; // secteurs neutres : la roue tourne, les repères d'âge sont sur le bord fixe // teintes des âmes : vert (jeunes), orange (mûres), violet (ancienne) // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
   const A0 = opts.a0 != null ? opts.a0 : 270, rot = A0 - 180; // A0 : angle de la case 0 (180 = à gauche, 270 = en haut)
   const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
   const f = n => n.toFixed(1);
@@ -870,7 +880,7 @@ function wheelSVG(p, color, opts = {}) {
   for (let i = 0; i < 6; i++) {
     const c = A0 + 60 * i, [x0, y0] = pt(R, c - 30), [x1, y1] = pt(R, c + 30);
     const pick = opts.pick && p.wheel[i] > 0;
-    o.push(`<path d="M${cx} ${cy} L${f(x0)} ${f(y0)} A${R} ${R} 0 0 1 ${f(x1)} ${f(y1)} Z" fill="${i === 0 ? 'url(#hz)' : fills[i]}" stroke="${pick ? '#c9a227' : ink}" stroke-width="${pick ? 4 : 2}" ${pick ? `data-lvl="${i}" style="cursor:pointer" tabindex="0" role="button" aria-label="Choisir une âme de niveau ${i}"` : ''}/>`);
+    o.push(`<path d="M${cx} ${cy} L${f(x0)} ${f(y0)} A${R} ${R} 0 0 1 ${f(x1)} ${f(y1)} Z" fill="${fills[i]}" stroke="${pick ? '#c9a227' : ink}" stroke-width="${pick ? 4 : 2}" ${pick ? `data-lvl="${i}" style="cursor:pointer" tabindex="0" role="button" aria-label="Choisir une âme de niveau ${i}"` : ''}/>`);
     // âmes rangées sur deux arcs
     const n = p.wheel[i], slots = [[52, -16], [52, 16], [86, -18], [86, 0], [86, 18], [52, 0]];
     for (let k = 0; k < Math.min(n, 6); k++) {
@@ -878,7 +888,7 @@ function wheelSVG(p, color, opts = {}) {
       o.push(`<g transform="translate(${f(mx - 10)} ${f(my - 11)})" pointer-events="none"><path d="${FLAME}" fill="${color}" stroke="${ink}" stroke-width="1.3"/><path d="M10.3 10.5c1.8 1.9 3 3.2 3 5.1 0 1.9-1.4 3.2-3.2 3.2S6.9 17.5 6.9 15.6c0-1.6 1.3-3 3.4-5.1z" fill="#fff3c4" opacity=".85"/></g>`);
     }
     if (n > 6) { const [bx, by] = pt(104, c); o.push(`<g pointer-events="none"><circle cx="${f(bx)}" cy="${f(by)}" r="10" fill="${ink}"/><text x="${f(bx)}" y="${f(by + 4)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fbf7ee">×${n}</text></g>`); }
-    { const [ax, ay] = pt(R - 17, c); const col = i >= 5 ? '#7b3fa0' : i >= 3 ? '#d9661a' : i >= 1 ? '#4f8a33' : '#7a6650'; o.push(`<g transform="translate(${f(ax - 9)} ${f(ay - 10)}) scale(.9)" pointer-events="none" opacity=".85"><path d="${FLAME}" fill="${col}" stroke="#3a2e1f" stroke-width=".8"/></g>`); } // icône de l'âme de ce cran
+    { const [ax, ay] = pt(R + 16, c + 15); const col = i >= 5 ? '#7b3fa0' : i >= 3 ? '#d9661a' : i >= 1 ? '#4f8a33' : '#7a6650'; o.push(`<g transform="translate(${f(ax - 7)} ${f(ay - 8)}) scale(.72)" pointer-events="none"><path d="${FLAME}" fill="${col}" stroke="#3a2e1f" stroke-width=".9"/></g>`); } // repère d'âge sur le bord fixe
     // badge de niveau : meeple chiffré, comme le coût des cartes
     const [lx, ly] = pt(R + 16, c);
     o.push(`<g pointer-events="none"><circle cx="${f(lx)}" cy="${f(ly)}" r="14" fill="${i === 5 ? '#7b3fa0' : i >= 3 ? '#d9661a' : i >= 1 ? '#4f8a33' : ink}" stroke="#fbf7ee" stroke-width="2"/>
@@ -1619,10 +1629,10 @@ function pnpHTML() {
   const rules = sheet('Règles', `<div class="pnp-rules">${rulesHTML().replace(/<section[^>]*>/, '').replace(/<\/section>\s*$/, '')}</div>`, 'pnp-flow');
   const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
   const pad = () => `<div class="score-pad"><div class="sp-h"><img src="img/samsara.svg" alt=""> Carnet de score</div><table class="sp-t"><thead><tr><th></th>${[1, 2, 3, 4].map(() => '<th><div class="sp-name"></div></th>').join('')}</tr></thead><tbody>
-    ${[['pv', 'PV des œuvres', 'lotus en bas de chaque œuvre de votre mandala'], ['fin', 'Effets « Fin »', 'œuvres qui marquent en fin de partie'], ['sanct', 'Sanctuaires', 'points marqués à l’arrivée de vos âmes'], ['autre', 'Autres PV', 'effets immédiats ou permanents « marquez »']].map(([k, l, d]) => `<tr><th><img src="img/${k === 'sanct' ? 'sanctuaire' : 'pv'}.svg" alt=""><span><b>${l}</b><small>${d}</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>`).join('')}
+    ${[['pv', 'PV des œuvres', 'lotus en bas de chaque œuvre de votre mandala'], ['fin', 'Effets « Fin »', 'œuvres qui marquent en fin de partie'], ['sanct', 'Sanctuaires', 'chaque âme posée, avec vos tags en fin de partie']].map(([k, l, d]) => `<tr><th><img src="img/${k === 'sanct' ? 'sanctuaire' : 'pv'}.svg" alt=""><span><b>${l}</b><small>${d}</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>`).join('')}
     <tr class="sp-tot"><th><span><b>Total</b></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>
     <tr class="sp-tie"><th><span><b>Égalité</b><small>âmes sur la roue</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr></tbody></table></div>`;
-  const scores = sheet('Carnet de score', pad() + pad(), 'pnp-score');
+  const scores = sheet('Carnet de score (6 par page, 9,9 cm de large)', `<div class="sp-grid">${pad() + pad() + pad() + pad() + pad() + pad()}</div>`, 'pnp-score');
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
     <p class="small mute">Contenu : règles, carnet de score, ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 1 plateau personnel (à imprimer 4 fois), pions. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
@@ -1699,7 +1709,7 @@ function rulesHTML() {
   <h3>Tour de jeu</h3>
   <ul><li><strong>1. Déposez une offrande</strong> parmi les 4 visibles, sur l’autel qu’elle représente, à la suite des offrandes déjà posées, et recevez la bénédiction de sa case (voir « Les trois autels »).</li>
   <li><strong>2. Puis, au choix : accomplissez une œuvre</strong> (prenez une carte visible, payez son coût, placez-la dans votre mandala ; le marché est complété aussitôt) <strong>ou tournez votre roue d’un cran</strong> : toutes vos âmes vivent une vie de plus et gagnent un niveau.</li></ul>
-  <p><strong>À 2 joueurs</strong>, le second joueur commence avec 1 Karma.</p>
+  <p><strong>Ordre du tour.</strong> Pour compenser l’avantage du premier joueur, le 2ᵉ joueur commence avec 1 âme de niveau 1 en plus, le 3ᵉ avec 1 âme de niveau 2 en plus, et le 4ᵉ aussi avec 1 âme de niveau 2 en plus.</p>
   <h3>Les trois autels</h3>
   <p>Votre plateau porte trois autels. Plus un autel est honoré, plus sa bénédiction est forte : l’offrande que vous déposez donne l’effet de son rang.</p>
   <div class="scroll"><table><thead><tr><th>Offrande n°</th><th class="n">1</th><th class="n">2</th><th class="n">3</th><th class="n">4</th><th class="n">5</th><th class="n">6 et plus</th></tr></thead><tbody>
@@ -1736,7 +1746,7 @@ function rulesHTML() {
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
   ${F.wheel}
   <h3>Sanctuaires et fin de partie</h3>
-  <p>Chaque Sanctuaire a 3 places de valeur décroissante ; les points sont comptés à l’arrivée de l’âme, avec vos tags à ce moment-là. Un joueur peut avoir plusieurs âmes sur le même Sanctuaire. La fin est déclenchée quand il y a <strong>3 âmes par joueur + 2</strong> sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), ou quand un mandala compte 9 œuvres. Elle l’est aussi si les offrandes ou la pioche de niveau 1 sont épuisées. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
+  <p>Chaque Sanctuaire a 3 places de valeur décroissante ; leurs points sont comptés <strong>en fin de partie</strong>, avec vos tags à ce moment-là : on ne marque aucun PV pendant la partie, tout se calcule à la fin sur le carnet de score. Un joueur peut avoir plusieurs âmes sur le même Sanctuaire. La fin est déclenchée quand il y a <strong>3 âmes par joueur + 2</strong> sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), ou quand un mandala compte 9 œuvres. Elle l’est aussi si les offrandes ou la pioche de niveau 1 sont épuisées. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
   ${F.wonder}
 <div class="devnote">
   <h3>Équilibrage</h3>
