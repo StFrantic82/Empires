@@ -1,8 +1,8 @@
-# Empires
+# La Roue des Vies
 
-Prototype du jeu de société **Empires** (titre provisoire), de Matthieu Verdier et Régis Crosnier.
+Prototype du jeu de société **La Roue des Vies** (anciennement « Empires »), de Matthieu Verdier et Régis Crosnier.
 
-Chaque joueur développe une ville de 3 × 3 bâtiments. Ses ouvriers gagnent en expérience sur une roue (niveaux 0 à 5) : plus leur niveau est élevé, plus ils paient cher, et ceux qui dépassent le niveau 5 partent à la retraite pour poser des marqueurs sur les Merveilles.
+Chaque joueur guide des âmes sur la roue du Samsara (niveaux 0 à 5). Leurs œuvres forment un mandala de 3 × 3 cartes ; les âmes consacrées à une œuvre renaissent au niveau 0, et celles qui dépassent le niveau 5 atteignent l'Éveil et posent des marqueurs sur les sanctuaires.
 
 ## Contenu
 

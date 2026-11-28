@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Empires — prototype</title>
+<title>La Roue des Vies — prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -197,7 +197,7 @@ tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{ba
 /* Accueil simple */
 .home{max-width:620px;margin:8px auto 22px;text-align:center;display:flex;flex-direction:column;align-items:center}
 .home-wheel{width:clamp(120px,22vw,170px);height:auto;border-radius:50%;box-shadow:0 6px 22px rgba(60,40,10,.25)}
-.home .logo{font-family:'Yatra One',serif;font-size:clamp(44px,8vw,72px);color:var(--brown);margin:.15em 0 0;letter-spacing:.03em}
+.home .logo{font-family:'Yatra One',serif;font-size:clamp(38px,7vw,64px);line-height:1.1;color:var(--brown);margin:.15em 0 0;letter-spacing:.03em}
 .home .lead{font-size:clamp(16px,2vw,19px);margin:.3em 0 .4em;max-width:30em}
 .home .credits{font-family:'Yatra One',serif;color:var(--mute);font-size:14px;margin:0 0 14px}
 .home-box{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -224,7 +224,7 @@ tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{ba
 </head>
 <body>
 <header>
-  <div><h1 style="color:var(--brown)">Empires</h1><div class="sub">Prototype de Régis Crosnier &amp; Matthieu Verdier</div></div>
+  <div><h1 style="color:var(--brown)">La Roue des Vies</h1><div class="sub">Prototype de Régis Crosnier &amp; Matthieu Verdier</div></div>
   <nav id="nav">
     <a href="#jouer" data-v="jouer">Accueil</a>
     <a href="#simulateur" data-v="simulateur">Atelier</a>
@@ -442,7 +442,7 @@ function setupHTML() {
   }).join('');
   return `<section class="home">
     <img class="home-wheel" src="img/samsara.svg" alt="">
-    <h1 class="logo">Empires</h1>
+    <h1 class="logo">La Roue des Vies</h1>
     <p class="lead">Guidez des âmes de vie en vie. Chaque existence les rend plus sages ; leurs œuvres forment votre mandala, et les plus anciennes atteignent l’Éveil dans les grands sanctuaires.</p>
     <p class="credits">Un jeu de <b>Régis Crosnier &amp; Matthieu Verdier</b> · 2 à 4 joueurs · 30 min</p>
     <div class="home-box">
@@ -945,7 +945,7 @@ function cardsHTML() {
     <p class="note">Modifiez la valeur (coût en mode somme), le coût par niveaux ou les PV directement sous chaque carte, puis enregistrez. ${db ? 'Les réglages sont partagés : Régis les voit aussi, et ils s’appliquent aux parties et au simulateur.' : 'Sans connexion, les réglages restent dans ce navigateur.'}</p>
     <div class="row"><button class="pri" id="saveOv">Enregistrer les réglages</button><button id="resetOv">Revenir aux valeurs de départ</button><span class="note">${Object.keys(overrides.cards || {}).length} carte(s) modifiée(s)</span></div>
     <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><strong>Google Sheets</strong>
-      <a href="${SHEET_URL}" target="_blank" rel="noopener">Empires — données du jeu</a>
+      <a href="${SHEET_URL}" target="_blank" rel="noopener">La Roue des Vies — données du jeu</a>
       <span class="note">${sheetSync.state === 'ok' ? 'À jour' + (sheetSync.at ? ' (synchronisé le ' + new Date(sheetSync.at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) + ')' : '') : sheetSync.state === 'busy' ? 'Synchronisation en cours…' : sheetSync.state === 'err' || sheetSync.state === 'off' ? esc(sheetSync.msg) : 'Le tableur se met à jour à chaque enregistrement, et à l’ouverture de l’app si les cartes ont changé.'}</span>
       <button id="syncSheet" ${sheetSync.state === 'busy' ? 'disabled' : ''}>Synchroniser maintenant</button></div></section>
   <div style="display:flex;flex-wrap:wrap;gap:12px">${list.map(c => cardHTML(c, { extra: editable ? `<div class="edit row" style="padding:6px 8px;border-top:1px solid #cfc6b4;gap:6px;font-size:12px;color:#4a4337">
