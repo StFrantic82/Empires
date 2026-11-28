@@ -524,6 +524,19 @@ aside .city .cell{min-height:84px}
 .pnp-card .card .hd{min-height:0;padding:2px 5px}.pnp-card .card svg.art{flex:1 1 14mm;min-height:12mm}.pnp-card .card .ft{min-height:0;padding:2px 5px}
 .pnp-card .card .tagi{width:15px;height:15px}.pnp-card .card .ft .pv{width:20px;height:20px;font-size:9px}.pnp-card .mcost,.pnp-card .mcost svg{width:22px;height:22px}.pnp-card .mcost span{inset:7px 0 0;font-size:10px}.pnp-card .card .nm{font-size:10.5px}
 .cell .mini svg{flex:1 1 38px}
+
+/* Formats imposés aussi dans l'app : œuvres carrées, offrandes 41 × 63, Sanctuaires carrés */
+.cards>.card,#tMarket1 .card,#tMarket2 .card{width:224px;height:224px;min-height:0;overflow:hidden}
+.cards>.card .fx{font-size:11.5px;line-height:1.25;gap:2px;padding:4px 7px}.cards>.card .fx b{font-size:10px}
+.cards>.card svg.art{flex:1 1 40px;min-height:30px}
+.cards>.card .agebar{margin:3px 6px 2px}
+#tGuilds .gcard{width:104px;height:160px;min-height:0;align-self:flex-start;justify-content:space-evenly}
+.wonders{grid-template-columns:repeat(auto-fill,200px);justify-content:start;gap:10px}
+.wonders .wcard{width:200px;height:200px}
+.wc-slot{display:grid;place-items:center}.wc-slot svg{width:5mm;height:5.5mm}
+
+.wonders .wc-h{font-size:13px}.wonders .wc-row{font-size:10.5px}.wonders .wc-sc .pv.sm{width:24px;height:24px;font-size:11px}.wonders .wc-x .ti{width:15px;height:15px}.wonders .wc-b{font-size:10px}
+.cards>.card .ft{min-height:36px}.cards>.card .hd{min-height:42px}
 </style>
 </head>
 <body>
@@ -782,6 +795,14 @@ document.addEventListener('click', e => {
 });
 window.addEventListener('hashchange', route);
 
+// Cartes à taille fixe : si les effets débordent, on réduit leur texte pas à pas
+function fitCards() {
+  document.querySelectorAll('.card').forEach(c => {
+    const fx = c.querySelector('.fx'); if (!fx) return;
+    let s = parseFloat(getComputedStyle(fx).fontSize), guard = 0;
+    while (c.scrollHeight > c.clientHeight + 1 && s > 8 && guard++ < 12) { s -= .5; fx.style.fontSize = s + 'px'; fx.querySelectorAll('b').forEach(b => b.style.fontSize = Math.max(7, s - 1.5) + 'px'); }
+  });
+}
 function render() {
   navSync();
   const app = $('#app');
@@ -791,6 +812,7 @@ function render() {
   else if (view === 'imprimer') app.innerHTML = pnpHTML();
   else app.innerHTML = rulesHTML();
   if (view === 'jouer' && G) resolveNames();
+  fitCards();
   tutoSync();
 }
 
@@ -824,7 +846,7 @@ function setupHTML() {
       ${seatsHTML('l')}
       <button class="big" id="startLocal">Jouer</button>
       <button class="tutoBtn" id="tutoBtn">🎓 Tutoriel : apprendre à jouer</button>
-      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="pnp.pdf" target="_blank" rel="noopener">Règles et Print &amp; Play (PDF)</a><a href="#regles">Règles en ligne</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
+      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="https://stfrantic82.github.io/Empires/pnp.pdf" target="_blank" rel="noopener">Règles et Print &amp; Play (PDF)</a><a href="#regles">Règles en ligne</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
     </div>
   </section>
   ${remoteOpen ? `<div class="home-remote">${`  <section class="panel remote" id="remote"><h2>Jouer à distance</h2>
@@ -865,11 +887,7 @@ function seatName(i) {
 }
 function gameHTML() {
   const p = G.players[G.cur], my = isMyTurn(), pi = G.cur;
-  const wonders = G.wonders.map((w, wi) => {
-    const W = E.W_BY_ID[w.id];
-    return `<div class="wonder"><div class="wn"><img class="wico" src="img/sanctuaire.svg" alt="">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
-      <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot taken flame" title="Âme de ${esc(seatName(w.slots[k]))} : ${W.vals[k]} PV"><svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${seats[w.slots[k]].color}" stroke="#3a2e1f" stroke-width="1"/></svg></span>` : `<span class="slot pvslot" title="${W.vals[k]} PV pour le ${k === 0 ? '1er' : k === 1 ? '2e' : '3e'} âme">${pvIcon(W.vals[k])}</span>`).join('')}</div></div>`;
-  }).join('');
+  const wonders = G.wonders.map(w => wonderCardHTML(E.W_BY_ID[w.id], w.slots)).join('');
   const market = [1, 2].map(L => {
     const back = '';
     const cards = G.market[L].map((id, idx) => {
@@ -1312,11 +1330,11 @@ function simResultHTML(R) {
     </tbody></table></div></section>`;
 }
 // Aperçu d'une carte ou d'un Sanctuaire au survol (ou au focus clavier) d'une ligne
-function wonderCardHTML(W) {
+function wonderCardHTML(W, slots) {
   const t = E.wonderText(W), m = t.match(/^\d+ \/ \d+ \/ \d+ PV\s*/), rest = m ? t.slice(m[0].length) : '';
   const mult = /^×/.test(rest), bonus = /^\+/.test(rest);
   const per = mult ? iconize(rest.replace(/^×\s*/, '')) : '';
-  const rows = W.vals.map((v, i) => `<div class="wc-row"><span class="wc-slot"></span><span class="wc-rank">${i + 1}${i ? 'ᵉ' : 'ʳᵉ'}</span><span class="wc-sc">${pvIcon(v, 'sm')}${mult && rest.length < 30 ? `<span class="wc-x">× ${per}</span>` : ''}</span></div>`).join('');
+  const rows = W.vals.map((v, i) => `<div class="wc-row"><span class="wc-slot">${slots && slots[i] != null ? `<svg viewBox="0 0 20 22" title="${esc(seatName(slots[i]))}"><path d="${FLAME}" fill="${seats[slots[i]].color}" stroke="#3a2e1f" stroke-width="1"/></svg>` : ''}</span><span class="wc-rank">${i + 1}${i ? 'ᵉ' : 'ʳᵉ'}</span><span class="wc-sc">${pvIcon(v, 'sm')}${mult && rest.length < 30 ? `<span class="wc-x">× ${per}</span>` : ''}</span></div>`).join('');
   return `<div class="wcard"><div class="wc-h"><img src="img/sanctuaire.svg" alt=""><span>${esc(W.name)}</span></div>
     <svg class="wc-art" viewBox="0 0 186 74" preserveAspectRatio="xMidYMid slice">${window.WSCENES && WSCENES[W.id] ? WSCENES[W.id]() : ''}</svg>
     ${bonus ? `<div class="wc-b">+ ${iconize(rest.replace(/^\+\s*/, ''))}</div>` : mult && rest.length >= 30 ? `<div class="wc-b">Chaque place : PV × ${per}</div>` : ''}
@@ -1454,7 +1472,7 @@ function pnpHTML() {
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
     <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
-    <a class="cta" href="pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
+    <a class="cta" href="https://stfrantic82.github.io/Empires/pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
   <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
 
