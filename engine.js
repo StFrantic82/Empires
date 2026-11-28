@@ -104,7 +104,7 @@ const CARDS = [
   { id: 'b34', lvl: 2, g: 'art', gd: true, req: { tags: { P: 1 } }, name: 'Ouvrir les ateliers', t: {}, v: 5, c: [3, 3], pv: 3, imm: [{ op: 'guildAct', g: 'art', times: 1 }], d: D.A },
   { id: 'b37', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Prélever l’octroi', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'vp', n: 1 }] }, d: D.A },
   { id: 'b38', lvl: 2, g: 'eru', f: 'or', sx: true, req: { tags: { P: 2 } }, name: 'Fonder la banque du temple', t: { P: 1 }, c: [3, 5], pv: 4, imm: [{ op: 'plan', n: 3 }], end: { perPlans: 1 }, d: D.A },
-  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Nourrir les orphelins', t: { P: 1 }, c: [2, 2], pv: 4, perm: { cap: 2 }, d: D.A },
+  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Nourrir les orphelins', t: { P: 1 }, c: [2, 2], pv: 4, perm: { on: 'build', tag: 'P', ops: [{ op: 'gain', n: 1, lvl: 1 }] }, d: D.A },
   { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Compiler l’encyclopédie', t: { S: 1 }, c: [2, 2], pv: 3, perm: { discount: 1, tag: 'S' }, d: D.A },
   { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Bâtir la porte des éveillés', t: { M: 1 }, c: [3, 5], pv: 5, end: { markers: 2 }, d: D.A },
   { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Consulter l’oracle', t: { S: 1 }, v: 5, c: [2, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
@@ -187,7 +187,7 @@ const DEFAULT_OPTS = {
   wonderMode: 'track',           // 'auto' : chaque retraite pose un marqueur ; 'track' : un marqueur toutes les N retraites ; 'consecrate' : action volontaire
   retireStep: 1,                 // une âme qui dépasse le niveau 5 rejoint directement un Sanctuaire                 // N pour 'track'
   supply: 'cycle',               // 'cycle' : un ouvrier dépensé ou parti à la retraite revient au niveau 0 de sa roue ; 'general' : il part dans la réserve générale
-  recruitCap: 3,                 // > 0 : on ne peut gagner un ouvrier que si la case 0 en contient moins que ce nombre             // 'general' : ouvriers dépensés ou partis à la retraite vont à la réserve générale ; débloquer en reprend
+  recruitCap: 0,                 // > 0 : on ne peut gagner un ouvrier que si la case 0 en contient moins que ce nombre             // 'general' : ouvriers dépensés ou partis à la retraite vont à la réserve générale ; débloquer en reprend
   ejectReturn: true,             // l'ouvrier éjecté retourne dans la réserve ; un marqueur du joueur va sur la Merveille
   guildChain: 0,                 // jouer une carte en guilde réactive les cartes déjà dans la rangée (0 = non, N = au plus N, 99 = toutes)
   chainNoTurn: false,

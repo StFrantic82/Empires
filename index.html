@@ -602,6 +602,16 @@ aside .city .cell{min-height:84px}
 .card .fx .pv.sm{width:32px!important;height:32px!important;font-size:12px!important;padding-top:3px!important;vertical-align:-11px!important}
 .cards>.card svg.art{min-height:24px}
 .pnp-card .card .fx{font-size:8.5px}.pnp-card .card .fx .ti{width:12px;height:12px;vertical-align:-3px}.pnp-card .card .fx .bico{transform:none}.pnp-card .card .fx .pv.sm{width:20px!important;height:20px!important;font-size:8px!important;padding-top:1.9px!important;vertical-align:-6px!important}
+
+.rmat{margin:0 0 8px;padding-left:20px}.rmat li{margin:1px 0}
+/* Plateau personnel 20 × 20 cm */
+.pnp-bsheet{padding:5mm!important}
+.pnp-board2{width:200mm;height:200mm;box-sizing:border-box;border:1.5px solid #8a7350;border-radius:4mm;background:#fbf7ee;display:grid;grid-template-columns:46mm 1fr 67mm;align-items:center;gap:2mm;padding:3mm;margin:0 auto}
+.pb2-alt,.pb2-man{display:grid;gap:1.5mm;align-content:center}
+.pb2-slot{height:64mm;border:1.5px dashed #b98a4a;border-radius:3mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm;text-align:center;background:#fffaf0}
+.pb2-slot img{width:16mm;height:16mm}.pb2-slot span{font-family:'Yatra One',serif;font-size:10pt;color:#6e4128}.pb2-slot small{font-size:7pt;color:#8a7a5c}
+.pb2-wheel{display:flex;flex-direction:column;align-items:center}.pb2-wheel .wheel{width:80mm;max-width:none}.pb2-name{font-family:'Yatra One',serif;font-size:13pt;color:#6e4128;margin-top:2mm}
+.pb2-card{width:63mm;height:63mm;border:1.5px dashed #b98a4a;border-radius:3mm;display:grid;place-items:center;text-align:center;padding:4mm;box-sizing:border-box;background:#fffaf0}.pb2-card small{font-size:7.5pt;color:#8a7a5c}
 </style>
 </head>
 <body>
@@ -1525,10 +1535,11 @@ function pnpHTML() {
   const wond = chunk(E.WONDERS, 12).map((g, i, all) => sheet(`Sanctuaires (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.map(W => `<div class="pnp-card">${wonderCardHTML(W)}</div>`).join('')}</div>`)).join('');
   // plateaux joueurs : roue, Éveil, autels, mandala
   const blank = { wheel: [0, 0, 0, 0, 0, 0], guilds: { mar: [], art: [], eru: [] }, retired: 0, plans: 0 };
-  const board = col => `<div class="pnp-board"><div class="pb-l">${wheelSVG(blank, WOOD, {})}</div>
-    <div class="pb-r"><div class="pb-h"><span class="dot" style="background:${col}"></span> Autels</div>${matrixHTML(blank).replace(/<p class="note"[\s\S]*?<\/p>/, '')}
-    <div class="pb-h" style="margin-top:6px">Mandala</div><div class="pb-city">${Array.from({ length: 9 }, () => '<div></div>').join('')}</div></div></div>`;
-  const boards = chunk(SEATS.map(s => s.c), 2).map((g, i) => sheet(`Plateaux joueurs (${i + 1}/2)`, g.map(board).join(''))).join('');
+  const board = col => `<div class="pnp-board2" style="--pc:${col}">
+    <div class="pb2-alt">${['mar', 'art', 'eru'].map(g => `<div class="pb2-slot"><img src="img/${g}.svg" alt=""><span>${esc(E.ALTAR[g])}</span><small>glissez ici vos offrandes</small></div>`).join('')}</div>
+    <div class="pb2-wheel">${wheelSVG(blank, WOOD, {})}<div class="pb2-name"><span class="dot" style="background:${col}"></span> La Roue des Vies</div></div>
+    <div class="pb2-man">${[0, 1, 2].map(() => `<div class="pb2-card"><small>Mandala : commencez ici, colonne de gauche</small></div>`).join('')}</div></div>`;
+  const boards = SEATS.map((s, i) => sheet(`Plateau personnel (${i + 1}/4)`, board(s.c), 'pnp-bsheet')).join('');
   // pions : âmes (flammes) à la couleur des joueurs, jetons Karma
   const flame = `<svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></svg>`;
   const tokens = sheet('Pions à découper', `<h3>Âmes : 12 par joueur, à sa couleur (elles servent aussi de marqueurs sur les Sanctuaires)</h3><div class="pnp-tok">${SEATS.map(s => Array.from({ length: 12 }, () => `<span class="tk"><svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${s.c}" stroke="#3a2e1f" stroke-width=".8"/></svg></span>`).join('')).join('')}</div>
@@ -1597,6 +1608,13 @@ function rulesHTML() {
   const F = rulesFigs();
   return rulesIcons(`<section class="panel rules-doc" style="max-width:860px">
   <h2>Règles illustrées</h2>
+  <h3>Matériel</h3>
+  <ul class="rmat"><li>${E.CARDS.filter(c => c.lvl === 1).length} œuvres de niveau 1 et ${E.CARDS.filter(c => c.lvl === 2).length} de niveau 2 (cartes carrées 63 × 63 mm)</li>
+  <li>${E.GCARDS.length} offrandes (41 × 63 mm) : ${['mar', 'art', 'eru', 'voy'].map(g => `${E.GCARDS.filter(c => c.g === g).length} ${E.GUILD_NAMES[g]}`).join(', ')}</li>
+  <li>${E.WONDERS.length} Sanctuaires (cartes carrées 63 × 63 mm)</li>
+  <li>4 plateaux personnels (20 × 20 cm) : la roue, 3 emplacements d’autels, 3 emplacements de départ du mandala</li>
+  <li>48 âmes : 12 par joueur, à sa couleur (Noir, Blanc, Rose, Turquoise)</li>
+  <li>Jetons de Karma (40 de valeur 1, 10 de valeur 5) et 1 jeton premier joueur</li></ul>
   <div class="rgloss-wrap"><h3>Les icônes</h3>%%GLOSS%%</div>
   <p>Vous guidez des <strong>âmes</strong> sur la roue du Samsara. À chaque vie, elles gagnent en sagesse. Elles accomplissent des <strong>œuvres</strong> qui forment votre <strong>mandala</strong>, meurent et renaissent ; les plus anciennes atteignent l’<strong>Éveil</strong> et rejoignent les grands <strong>sanctuaires</strong>.</p>
   <h3>Mise en place</h3>
@@ -1616,7 +1634,7 @@ function rulesHTML() {
   <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, mais sa bénédiction vaut un cran de moins que la case (Vie : une âme d’un niveau de moins ; Enseignement et Karma : 1 de moins). Il compte normalement pour l’équilibre des colonnes.</p>
   <p><strong>Karma.</strong> Il se cumule. Il se dépense <strong>toujours par 2</strong>. <strong>2 Karma</strong> réduisent de 1 le coût d’une œuvre (utilisés automatiquement). <strong>2 Karma</strong> permettent aussi d’ignorer <em>un</em> élément de prérequis d’une œuvre : un tag manquant, l’âme sur un Sanctuaire qui manque, ou l’âge exigé (on peut en ignorer plusieurs : 2 Karma chacun). Le Karma ne vaut aucun point, sauf effet de carte.</p>
   <p><strong>Âge exigé et réductions.</strong> Une œuvre de maturité coûte toujours au moins 3, une œuvre de sage au moins 5 : il faut de toute façon y dépenser cette âme. Les réductions (Karma, autels, effets) ne descendent pas en dessous ; le Karma en trop n’est pas dépensé.</p>
-  <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
+  <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…).</p>
   ${F.altars}
   <h3>Accomplir une œuvre</h3>
   <p>Le coût est le chiffre en haut à gauche de la carte. Consacrez-y des âmes dont la somme des niveaux atteint ce chiffre ; une âme de niveau 0 n’apporte rien, et l’on ne peut pas ajouter d’âme inutile. <strong>Les âmes consacrées meurent et renaissent au niveau 0</strong> : on perd leur sagesse, pas les âmes elles-mêmes. Exception : les œuvres marquées <strong>Sacrifice</strong> (œuvres de sage) libèrent ces âmes : elles retournent dans votre réserve. Le Karma (2 pour −1), les réductions d’autel et certaines œuvres réduisent le coût.</p>
@@ -1635,7 +1653,7 @@ function rulesHTML() {
   <p>Une grille de 3 × 3. La première œuvre se place n’importe où, les suivantes à côté d’une œuvre déjà accomplie. Le placement compte : certaines œuvres marquent selon leur ligne, leur colonne, leurs voisines ou leur position dans un coin, et « Débattre des écritures » redéclenche l’effet immédiat de ses voisines.</p>
   ${F.mandala}
   <h3>La roue et l’Éveil</h3>
-  <p><strong>Un cycle continu.</strong> Une âme qui entre sur votre roue y reste. « Tournez votre roue » fait avancer toutes vos âmes d’une case. Une âme qui dépasse le niveau 5 atteint l’<strong>Éveil</strong> : elle <strong>rejoint aussitôt le Sanctuaire</strong> de votre choix (première place libre) et y reste ; elle sert de marqueur. Si toutes les places sont prises, elle retourne dans votre réserve. Une âme qui s’incarne au niveau 0 ne vient que s’il y a moins de 3 âmes dans votre case 0 ; une âme qui s’incarne plus haut n’a pas cette limite. Les âmes des œuvres Sacrifice retournent aussi dans votre réserve.</p>
+  <p><strong>Un cycle continu.</strong> Une âme qui entre sur votre roue y reste. « Tournez votre roue » fait avancer toutes vos âmes d’une case. Une âme qui dépasse le niveau 5 atteint l’<strong>Éveil</strong> : elle <strong>rejoint aussitôt le Sanctuaire</strong> de votre choix (première place libre) et y reste ; elle sert de marqueur. Si toutes les places sont prises, elle retourne dans votre réserve. Les âmes des œuvres Sacrifice retournent aussi dans votre réserve.</p>
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
   ${F.wheel}
   <h3>Sanctuaires et fin de partie</h3>
