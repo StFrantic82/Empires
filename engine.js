@@ -185,7 +185,7 @@ const DEFAULT_OPTS = {
   guildThenBuild: false,         // après une action de guilde, on peut aussi construire dans le même tour
   turnOnBuild: false,            // construire fait aussi tourner la roue d'un cran
   wonderMode: 'track',           // 'auto' : chaque retraite pose un marqueur ; 'track' : un marqueur toutes les N retraites ; 'consecrate' : action volontaire
-  retireStep: 2,                 // N pour 'track'
+  retireStep: 1,                 // une âme qui dépasse le niveau 5 rejoint directement un Sanctuaire                 // N pour 'track'
   supply: 'cycle',               // 'cycle' : un ouvrier dépensé ou parti à la retraite revient au niveau 0 de sa roue ; 'general' : il part dans la réserve générale
   recruitCap: 3,                 // > 0 : on ne peut gagner un ouvrier que si la case 0 en contient moins que ce nombre             // 'general' : ouvriers dépensés ou partis à la retraite vont à la réserve générale ; débloquer en reprend
   ejectReturn: true,             // l'ouvrier éjecté retourne dans la réserve ; un marqueur du joueur va sur la Merveille
@@ -232,9 +232,8 @@ function newGame(names, opts = {}, seed) {
   G.gmarket = { 1: [], 2: [] };
   if (o.guildFrom === 'row') for (const L of [1, 2]) for (let i = 0; i < (o.guildRow || 2); i++) if (G.decks[L].length) G.gmarket[L].push(G.decks[L].pop());
   G.wonders = shuffle(G, WONDERS.map(w => w.id)).slice(0, Math.min(WONDERS.length, n + 2)).map(id => ({ id, slots: [] }));
-  // 5 marqueurs par joueur, sans dépasser le nombre de places sur les Merveilles
-  const perP = o.wonderMode === 'auto' ? 5 : (o.wondersPerPlayer || 2);
-  G.endAt = o.endWonders || Math.min(perP * n, 3 * G.wonders.length);
+  // Fin : 3 âmes par joueur + 2 sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), sans dépasser le nombre de places
+  G.endAt = o.endWonders || Math.min(3 * n + 2, 3 * G.wonders.length);
   G.start = G.cur = Math.floor(rnd(G) * n);
   if (n === 2 && o.secondPlan !== false) G.players[(G.start + 1) % 2].plans = 1; // à 2 joueurs, le second joueur commence avec 1 Plan
   log(G, `Partie lancée — ${G.players[G.cur].name} commence.`);
@@ -542,7 +541,7 @@ function run(G) {
         if (G.opts.wonderMode && G.opts.wonderMode !== 'auto' && !op.marker) {
           if (G.opts.wonderMode === 'track') {
             // le joueur choisit : l'ouvrier revient au niveau 0, ou attend dans la zone de retraite
-            G.pending = { type: 'retire', options: ['zone', 'zero'] };
+            addToZone(G, pi); // l'âme rejoint directement un Sanctuaire
             break;
           }
           if (G.opts.supply === 'cycle') p.wheel[0]++; // mode 'consecrate' : la retraite boucle sans marqueur
@@ -569,8 +568,8 @@ function addToZone(G, pi) {
     let back = -1; for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.retireLvl) back = Math.max(back, pm.retireLvl); }
     // l'une des âmes éveillées se pose sur un Sanctuaire (elle sert de marqueur) ; les autres retournent dans la réserve du joueur
     // (sauf Accueillir les sages : elles renaissent sur la roue)
-    if (G.opts.supply === 'cycle' && back >= 0) p.wheel[back] += k - 1;
-    log(G, `${p.name} : ${k} âmes éveillées : l’une rejoint un Sanctuaire${k > 1 ? (back >= 0 ? `, ${k - 1 > 1 ? 'les autres renaissent' : 'l’autre renaît'} au niveau ${back}` : `, ${k - 1 > 1 ? 'les autres retournent' : 'l’autre retourne'} dans la réserve`) : ''}.`);
+    log(G, `${p.name} : une âme atteint l’Éveil et rejoint un Sanctuaire.`);
+    if (back >= 0) { const got = gain(G, pi, 1, back, true); if (got) log(G, `${p.name} accueille une nouvelle âme au niveau ${back}.`); } // Accueillir les sages
     G.queue.unshift({ op: { op: 'eject', marker: true, noReturn: true } });
   }
 }
@@ -1185,7 +1184,7 @@ function opTxt(o) {
     case 'if': return `Si vous avez 1 tag de chaque type : ${o.then.map(opTxt).join(' + ').replace(/^./, c => c.toLowerCase())}`;
     case 'vp': return typeof o.n === 'number' ? `Marquez ${o.n} PV` : `Gagnez 1 PV par ${TAG_NAMES[o.n.c]}`;
     case 'guildAct': return `Rejouez ${o.times > 1 ? o.times + ' fois ' : ''}l’effet de ${o.g === 'max' ? 'votre autel le plus honoré' : 'votre ' + ALTAR[o.g]}, à son rang actuel`;
-    case 'zone': return `Envoyez ${o.n} âme${o.n > 1 ? 's' : ''} de niveau ${o.min} ou plus dans votre zone d’Éveil`;
+    case 'zone': return `${o.n > 1 ? o.n + ' âmes' : '1 âme'} de niveau ${o.min} ou plus atteint l’Éveil et rejoint un Sanctuaire`;
   }
   return '';
 }
@@ -1202,7 +1201,7 @@ function cardText(c) {
     else if (pm.discount) out.perm = `Vos œuvres${pm.tag ? ' ' + TAG_NAMES[pm.tag] : ''}${pm.lvl ? ' de niveau ' + pm.lvl : ''} coûtent ${pm.discount} de moins.`;
     else if (pm.onMarker) out.perm = `Quand vous posez un marqueur sur un Sanctuaire : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
     else if (pm.cap) out.perm = `Votre case 0 peut accueillir ${3 + pm.cap} nouvelles âmes au lieu de 3.`;
-    else if (pm.retireLvl) out.perm = `Quand vous posez une âme sur un Sanctuaire, l’autre âme éveillée renaît au niveau ${pm.retireLvl} sur votre roue au lieu de retourner dans votre réserve.`;
+    else if (pm.retireLvl) out.perm = `Quand une de vos âmes rejoint un Sanctuaire : gagnez 1 âme de niveau ${pm.retireLvl}.`;
     else if (pm.actBack) out.perm = `Vos âmes posées sur des œuvres reviennent au niveau ${pm.actBack} au lieu de 0.`;
     else if (pm.retire) out.perm = `Votre zone d’Éveil se déclenche avec ${3 + pm.retire} âmes au lieu de 3.`;
     else if (pm.crane) out.perm = 'Une œuvre de niveau 2 peut recouvrir cet échafaudage : payez seulement la différence de coût.';
@@ -1272,7 +1271,7 @@ function exportTables(opts) {
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
-  const lbl = { startWheel: 'Roue de départ (âmes par niveau 0→5)', endWonders: 'Fin : marqueurs sur les Sanctuaires (0 = 2 par joueur)', wonderScoring: 'Score des Sanctuaires', market: 'Cartes visibles par niveau', costMode: 'Coûts', wonderMode: 'Marqueurs sur les Sanctuaires', retireStep: 'Taille de la zone d’Éveil (âmes éveillées pour 1 marqueur)', supply: 'Âmes dépensées', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une offrande, puis réaliser une œuvre ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
+  const lbl = { startWheel: 'Roue de départ (âmes par niveau 0→5)', endWonders: 'Fin : âmes sur les Sanctuaires (0 = 3 par joueur + 2)', wonderScoring: 'Score des Sanctuaires', market: 'Cartes visibles par niveau', costMode: 'Coûts', wonderMode: 'Marqueurs sur les Sanctuaires', retireStep: 'Taille de la zone d’Éveil (âmes éveillées pour 1 marqueur)', supply: 'Âmes dépensées', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une offrande, puis réaliser une œuvre ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
   const human = { arrival: 'À l’arrivée du marqueur', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par âme', track: 'Zone d’Éveil (2 âmes éveillées = 1 marqueur)', auto: '1 marqueur à chaque Éveil', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
   settings.push(['Offrandes visibles', '4'], ['Offrandes dans le paquet', String(GCARDS.length)], ['Œuvres par niveau', String(CARDS.filter(c => c.lvl === 1).length)]);
   for (const k in lbl) { let v = o[k]; if (Array.isArray(v)) v = "'" + v.join(', '); if (typeof v === 'boolean') v = v ? 'oui' : 'non'; if (human[v]) v = human[v]; settings.push([lbl[k], String(v)]); }

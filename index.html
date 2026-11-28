@@ -485,6 +485,30 @@ aside .city .cell{min-height:84px}
 .mk-turn #tPanel{margin:2px 0 0}.mk-turn #tPanel .row{flex-wrap:wrap}
 @media(max-width:1180px){.mk-panel{grid-template-areas:"turn" "left" "right" "market"}}
 .turnbar .stats{margin-left:auto}.endturn{font-size:16px;padding:8px 22px}
+
+/* formats : œuvres carrées 63 × 63 mm ; offrandes 41 × 63 mm */
+.pnp-grid{grid-template-columns:repeat(3,63mm);grid-auto-rows:63mm}
+.pnp-card{width:63mm;height:63mm}
+.pnp-card>.card{width:60mm;height:60mm;font-size:9px}
+.pnp-card .card .hd{padding:2px 5px}.pnp-card .card .nm{font-size:10.5px}.pnp-card .mcost,.pnp-card .mcost svg{width:22px;height:22px}.pnp-card .mcost span{inset:7px 0 0;font-size:10px}
+.pnp-card .card .art{height:14mm}.pnp-card .card .fx{font-size:8.5px;padding:3px 5px;gap:2px;line-height:1.2}.pnp-card .card .fx b{font-size:7.5px}.pnp-card .agebar{font-size:8px;margin:0 4px 2px;padding:1px 5px}
+.pnp-card .card .ft{padding:2px 5px 3px}.pnp-card .card .lv{font-size:8px}.pnp-card .tagi{width:15px;height:15px}.pnp-card .pv{width:20px;height:20px;font-size:9px}.pnp-card .czreq img,.pnp-card .czgd img{width:12px;height:12px}.pnp-card .ti{width:12px;height:12px}.pnp-card .card .fx .pv.sm{width:15px;height:15px;font-size:7.5px}
+.pnp-ogrid{grid-template-columns:repeat(4,41mm)}
+.pnp-off{width:41mm;height:63mm}
+.pnp-off .po-in{width:38mm;height:60mm;padding:3mm 2mm;gap:2mm}.pnp-off img{width:14mm;height:14mm}.po-n{font-size:12pt}
+.po-r{grid-template-columns:repeat(2,1fr);gap:1.5mm 3mm}
+
+/* Carte Sanctuaire carrée 63 × 63 mm */
+.wcard{width:60mm;height:60mm;box-sizing:border-box;border:2px solid #6d3b8e;border-radius:3mm;background:#fffaf0;color:#1f1c17;display:flex;flex-direction:column;overflow:hidden}
+.wc-h{display:flex;align-items:center;gap:4px;padding:3px 6px;font-family:'Yatra One',serif;font-size:11.5px;color:#4a2a6a}.wc-h img{width:15px;height:15px}
+.wc-art{display:block;width:100%;height:15mm}
+.wc-b{font-size:8.5px;line-height:1.2;padding:2px 6px;background:#f3ecfa;border-top:1px solid #d9c9ea}
+.wc-rows{display:grid;gap:2px;padding:3px 6px;margin-top:auto}
+.wc-row{display:flex;align-items:center;gap:5px;font-size:9px}
+.wc-slot{width:7mm;height:7mm;border:1.5px dashed #6d3b8e;border-radius:50%;flex:none;background:#fff}
+.wc-rank{width:16px;color:#6e4128;font-weight:700}
+.wc-sc{display:flex;align-items:center;gap:3px}.wc-sc .pv.sm{width:20px;height:20px;font-size:9.5px}.wc-x{display:inline-flex;align-items:center;gap:2px;font-size:8.5px}.wc-x .ti{width:13px;height:13px}
+.wc-art{height:20mm}
 </style>
 </head>
 <body>
@@ -785,7 +809,7 @@ function setupHTML() {
       ${seatsHTML('l')}
       <button class="big" id="startLocal">Jouer</button>
       <button class="tutoBtn" id="tutoBtn">🎓 Tutoriel : apprendre à jouer</button>
-      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="regles.pdf" target="_blank" rel="noopener">Règles illustrées (PDF)</a><a href="pnp.pdf" target="_blank" rel="noopener">Print &amp; Play (PDF)</a><a href="#regles">Règles en ligne</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
+      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="pnp.pdf" target="_blank" rel="noopener">Règles et Print &amp; Play (PDF)</a><a href="#regles">Règles en ligne</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
     </div>
   </section>
   ${remoteOpen ? `<div class="home-remote">${`  <section class="panel remote" id="remote"><h2>Jouer à distance</h2>
@@ -856,7 +880,7 @@ function gameHTML() {
   const over = G.over ? finalHTML() : '';
   return `${over}
   <div class="row" style="justify-content:space-between;margin-bottom:10px">
-    <div class="row"><span class="chip">Manche ${G.round}</span><span class="chip">Sanctuaires : ${E.placedOnWonders(G)} / ${G.endAt} marqueurs</span>${G.endTriggered && !G.over ? '<span class="chip hot">Dernier tour de table</span>' : ''}</div>
+    <div class="row"><span class="chip">Manche ${G.round}</span><span class="chip">Âmes sur les Sanctuaires : ${E.placedOnWonders(G)} / ${G.endAt}</span>${G.endTriggered && !G.over ? '<span class="chip hot">Dernier tour de table</span>' : ''}</div>
     <div class="row">${mode === 'local' ? '' : `<span class="chip">En ligne</span>`}<button id="quit">Quitter la partie</button></div>
   </div>
   <section class="panel" style="margin-bottom:14px"><h2 class="h-sanct">Sanctuaires</h2><div class="wonders">${wonders}</div></section>
@@ -874,7 +898,7 @@ function gameHTML() {
         <aside class="mk-right" aria-label="Votre roue et vos autels">
           <div class="mk-wh"><div id="tWheel" class="${canSpin ? 'canspin' : ''}">${wheelSVG(p, WOOD, { pick: my && pickingLevel(), spin: canSpin })}</div>
           ${canSpin ? '<div class="spinhint">Cliquez le moyeu pour tourner la roue d’un cran</div>' : ''}</div><div class="mk-side">
-          ${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : l’une rejoint un Sanctuaire, l’autre retourne dans votre réserve."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
+          
           ${matrixHTML(p)}
         </div></aside>
         <div class="mk-market">${market}</div>
@@ -1033,8 +1057,8 @@ const TUTO = [
   { t: 'Votre mandala', s: '.city', p: 'Une grille de 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. En bas d’une carte : les tags qu’elle apporte ({P} Prospérité, {M} Dévotion, {S} Connaissance, {C} Arts) et ses points {pv}. Passez la souris sur une œuvre pour revoir ses effets.' },
   { t: 'À vous : terminez votre tour', s: '#endTurn', act: true, p: 'Cliquez sur « Fin du tour ». Le bot jouera ensuite.', until: () => !G || G.cur !== 0 },
   { t: 'Le bot joue…', act: true, p: 'Le journal, à droite, raconte ce qu’il fait.', until: () => meTurn() && !G.mainDone && !G.pending },
-  { t: 'L’Éveil', s: '.retz', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil {eveil} et attend ici. Dès que deux âmes sont éveillées, l’une rejoint un Sanctuaire {sanct} (elle y sert de marqueur), l’autre retourne dans votre réserve. Vous avez 12 âmes à votre couleur, pas une de plus.' },
-  { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire {sanct} rapporte des points {pv} ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
+  { t: 'L’Éveil', s: '#tWheel', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil {eveil} : elle rejoint aussitôt un Sanctuaire {sanct} de votre choix, où elle marque des points. Vous avez 12 âmes à votre couleur, pas une de plus.' },
+  { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire {sanct} rapporte des points {pv} ; la première place vaut le plus. La partie s’arrête quand il y a 3 âmes par joueur + 2 sur les Sanctuaires (8 à 2, 11 à 3, 14 à 4), ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
   { t: 'Le Karma', s: '#tKarma', p: 'Le Karma {karma} se dépense toujours par 2. 2 Karma réduisent de 1 le coût d’une œuvre, automatiquement. 2 Karma peuvent aussi ignorer un élément de prérequis : un tag manquant, un marqueur Sanctuaire manquant ou l’âge exigé (2 Karma chacun). Ces cartes affichent un bandeau bleu.' },
   { t: 'À vous de jouer !', p: 'Vous connaissez l’essentiel. Continuez la partie librement ; les règles complètes sont dans l’onglet Règles.' },
 ];
@@ -1273,6 +1297,16 @@ function simResultHTML(R) {
     </tbody></table></div></section>`;
 }
 // Aperçu d'une carte ou d'un Sanctuaire au survol (ou au focus clavier) d'une ligne
+function wonderCardHTML(W) {
+  const t = E.wonderText(W), m = t.match(/^\d+ \/ \d+ \/ \d+ PV\s*/), rest = m ? t.slice(m[0].length) : '';
+  const mult = /^×/.test(rest), bonus = /^\+/.test(rest);
+  const per = mult ? iconize(rest.replace(/^×\s*/, '')) : '';
+  const rows = W.vals.map((v, i) => `<div class="wc-row"><span class="wc-slot"></span><span class="wc-rank">${i + 1}${i ? 'ᵉ' : 'ʳᵉ'}</span><span class="wc-sc">${pvIcon(v, 'sm')}${mult && rest.length < 30 ? `<span class="wc-x">× ${per}</span>` : ''}</span></div>`).join('');
+  return `<div class="wcard"><div class="wc-h"><img src="img/sanctuaire.svg" alt=""><span>${esc(W.name)}</span></div>
+    <svg class="wc-art" viewBox="0 0 186 74" preserveAspectRatio="xMidYMid slice">${window.WSCENES && WSCENES[W.id] ? WSCENES[W.id]() : ''}</svg>
+    ${bonus ? `<div class="wc-b">+ ${iconize(rest.replace(/^\+\s*/, ''))}</div>` : mult && rest.length >= 30 ? `<div class="wc-b">Chaque place : PV × ${per}</div>` : ''}
+    <div class="wc-rows">${rows}</div></div>`;
+}
 function wonderPreviewHTML(W) {
   return `<div class="wprev"><div class="wtop"><img src="img/sanctuaire.svg" alt="" width="44" height="44"><div class="wn">${esc(W.name)}</div></div>
     <div class="wtx">${iconize(E.wonderText(W))}</div>
@@ -1382,16 +1416,16 @@ function pnpHTML() {
   const chunk = (a, n) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
   const sheet = (title, inner, cls = '') => `<section class="pnp-sheet ${cls}"><div class="pnp-title">La Roue des Vies — ${title}</div>${inner}</section>`;
   // œuvres : 9 par page, au format 63 × 88 mm
-  const works = chunk(E.CARDS, 9).map((g, i, all) => sheet(`Œuvres (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.map(c => `<div class="pnp-card">${cardHTML(c)}</div>`).join('')}</div>`)).join('');
+  const works = chunk(E.CARDS, 12).map((g, i, all) => sheet(`Œuvres (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.map(c => `<div class="pnp-card">${cardHTML(c)}</div>`).join('')}</div>`)).join('');
   // offrandes : autant d'exemplaires que dans la pioche
-  const offer = g => `<div class="pnp-card pnp-off"><div class="po-in"><img src="img/${g}.svg" alt=""><div class="po-n">${esc(E.GUILD_NAMES[g])}</div>${g === 'voy' ? `<div class="po-t">Joker : posez-la sur l’autel de votre choix ; bénédiction d’un cran de moins.</div>` : `<div class="po-t">Se pose à la suite sur votre ${esc(E.ALTAR[g])}.<br>Bénédiction selon son rang :</div><div class="po-r">${[1, 2, 3, 4, 5, 6].map(k => `<span>${blessIco(g, k, 18)}</span>`).join('')}</div>`}</div></div>`;
+  const offer = g => `<div class="pnp-card pnp-off"><div class="po-in"><img src="img/${g}.svg" alt=""><div class="po-n">${esc(E.GUILD_NAMES[g])}</div>${g === 'voy' ? `<div class="po-r">${['mar', 'art', 'eru'].map(x => `<span><img src="img/${x}.svg" alt="" style="width:7mm;height:7mm"> −1</span>`).join('')}</div>` : `<div class="po-r">${[1, 2, 3, 4, 5, 6].map(k => `<span>${blessIco(g, k, 18)}</span>`).join('')}</div>`}</div></div>`;
   const offers = E.GCARDS.map(c => offer(c.g));
-  const offs = chunk(offers, 9).map((g, i, all) => sheet(`Offrandes (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.join('')}</div>`)).join('');
+  const offs = chunk(offers, 16).map((g, i, all) => sheet(`Offrandes (${i + 1}/${all.length})`, `<div class="pnp-grid pnp-ogrid">${g.join('')}</div>`)).join('');
   // Sanctuaires
-  const wond = chunk(E.WONDERS, 8).map((g, i, all) => sheet(`Sanctuaires (${i + 1}/${all.length})`, `<div class="pnp-wgrid">${g.map(W => `<div class="pnp-w">${wonderPreviewHTML(W)}</div>`).join('')}</div>`)).join('');
+  const wond = chunk(E.WONDERS, 12).map((g, i, all) => sheet(`Sanctuaires (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.map(W => `<div class="pnp-card">${wonderCardHTML(W)}</div>`).join('')}</div>`)).join('');
   // plateaux joueurs : roue, Éveil, autels, mandala
   const blank = { wheel: [0, 0, 0, 0, 0, 0], guilds: { mar: [], art: [], eru: [] }, retired: 0, plans: 0 };
-  const board = col => `<div class="pnp-board"><div class="pb-l">${wheelSVG(blank, WOOD, {})}<div class="pb-ev"><img src="img/eveil.svg" alt=""> <b>Éveil</b> <span class="pb-slot"></span><span class="pb-slot"></span></div></div>
+  const board = col => `<div class="pnp-board"><div class="pb-l">${wheelSVG(blank, WOOD, {})}</div>
     <div class="pb-r"><div class="pb-h"><span class="dot" style="background:${col}"></span> Autels</div>${matrixHTML(blank).replace(/<p class="note"[\s\S]*?<\/p>/, '')}
     <div class="pb-h" style="margin-top:6px">Mandala</div><div class="pb-city">${Array.from({ length: 9 }, () => '<div></div>').join('')}</div></div></div>`;
   const boards = chunk(SEATS.map(s => s.c), 2).map((g, i) => sheet(`Plateaux joueurs (${i + 1}/2)`, g.map(board).join(''))).join('');
@@ -1404,7 +1438,7 @@ function pnpHTML() {
   const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
-    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Cartes au format 63 × 88 mm.</p>
+    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
     <a class="cta" href="pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
   <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
@@ -1425,7 +1459,7 @@ function rulesFigs() {
     altars: ruleFig(`<div style="max-width:340px;margin:auto">${matrixHTML(mid).replace(/<p class="note"[\s\S]*?<\/p>/, '')}</div>`, 'Exemple : 2 offrandes sur la Vie, 3 sur l’Enseignement, 1 sur le Karma. Une colonne est complète : la roue a tourné une fois. La prochaine offrande de Karma donnera 2 Karma.'),
     card: ruleFig(`<div class="rrow"><div>${cardHTML(ex)}</div><ul class="rleg">${legend.map(([a, b]) => `<li><b>${a}</b> : ${b}</li>`).join('')}</ul></div>`, `Anatomie d’une œuvre (${esc(ex.name)}).`),
     ages: ruleFig(`<div class="rrow">${['br', 'ag', 'or'].map(k => `<b class="zone age" style="background:${AGES[k].bg};font-size:14px;padding:4px 10px"><img src="img/${AGES[k].img}" alt="" style="width:18px;height:18px">${AGES[k].label}</b>`).join('')}</div>`),
-    wheel: ruleFig(`<div class="rrow"><div style="width:220px">${wheelSVG(mid, WOOD, {})}</div><div class="retz" style="margin:0"><img src="img/eveil.svg" alt="" style="width:24px;height:24px"> Éveil <svg viewBox="0 0 20 22" class="rslot on"><path d="${FLAME}"/></svg><svg viewBox="0 0 20 22" class="rslot"><path d="${FLAME}"/></svg></div></div>`, 'Quand la roue tourne, chaque âme gagne un niveau. Celle du niveau 5 atteint l’Éveil ; à 2 âmes éveillées, vous posez un marqueur sur un Sanctuaire.'),
+    wheel: ruleFig(`<div class="rrow"><div style="width:220px">${wheelSVG(mid, WOOD, {})}</div><div style="display:flex;align-items:center;gap:8px;font-size:15px"><img src="img/eveil.svg" alt="" style="width:34px"> → <img src="img/sanctuaire.svg" alt="" style="width:30px"></div></div>`, 'Quand la roue tourne, chaque âme gagne un niveau. Celle qui dépasse le niveau 5 atteint l’Éveil et rejoint aussitôt un Sanctuaire.'),
     mandala: ruleFig(`<div class="rmand">${[0, 1, 0, 1, 1, 1, 0, 1, 0].map((v, i) => v ? `<div class="on">${art(E.CARDS[(i * 7) % E.CARDS.length], 38)}</div>` : '<div></div>').join('')}</div>`, 'Le mandala : chaque nouvelle œuvre touche une œuvre déjà accomplie.'),
     wonder: ruleFig(`<div style="width:260px;margin:auto">${wonderPreviewHTML(W)}</div>`, 'Un Sanctuaire : trois places, la première vaut le plus.'),
   };
@@ -1437,7 +1471,7 @@ function rulesHTML() {
   <h3>Les pictogrammes</h3>${F.icons}
   <p>Vous guidez des <strong>âmes</strong> sur la roue du Samsara. À chaque vie, elles gagnent en sagesse. Elles accomplissent des <strong>œuvres</strong> qui forment votre <strong>mandala</strong>, meurent et renaissent ; les plus anciennes atteignent l’<strong>Éveil</strong> et rejoignent les grands <strong>sanctuaires</strong>.</p>
   <h3>Mise en place</h3>
-  <p>Chaque joueur commence avec 5 âmes sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2) ; Chaque joueur dispose de <strong>12 âmes à sa couleur</strong> : les 7 autres forment sa réserve. On ne peut jamais en avoir plus de 12 (roue, activations, zone d’Éveil et Sanctuaires compris) : si la réserve est vide, on ne gagne plus d’âme. Au centre : 4 œuvres visibles de niveau 1 et 4 de niveau 2, une rangée de 4 offrandes visibles (paquet de 66 petites cartes) et, au-dessus, nombre de joueurs + 2 Sanctuaires tirés parmi 16.</p>
+  <p>Chaque joueur commence avec 5 âmes sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2). Chaque joueur dispose de <strong>12 âmes à sa couleur</strong> : les 7 autres forment sa réserve. On ne peut jamais en avoir plus de 12 (roue, activations et Sanctuaires compris) : si la réserve est vide, on ne gagne plus d’âme. Au centre : 4 œuvres visibles de niveau 1 et 4 de niveau 2, une rangée de 4 offrandes visibles (paquet de 66 petites cartes) et, au-dessus, nombre de joueurs + 2 Sanctuaires tirés parmi 16.</p>
   ${F.setup}
   <h3>Tour de jeu</h3>
   <ul><li><strong>1. Déposez une offrande</strong> parmi les 4 visibles, sur l’autel qu’elle représente, à la suite des offrandes déjà posées, et recevez la bénédiction de sa case (voir « Les trois autels »).</li>
@@ -1461,7 +1495,7 @@ function rulesHTML() {
   <h3>Conditions sur les cartes</h3>
   <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, sans limite. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre qui exige un âge (jeunesse, maturité, sagesse) n’a jamais de réduction d’autel : l’âge impose déjà le niveau des âmes à consacrer.</p>
   <p><strong>Les quatre tags</strong> ont chacun leur style : <strong>Prospérité</strong> fait grandir la lignée (de nouvelles âmes), <strong>Dévotion</strong> conduit à l’Éveil (âmes très avancées, zone d’Éveil, marqueurs), <strong>Connaissance</strong> fait tourner le cycle (niveaux, roue, réductions, effets permanents), <strong>Arts</strong> embellit le mandala (lignes, colonnes, voisins, coins). Une œuvre porte un tag, deux fois le même, deux tags différents, aucun, ou très rarement les quatre (Unir le royaume).</p>
-  <p><strong>Matériel</strong> : 48 œuvres de niveau 1 et 42 de niveau 2 (cartes carrées de 7 × 7 cm), 66 offrandes (41 × 63 mm) et 16 Sanctuaires. Si les offrandes ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p>
+  <p><strong>Matériel</strong> : 48 œuvres de niveau 1 et 42 de niveau 2 (cartes carrées de 63 × 63 mm), 66 offrandes (41 × 63 mm) et 16 Sanctuaires. Si les offrandes ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p>
   <h3>Les âges de l’âme</h3>
   <p>La roue a trois âges : <strong>jeunes âmes</strong> (niveaux 1-2), <strong>âmes mûres</strong> (3-4) et <strong>âme ancienne</strong> (5). Certaines œuvres exigent un âge :</p>${F.ages}
   <ul><li><strong>Œuvre de jeunesse</strong> (cadre vert) : uniquement des jeunes âmes (Laver le linge au fleuve, Exercer les novices, Ouvrir une école, Peupler les faubourgs, Construire la maison commune).</li>
@@ -1472,11 +1506,11 @@ function rulesHTML() {
   <p>Une grille de 3 × 3. La première œuvre se place n’importe où, les suivantes à côté d’une œuvre déjà accomplie. Le placement compte : certaines œuvres marquent selon leur ligne, leur colonne, leurs voisines ou leur position dans un coin, et « Débattre des écritures » redéclenche l’effet immédiat de ses voisines.</p>
   ${F.mandala}
   <h3>La roue et l’Éveil</h3>
-  <p><strong>Un cycle continu.</strong> Une âme qui entre sur votre roue y reste. « Tournez votre roue » fait avancer toutes vos âmes d’une case. Une âme qui dépasse le niveau 5 atteint l’Éveil, et vous choisissez : soit elle renaît tout de suite au niveau 0, soit elle attend dans votre <strong>zone d’Éveil</strong> (2 places). Quand la zone est pleine, l’une des deux âmes <strong>rejoint le Sanctuaire</strong> de votre choix (première place libre) : elle y reste et sert de marqueur. L’autre retourne dans votre réserve. Pendant leur attente, elles n’apportent rien. Une âme qui s’incarne au niveau 0 ne vient que s’il y a moins de 3 âmes dans votre case 0 ; une âme qui s’incarne plus haut n’a pas cette limite. Les âmes des œuvres Sacrifice retournent aussi dans votre réserve.</p>
+  <p><strong>Un cycle continu.</strong> Une âme qui entre sur votre roue y reste. « Tournez votre roue » fait avancer toutes vos âmes d’une case. Une âme qui dépasse le niveau 5 atteint l’<strong>Éveil</strong> : elle <strong>rejoint aussitôt le Sanctuaire</strong> de votre choix (première place libre) et y reste ; elle sert de marqueur. Si toutes les places sont prises, elle retourne dans votre réserve. Une âme qui s’incarne au niveau 0 ne vient que s’il y a moins de 3 âmes dans votre case 0 ; une âme qui s’incarne plus haut n’a pas cette limite. Les âmes des œuvres Sacrifice retournent aussi dans votre réserve.</p>
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
   ${F.wheel}
   <h3>Sanctuaires et fin de partie</h3>
-  <p>Chaque Sanctuaire a 3 places de valeur décroissante ; les points sont comptés à l’arrivée du marqueur, avec vos tags à ce moment-là. Un joueur peut poser plusieurs marqueurs sur le même Sanctuaire. Si toutes les places sont prises, aucun marqueur n’est posé. La fin est déclenchée quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
+  <p>Chaque Sanctuaire a 3 places de valeur décroissante ; les points sont comptés à l’arrivée de l’âme, avec vos tags à ce moment-là. Un joueur peut avoir plusieurs âmes sur le même Sanctuaire. La fin est déclenchée quand il y a <strong>3 âmes par joueur + 2</strong> sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), ou quand un mandala compte 9 œuvres. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
   ${F.wonder}
   <h3>Équilibrage</h3>
   <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 8 à 9 tours et 6 à 7 œuvres par joueur, et une fin par les Sanctuaires dans environ une partie sur trois (les autres par un mandala achevé), à 2, 3 et 4 joueurs. Les trois autels sont honorés à parts à peu près égales.</p>

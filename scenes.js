@@ -204,4 +204,25 @@
     b57: () => sky('C') + ground() + pavilion(40, 106, '#2b5aa8') + crowd(16, 2) + crowd(150, 2),
   };
   window.SCENES = S;
+
+  // ---- Sanctuaires ----
+  const W = {
+    M1: () => sky('M') + clouds(24, 14) + `<path d="M40 ${G} L93 8 L146 ${G}Z" fill="#8a7a9a" opacity=".55"/><path d="M80 22 L93 8 L106 22 L99 19 L93 25 L87 19Z" fill="#fff"/>` + ground() + monk(30, .7, SAF, 'walk') + flag(160, '#2b5aa8', 28),
+    M2: () => sky('D') + ground() + stupa(93, 1.25, GOLD) + lamp(40, G) + lamp(146, G),
+    M3: () => sky('P') + river(G - 4) + T(93, G - 4, 1, `<path d="M-40 0 L-34 -10 H34 L40 0Z" fill="${STONE}" ${st}/><path d="M-12 -10 L-8 -40 Q0 -48 8 -40 L12 -10Z" fill="#b8ad97" ${st}/><path d="M-32 -10 L-29 -26 Q-25 -30 -21 -26 L-18 -10Z M18 -10 L21 -26 Q25 -30 29 -26 L32 -10Z" fill="#b8ad97" ${st}/>`) + tree(20, .8),
+    M4: () => sky('S') + ground() + wall(12, 70, 22) + wall(104, 70, 22) + shelf(70, 44) + monk(150, .8, SAF),
+    M5: () => sky('C') + `<path d="M0 ${G} V16 Q93 4 186 16 V${G}Z" fill="#b08a6a"/>` + [40, 93, 146].map(x => `<path d="M${x - 16} ${G} V${G - 26} Q${x} ${G - 40} ${x + 16} ${G - 26} V${G}Z" fill="#7a5a44" ${st}/>`).join('') + monk(93, .9, '#c9661e', 'sit') + ground('#a88a6a'),
+    M6: () => sky('P') + hills('#8fb36a', .4) + ground() + T(93, G, 1, [0, 1, 2, 3].map(i => `<rect x="${-46 + i * 9}" y="${-8 - i * 8}" width="${92 - i * 18}" height="8" fill="#b8ad97" ${st}/>`).join('') + `<path d="M-8 -32 Q0 -44 8 -32Z" fill="#b8ad97" ${st}/><path d="M0 -44 v-6" stroke="${D}" stroke-width="2"/>`),
+    M7: () => sky('M') + mountains(.3) + T(93, G, 1, `<rect x="-50" y="-30" width="100" height="30" fill="${WALL}" ${st}/><rect x="-22" y="-44" width="44" height="14" fill="#9b2226" ${st}/>${[-40, -28, -16, 8, 20, 32].map(x => `<rect x="${x}" y="-24" width="6" height="7" fill="${D}"/>`).join('')}`) + ground(),
+    M8: () => sky('M') + mountains(.35, false) + ground() + pagoda(60, 3, RED) + pagoda(130, 2, '#2e7d5b') + pine(24, .8) + pine(166, .7),
+    M9: () => sky('M') + halo(93, 26, 18) + grass() + bodhi(93, 1.2) + monk(93, .9, SAF, 'sit') + lotus(40, G + 4) + lotus(150, G + 4),
+    M10: () => sky('P') + grass() + spring(60) + tree(130, 1.1, '#7aa356') + lotus(96, G + 5) + T(150, G, .7, `<rect x="-4" y="-20" width="8" height="20" fill="#b8ad97" ${st}/><circle cx="0" cy="-24" r="5" fill="#b8ad97" ${st}/>`),
+    M11: () => sky('D') + river(G - 6) + T(93, G - 14, 1, [0, 1, 2, 3, 4].map(i => `<rect x="${-80 + i * 32}" y="-24" width="28" height="24" fill="${['#e8c08a', WALL, '#e2b07a', WALL, '#e8c08a'][i]}" ${st}/>`).join('')) + lamp(50, G + 2, .8) + lamp(120, G + 4, .8) + sun(160, 14, 8, '#f0a040'),
+    M12: () => sky('X') + ground() + T(93, G, 1, `<rect x="-52" y="-26" width="104" height="26" fill="${WALL}" ${st}/>${roof(-52, -26, 104, 12, D)}${roof(-36, -40, 72, 10, D)}<rect x="-8" y="-20" width="16" height="20" fill="${D}"/>`) + monk(20, .8, SAF) + cow(166, .55, '#a8875e'),
+    M13: () => sky('S') + river(G - 6, '#8fbcc8') + T(93, G - 8, 1, `<rect x="-26" y="-14" width="52" height="14" fill="${GOLD}" ${st}/>${roof(-26, -14, 52, 7, D)}<rect x="-18" y="-30" width="36" height="12" fill="${GOLD}" ${st}/>${roof(-18, -30, 36, 6, D)}<path d="M0 -38 v-6" stroke="${GOLD}" stroke-width="2"/>`) + pine(24, .9) + pine(164, .8),
+    M14: () => sky('M') + ground('#a99a7a') + pine(20) + pine(44, .8) + [70, 96, 122].map(x => stele(x, .8)).join('') + lantern(150, G - 18) + pine(170, .9),
+    M15: () => sky('S') + mountains(.3, false) + ground() + house(120, 50, RED) + monk(40, 1, SAF) + T(66, G, 1, `<path d="M-6 0 L-4 -16 Q0 -19 4 -16 L8 0Z" fill="#c9661e" ${st}/><path d="M3 -14 L14 -22" stroke="#c9661e" stroke-width="2.4"/><circle cx="0" cy="-21" r="4" fill="${SKIN}" ${st}/>`),
+    M16: () => sky('C') + ground() + T(93, G, 1, `<rect x="-40" y="-8" width="80" height="8" fill="${STONE}" ${st}/><path d="M-32 -8 Q-32 -20 0 -22 Q32 -20 32 -8Z" fill="${WALL}" ${st}/>`) + monk(93, 1, SAF, 'sit', G - 14) + halo(93, G - 30, 10) + tree(24, .9) + tree(162, .9),
+  };
+  window.WSCENES = W;
 })();
