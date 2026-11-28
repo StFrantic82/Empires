@@ -347,7 +347,7 @@ function cardHTML(card, o = {}) {
     else if (card.req.tags.all) ['P', 'M', 'S', 'C'].forEach(k => reqI.push(`<img src="img/${ICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="1 tag de chaque type">`));
     else Object.entries(card.req.tags).forEach(([k, n]) => { for (let i = 0; i < n; i++) reqI.push(`<img src="img/${ICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="Prérequis : ${E.TAG_NAMES[k]}">`); });
   }
-  const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par carte ${esc(E.GUILD_NAMES[card.g])} (max 3)">−<img src="img/${card.g}.png" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
+  const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par carte ${esc(E.GUILD_NAMES[card.g])} (max 3)">−<img src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz"><span class="small" style="color:#6b6457">apporte</span>${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
   return `<div class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
