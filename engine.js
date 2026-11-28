@@ -296,7 +296,7 @@ function effectiveCost(G, pi, card, coverCell, noPlans, ignoreAge) {
   if (G.opts.costMode !== 'levels') {
     let v = cardValue(card) - discountFor(G, pi, card);
     if (crane) v -= cardValue(crane);
-    if (!noPlans) v -= p.plans || 0;
+    if (!noPlans) v -= Math.floor((p.plans || 0) / KARMA_PER_DISCOUNT); // 2 Karma = −1
     return Math.max(ignoreAge ? 0 : (AGE_FLOOR[card.f] || 0), v);
   }
   let c = card.c.slice().sort((a, b) => a - b);
@@ -308,6 +308,7 @@ function effectiveCost(G, pi, card, coverCell, noPlans, ignoreAge) {
 // Cadre argent / or : le paiement doit contenir au moins une âme de la zone argent (niveau 3+) ou or (niveau 5).
 // Cadre bronze : uniquement des âmes de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
 const FRAME_MIN = { ag: 3, or: 5, br: -2 };
+const KARMA_PER_DISCOUNT = 2; // le Karma se dépense toujours par 2 : −1 au coût, ou un élément de prérequis ignoré
 const BYPASS_COST = 2; // Karma par élément de prérequis ignoré (un tag manquant, un marqueur Sanctuaire manquant, l'âge exigé)
 // Nombre d'éléments de prérequis qui manquent (chacun peut être ignoré pour BYPASS_COST Karma)
 function reqMissing(G, pi, card) {
@@ -688,7 +689,7 @@ function apply(G, a) {
       p.plans -= byp;
       const reqs = effectiveCost(G, pi, card, a.cell, false, ageIg);
       if (!payOk(p.wheel, reqs, a.pay, ageIg ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1 et 2)' : `${card.f === 'or' ? 'Œuvre de sage : il faut une âme ancienne (niveau 5)' : 'Œuvre de maturité : il faut une âme mûre (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
-      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true, ageIg); p.plans -= Math.max(0, Math.min(p.plans, before - reqs)); } // Karma réellement utilisé
+      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true, ageIg); p.plans -= Math.max(0, Math.min(p.plans, (before - reqs) * KARMA_PER_DISCOUNT)); } // Karma réellement utilisé (2 par point de réduction)
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
       if (cover) { G.disc[1].push(p.grid[a.cell].id); }
@@ -1261,7 +1262,7 @@ function exportTables(opts) {
   for (const g of ['mar', 'art', 'eru']) gcards.push([ALTAR[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
   gcards.push(['Moine errant (joker)', 'Autel au choix : appliquez la bénédiction de cet autel', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
   gcards.push(['Colonne complète', 'Dès qu’une colonne contient une offrande sur chaque autel : la roue tourne', '', '', '', '', '', '']);
-  gcards.push(['Karma', '1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.', '', '', '', '', '', '']);
+  gcards.push(['Karma', 'Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (tag, marqueur Sanctuaire, âge exigé).', '', '', '', '', '', '']);
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
@@ -1275,7 +1276,7 @@ const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
   reqMissing, bypassInfo, bypassPlan, cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
-  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, matrixOps, matrixText, jokerOps, jokerText, guildColumns, BYPASS_COST,
+  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, KARMA_PER_DISCOUNT, matrixOps, matrixText, jokerOps, jokerText, guildColumns, BYPASS_COST,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Empires = API;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

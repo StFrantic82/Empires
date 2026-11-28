@@ -458,6 +458,15 @@ aside .city .cell{min-height:84px}
 @media(max-width:1180px){.mk-panel{grid-template-columns:minmax(0,1fr)}.mk-right{justify-content:center;flex-wrap:wrap}}
 #tGuilds .gcard{width:104px;padding:6px 4px}#tGuilds .cards{gap:7px}#tGuilds .gcard .gn{font-size:12px}
 .pnp-board{height:124mm;margin-bottom:4mm;overflow:hidden;grid-template-columns:86mm 1fr}.pb-l .wheel{width:84mm}.pnp-sheet{height:297mm;overflow:hidden}.pnp-sheet.pnp-flow{height:auto;overflow:visible}
+
+.rfig{margin:12px 0;padding:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.rfig figcaption{font-size:13.5px;color:var(--mute);text-align:center;margin-top:6px}
+.rrow{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+.rleg{font-size:14px;max-width:330px;margin:0;padding-left:18px}
+.rgloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px;margin:6px 0 12px}
+.rgloss div{display:flex;align-items:center;gap:8px;font-size:14px}.rgloss .ri{width:24px;height:24px}
+.rmand{display:grid;grid-template-columns:repeat(3,70px);gap:4px;justify-content:center}.rmand div{height:44px;border:1px dashed var(--line);border-radius:6px;overflow:hidden}.rmand .on{border-style:solid}.rmand svg{width:100%;height:100%}
+.pnp-rules .rfig{break-inside:avoid;background:#fbf7ee}.pnp-rules .card{width:180px}
 </style>
 </head>
 <body>
@@ -758,7 +767,7 @@ function setupHTML() {
       ${seatsHTML('l')}
       <button class="big" id="startLocal">Jouer</button>
       <button class="tutoBtn" id="tutoBtn">🎓 Tutoriel : apprendre à jouer</button>
-      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="#regles">Règles</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
+      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="#regles">Règles illustrées</a><button id="homePnp">Print &amp; Play (PDF)</button><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
     </div>
   </section>
   ${remoteOpen ? `<div class="home-remote">${`  <section class="panel remote" id="remote"><h2>Jouer à distance</h2>
@@ -838,7 +847,7 @@ function gameHTML() {
       <section class="panel mk-panel ${G.pending && my ? 'prompt' : ''}">
         <div class="mk-left">
           <div class="turnbar"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-            <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
+            <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
           <div id="tPanel">${panel}</div>
           ${guildRow}
         </div>
@@ -1007,7 +1016,7 @@ const TUTO = [
   { t: 'Le bot joue…', act: true, p: 'Le journal, à droite, raconte ce qu’il fait.', until: () => meTurn() && !G.mainDone && !G.pending },
   { t: 'L’Éveil', s: '.retz', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil {eveil} et attend ici. Dès que deux âmes sont éveillées, vous posez un marqueur sur un Sanctuaire {sanct} ; elles renaissent alors au niveau 0, et une nouvelle génération commence.' },
   { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire {sanct} rapporte des points {pv} ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
-  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma {karma} réduit de 1 le coût d’une œuvre, automatiquement. Avec 2 Karma, vous pouvez aussi ignorer un élément de prérequis : un tag manquant, un marqueur Sanctuaire manquant ou l’âge exigé (2 Karma chacun). Ces cartes affichent un bandeau bleu.' },
+  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma {karma} se dépense toujours par 2. 2 Karma réduisent de 1 le coût d’une œuvre, automatiquement. 2 Karma peuvent aussi ignorer un élément de prérequis : un tag manquant, un marqueur Sanctuaire manquant ou l’âge exigé (2 Karma chacun). Ces cartes affichent un bandeau bleu.' },
   { t: 'À vous de jouer !', p: 'Vous connaissez l’essentiel. Continuez la partie librement ; les règles complètes sont dans l’onglet Règles.' },
 ];
 let tuto = { on: false, i: 0, last: -1 };
@@ -1380,12 +1389,37 @@ function pnpHTML() {
     <button class="pri" id="pnpPrint">Imprimer / PDF</button></section>
   <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
+
+// Illustrations des règles : construites avec les vrais éléments du jeu (roue, autels, cartes), donc toujours à jour
+function ruleFig(inner, cap) { return `<figure class="rfig">${inner}${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`; }
+function rulesFigs() {
+  const start = { wheel: E.DEFAULTS ? E.DEFAULTS.startWheel.slice() : [2, 2, 1, 0, 0, 0], guilds: { mar: [], art: [], eru: [] }, retired: 0, plans: 0 };
+  const mid = { wheel: [1, 0, 2, 1, 1, 1], guilds: { mar: ['x', 'x'], art: ['x', 'x', 'x'], eru: ['x'] }, retired: 1, plans: 3 };
+  const ex = E.CARDS.find(c => c.f === 'ag' && c.req && c.req.tags && c.imm) || E.CARDS[0];
+  const W = E.WONDERS[0];
+  const legend = [['Coût', 'flamme chiffrée en haut à gauche : somme des niveaux des âmes dépensées'], ['Prérequis', 'icônes à côté du coût : tags (ou marqueur Sanctuaire) à avoir déjà'], ['Âge exigé', 'bandeau coloré sous le coût'], ['Effets', 'Immédiat, Activation, Permanent, Fin de partie, Sacrifice'], ['Apport', 'en bas à droite : tags fournis et PV']];
+  const icons = [[soulIco(3, 26), 'Âme (ici de niveau 3)'], [upIco(2, 20), 'Niveaux à répartir'], [karmaIco(2, 26), 'Karma'], [pvIcon(3), 'Points de victoire'], [TURNICO, 'La roue tourne'], ['<img class="ri" src="img/eveil.svg" alt="">', 'Éveil'], ['<img class="ri" src="img/sanctuaire.svg" alt="">', 'Sanctuaire'],
+    ...['P', 'M', 'S', 'C'].map(k => [`<img class="ri" src="img/${TAGICON[k]}.svg" alt="">`, E.TAG_NAMES[k]]), ...['mar', 'art', 'eru', 'voy'].map(g => [`<img class="ri" src="img/${g}.svg" alt="">`, E.ALTAR[g]])];
+  return {
+    icons: `<div class="rgloss">${icons.map(([i, t]) => `<div>${i}<span>${esc(t)}</span></div>`).join('')}</div>`,
+    setup: ruleFig(`<div class="rrow"><div style="width:220px">${wheelSVG(start, WOOD, {})}</div><div style="width:260px">${matrixHTML(start).replace(/<p class="note"[\s\S]*?<\/p>/, '')}</div></div>`, 'Mise en place : 5 âmes sur la roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2), autels vides.'),
+    altars: ruleFig(`<div style="max-width:340px;margin:auto">${matrixHTML(mid).replace(/<p class="note"[\s\S]*?<\/p>/, '')}</div>`, 'Exemple : 2 offrandes sur la Vie, 3 sur l’Enseignement, 1 sur le Karma. Une colonne est complète : la roue a tourné une fois. La prochaine offrande de Karma donnera 2 Karma.'),
+    card: ruleFig(`<div class="rrow"><div>${cardHTML(ex)}</div><ul class="rleg">${legend.map(([a, b]) => `<li><b>${a}</b> : ${b}</li>`).join('')}</ul></div>`, `Anatomie d’une œuvre (${esc(ex.name)}).`),
+    ages: ruleFig(`<div class="rrow">${['br', 'ag', 'or'].map(k => `<b class="zone age" style="background:${AGES[k].bg};font-size:14px;padding:4px 10px"><img src="img/${AGES[k].img}" alt="" style="width:18px;height:18px">${AGES[k].label}</b>`).join('')}</div>`),
+    wheel: ruleFig(`<div class="rrow"><div style="width:220px">${wheelSVG(mid, WOOD, {})}</div><div class="retz" style="margin:0"><img src="img/eveil.svg" alt="" style="width:24px;height:24px"> Éveil <svg viewBox="0 0 20 22" class="rslot on"><path d="${FLAME}"/></svg><svg viewBox="0 0 20 22" class="rslot"><path d="${FLAME}"/></svg></div></div>`, 'Quand la roue tourne, chaque âme gagne un niveau. Celle du niveau 5 atteint l’Éveil ; à 2 âmes éveillées, vous posez un marqueur sur un Sanctuaire.'),
+    mandala: ruleFig(`<div class="rmand">${[0, 1, 0, 1, 1, 1, 0, 1, 0].map((v, i) => v ? `<div class="on">${art(E.CARDS[(i * 7) % E.CARDS.length], 38)}</div>` : '<div></div>').join('')}</div>`, 'Le mandala : chaque nouvelle œuvre touche une œuvre déjà accomplie.'),
+    wonder: ruleFig(`<div style="width:260px;margin:auto">${wonderPreviewHTML(W)}</div>`, 'Un Sanctuaire : trois places, la première vaut le plus.'),
+  };
+}
 function rulesHTML() {
+  const F = rulesFigs();
   return `<section class="panel" style="max-width:860px">
-  <h2>Règles telles que l’app les joue</h2>
+  <h2>Règles illustrées</h2>
+  <h3>Les pictogrammes</h3>${F.icons}
   <p>Vous guidez des <strong>âmes</strong> sur la roue du Samsara. À chaque vie, elles gagnent en sagesse. Elles accomplissent des <strong>œuvres</strong> qui forment votre <strong>mandala</strong>, meurent et renaissent ; les plus anciennes atteignent l’<strong>Éveil</strong> et rejoignent les grands <strong>sanctuaires</strong>.</p>
   <h3>Mise en place</h3>
   <p>Chaque joueur commence avec 5 âmes sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2) ; les autres âmes forment la réserve commune. Chaque joueur a des marqueurs à sa couleur pour les Sanctuaires. Au centre : 4 œuvres visibles de niveau 1 et 4 de niveau 2, une rangée de 4 offrandes visibles (paquet de 66 petites cartes) et, au-dessus, nombre de joueurs + 2 Sanctuaires tirés parmi 16.</p>
+  ${F.setup}
   <h3>Tour de jeu</h3>
   <ul><li><strong>1. Déposez une offrande</strong> parmi les 4 visibles, sur l’autel qu’elle représente, à la suite des offrandes déjà posées, et recevez la bénédiction de sa case (voir « Les trois autels »).</li>
   <li><strong>2. Puis, au choix : accomplissez une œuvre</strong> (prenez une carte visible, payez son coût, placez-la dans votre mandala ; le marché est complété aussitôt) <strong>ou tournez votre roue d’un cran</strong> : toutes vos âmes vivent une vie de plus et gagnent un niveau.</li></ul>
@@ -1398,28 +1432,33 @@ function rulesHTML() {
   <tr><td><strong>Autel du Karma</strong> : Karma gagné</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr></tbody></table></div>
   <p><strong>L’équilibre.</strong> Dès qu’une colonne contient une offrande sur chaque autel (votre 1re offrande sur chacun, puis votre 2e, etc.), <strong>votre roue tourne</strong>. Honorer un seul autel renforce ses bénédictions ; honorer les trois fait tourner la roue.</p>
   <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, mais sa bénédiction vaut un cran de moins que la case (Vie : une âme d’un niveau de moins ; Enseignement et Karma : 1 de moins). Il compte normalement pour l’équilibre des colonnes.</p>
-  <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer <em>un</em> élément de prérequis d’une œuvre : un tag manquant, un marqueur Sanctuaire manquant, ou l’âge exigé (on peut en ignorer plusieurs : 2 Karma chacun). Le Karma ne vaut aucun point, sauf effet de carte.</p>
+  <p><strong>Karma.</strong> Il se cumule. Il se dépense <strong>toujours par 2</strong>. <strong>2 Karma</strong> réduisent de 1 le coût d’une œuvre (utilisés automatiquement). <strong>2 Karma</strong> permettent aussi d’ignorer <em>un</em> élément de prérequis d’une œuvre : un tag manquant, un marqueur Sanctuaire manquant, ou l’âge exigé (on peut en ignorer plusieurs : 2 Karma chacun). Le Karma ne vaut aucun point, sauf effet de carte.</p>
   <p><strong>Âge exigé et réductions.</strong> Une œuvre de maturité coûte toujours au moins 3, une œuvre de sage au moins 5 : il faut de toute façon y dépenser cette âme. Les réductions (Karma, autels, effets) ne descendent pas en dessous ; le Karma en trop n’est pas dépensé.</p>
   <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
+  ${F.altars}
   <h3>Accomplir une œuvre</h3>
   <p>Le coût est le chiffre en haut à gauche de la carte. Consacrez-y des âmes dont la somme des niveaux atteint ce chiffre ; une âme de niveau 0 n’apporte rien, et l’on ne peut pas ajouter d’âme inutile. <strong>Les âmes consacrées meurent et renaissent au niveau 0</strong> : on perd leur sagesse, pas les âmes elles-mêmes. Exception : les œuvres marquées <strong>Sacrifice</strong> (œuvres de sage) libèrent ces âmes, qui quittent le cycle. Le Karma, les réductions d’autel et certaines œuvres réduisent le coût.</p>
+  ${F.card}
   <h3>Conditions sur les cartes</h3>
   <p><strong>Réduction d’autel</strong> (quelques œuvres) : 1 de moins par offrande sur l’autel indiqué, sans limite. <strong>Prérequis de tags</strong> (la plupart des œuvres de niveau 2) : avoir déjà ces tags dans son mandala ; le Joker ne compte pas. <strong>Prérequis Sanctuaire</strong> (les œuvres les plus fortes) : avoir au moins 1 marqueur sur un Sanctuaire. Une œuvre qui exige un âge (jeunesse, maturité, sagesse) n’a jamais de réduction d’autel : l’âge impose déjà le niveau des âmes à consacrer.</p>
   <p><strong>Les quatre tags</strong> ont chacun leur style : <strong>Prospérité</strong> fait grandir la lignée (de nouvelles âmes), <strong>Dévotion</strong> conduit à l’Éveil (âmes très avancées, zone d’Éveil, marqueurs), <strong>Connaissance</strong> fait tourner le cycle (niveaux, roue, réductions, effets permanents), <strong>Arts</strong> embellit le mandala (lignes, colonnes, voisins, coins). Une œuvre porte un tag, deux fois le même, deux tags différents, aucun, ou très rarement les quatre (Unir le royaume).</p>
   <p><strong>Matériel</strong> : 48 œuvres de niveau 1 et 42 de niveau 2 (cartes carrées de 7 × 7 cm), 66 offrandes (41 × 63 mm) et 16 Sanctuaires. Si les offrandes ou la pioche de niveau 1 sont épuisées, la fin de partie est déclenchée.</p>
   <h3>Les âges de l’âme</h3>
-  <p>La roue a trois âges : <strong>jeunes âmes</strong> (niveaux 1-2), <strong>âmes mûres</strong> (3-4) et <strong>âme ancienne</strong> (5). Certaines œuvres exigent un âge :</p>
+  <p>La roue a trois âges : <strong>jeunes âmes</strong> (niveaux 1-2), <strong>âmes mûres</strong> (3-4) et <strong>âme ancienne</strong> (5). Certaines œuvres exigent un âge :</p>${F.ages}
   <ul><li><strong>Œuvre de jeunesse</strong> (cadre vert) : uniquement des jeunes âmes (Laver le linge au fleuve, Exercer les novices, Ouvrir une école, Peupler les faubourgs, Construire la maison commune).</li>
   <li><strong>Œuvre de maturité</strong> (cadre safran) : au moins une âme mûre ; plusieurs jeunes âmes ne suffisent pas.</li>
   <li><strong>Œuvre de sage</strong> (cadre doré) : au moins une âme ancienne. La plupart sont aussi des Sacrifices : l’âme ancienne quitte le cycle.</li></ul>
   <p>Le reste du coût se complète normalement. Avec 2 Karma, on peut ignorer l’âge exigé (2 Karma par élément de prérequis ignoré). Une âme ancienne est donc tiraillée : accomplir une œuvre de sage, ou atteindre l’Éveil.</p>
   <h3>Le mandala</h3>
   <p>Une grille de 3 × 3. La première œuvre se place n’importe où, les suivantes à côté d’une œuvre déjà accomplie. Le placement compte : certaines œuvres marquent selon leur ligne, leur colonne, leurs voisines ou leur position dans un coin, et « Débattre des écritures » redéclenche l’effet immédiat de ses voisines.</p>
+  ${F.mandala}
   <h3>La roue et l’Éveil</h3>
   <p><strong>Un cycle continu.</strong> Une âme qui entre sur votre roue y reste. « Tournez votre roue » fait avancer toutes vos âmes d’une case. Une âme qui dépasse le niveau 5 atteint l’Éveil, et vous choisissez : soit elle renaît tout de suite au niveau 0, soit elle attend dans votre <strong>zone d’Éveil</strong> (2 places). Quand la zone est pleine, vous posez un marqueur sur le Sanctuaire de votre choix (première place libre), puis les 2 âmes renaissent au niveau 0. Pendant leur attente, elles n’apportent rien. Une âme qui s’incarne au niveau 0 ne vient que s’il y a moins de 3 âmes dans votre case 0 ; une âme qui s’incarne plus haut n’a pas cette limite. On ne perd des âmes qu’avec les œuvres Sacrifice.</p>
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
+  ${F.wheel}
   <h3>Sanctuaires et fin de partie</h3>
   <p>Chaque Sanctuaire a 3 places de valeur décroissante ; les points sont comptés à l’arrivée du marqueur, avec vos tags à ce moment-là. Un joueur peut poser plusieurs marqueurs sur le même Sanctuaire. Si toutes les places sont prises, aucun marqueur n’est posé. La fin est déclenchée quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
+  ${F.wonder}
   <h3>Équilibrage</h3>
   <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 8 à 9 tours et 6 à 7 œuvres par joueur, et une fin par les Sanctuaires dans environ une partie sur trois (les autres par un mandala achevé), à 2, 3 et 4 joueurs. Les trois autels sont honorés à parts à peu près égales.</p>
   <h3>Questions encore ouvertes</h3>
@@ -1490,6 +1529,7 @@ document.addEventListener('click', e => {
   if (ds.gc != null) return act({ type: 'guild', gi: +ds.gc });
   if (id === 'spin') return act({ type: 'spin' });
   if (id === 'pnpPrint') return window.print();
+  if (id === 'homePnp') { location.hash = '#imprimer'; setTimeout(() => window.print(), 700); return; }
   if (ds.mk && isMyTurn() && canBuildNow()) { const [L, idx] = ds.mk.split(':').map(Number); sel = sel && sel.L === L && sel.idx === idx ? null : { L, idx }; pickFor = null; return render(); }
   if (ds.guild) return act({ type: 'guild', L: +ds.guild });
   if (ds.cell != null && sel) {
