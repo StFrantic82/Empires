@@ -1546,8 +1546,8 @@ function pnpHTML() {
   const board = col => `<div class="pnp-board2" style="--pc:${col}">
     <div class="pb2-notch pb2-l">${['mar', 'art', 'eru'].map(g => `<div><img src="img/${g}.svg" alt=""></div>`).join('')}</div>
     <div class="pb2-wheel">${wheelSVG(blank, WOOD, { a0: 270 })}</div>
-    <div class="pb2-notch pb2-r">${[0, 1, 2].map(() => `<div><span class="dot" style="background:${col}"></span></div>`).join('')}</div></div>`;
-  const boards = SEATS.map((s, i) => sheet(`Plateau personnel (${i + 1}/4)`, board(s.c), 'pnp-bsheet')).join('');
+    <div class="pb2-notch pb2-r">${[0, 1, 2].map(() => `<div></div>`).join('')}</div></div>`;
+  const boards = sheet('Plateau personnel (à imprimer en 4 exemplaires)', board('#8a7350'), 'pnp-bsheet');
   // pions : âmes (flammes) à la couleur des joueurs, jetons Karma
   const flame = `<svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></svg>`;
   const tokens = sheet('Pions à découper', `<h3>Âmes : 12 par joueur, à sa couleur (elles servent aussi de marqueurs sur les Sanctuaires)</h3><div class="pnp-tok">${SEATS.map(s => Array.from({ length: 12 }, () => `<span class="tk"><svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${s.c}" stroke="#3a2e1f" stroke-width=".8"/></svg></span>`).join('')).join('')}</div>
@@ -1620,7 +1620,7 @@ function rulesHTML() {
   <ul class="rmat"><li>${E.CARDS.filter(c => c.lvl === 1).length} œuvres de niveau 1 et ${E.CARDS.filter(c => c.lvl === 2).length} de niveau 2 (cartes carrées 63 × 63 mm)</li>
   <li>${E.GCARDS.length} offrandes (41 × 63 mm) : ${['mar', 'art', 'eru', 'voy'].map(g => `${E.GCARDS.filter(c => c.g === g).length} ${E.GUILD_NAMES[g]}`).join(', ')}</li>
   <li>${E.WONDERS.length} Sanctuaires (cartes carrées 63 × 63 mm)</li>
-  <li>4 plateaux personnels (20 × 20 cm) : la roue, 3 emplacements d’autels, 3 emplacements de départ du mandala</li>
+  <li>4 plateaux personnels (20 × 20 cm) : la roue, avec des encoches pour les offrandes (à gauche) et le mandala (à droite)</li>
   <li>48 âmes : 12 par joueur, à sa couleur (Noir, Blanc, Rose, Turquoise)</li>
   <li>Jetons de Karma (40 de valeur 1, 10 de valeur 5) et 1 jeton premier joueur</li></ul>
   <div class="rgloss-wrap"><h3>Les icônes</h3>%%GLOSS%%</div>
