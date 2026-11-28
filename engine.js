@@ -309,7 +309,7 @@ function effectiveCost(G, pi, card, coverCell, noPlans, ignoreAge) {
 // Cadre bronze : uniquement des âmes de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
 const FRAME_MIN = { ag: 3, or: 5, br: -2 };
 const KARMA_PER_DISCOUNT = 2; // le Karma se dépense toujours par 2 : −1 au coût, ou un élément de prérequis ignoré
-const BYPASS_COST = 2; // Karma par élément de prérequis ignoré (un tag manquant, un marqueur Sanctuaire manquant, l'âge exigé)
+const BYPASS_COST = 2; // Karma par élément de prérequis ignoré (un tag manquant, l'âme sur un Sanctuaire qui manque, l'âge exigé)
 // Nombre d'éléments de prérequis qui manquent (chacun peut être ignoré pour BYPASS_COST Karma)
 function reqMissing(G, pi, card) {
   if (!card.req || G.opts.prereqs === false) return 0;
@@ -1199,7 +1199,7 @@ function cardText(c) {
     else if (pm.on === 'discard') out.perm = `Quand vous déposez une offrande${pm.g ? ' sur l’' + ALTAR[pm.g] : ''} : ${opsTxt(pm.ops).replace(/^./, m => m.toLowerCase())}`;
     else if (pm.keep5) out.perm = 'Quand votre roue tourne, une âme de niveau 5 peut rester sur place.';
     else if (pm.discount) out.perm = `Vos œuvres${pm.tag ? ' ' + TAG_NAMES[pm.tag] : ''}${pm.lvl ? ' de niveau ' + pm.lvl : ''} coûtent ${pm.discount} de moins.`;
-    else if (pm.onMarker) out.perm = `Quand vous posez un marqueur sur un Sanctuaire : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
+    else if (pm.onMarker) out.perm = `Quand une de vos âmes rejoint un Sanctuaire : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
     else if (pm.cap) out.perm = `Votre case 0 peut accueillir ${3 + pm.cap} nouvelles âmes au lieu de 3.`;
     else if (pm.retireLvl) out.perm = `Quand une de vos âmes rejoint un Sanctuaire : gagnez 1 âme de niveau ${pm.retireLvl}.`;
     else if (pm.actBack) out.perm = `Vos âmes posées sur des œuvres reviennent au niveau ${pm.actBack} au lieu de 0.`;
@@ -1218,7 +1218,7 @@ function cardText(c) {
     else if (e.guildTotal) out.end = `1 PV par ${e.guildTotal} offrandes que vous possédez.`;
     else if (e.atLvl) out.end = `${e.pts} PV par âme de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
     else if (e.bronze) out.end = `${e.bronze} PV par jeune âme (niveau 1 ou 2) sur votre roue.`;
-    else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Sanctuaires.`;
+    else if (e.markers) out.end = `${e.markers} PV par âme à vous sur les Sanctuaires.`;
     else if (e.perPlans) out.end = `${e.perPlans} PV par Karma non dépensé.`;
     else if (e.guildMax) out.end = `${e.guildMax} PV par offrande de votre autel le plus honoré.`;
     else if (e.guild) out.end = `${e.pts} PV par offrande sur votre ${ALTAR[e.guild]}.`;
@@ -1226,11 +1226,11 @@ function cardText(c) {
     else if (e.lines) out.end = `${e.lines} PV par ligne ou colonne complète de votre mandala.`;
   }
   if (c.req) {
-    if (c.req.wonder) out.req = c.req.wonder > 1 ? `Avoir des marqueurs sur ${c.req.wonder} Sanctuaires.` : 'Avoir au moins 1 marqueur sur un Sanctuaire.';
+    if (c.req.wonder) out.req = c.req.wonder > 1 ? `Avoir des âmes sur ${c.req.wonder} Sanctuaires.` : 'Avoir au moins 1 âme sur un Sanctuaire.';
     else if (c.req.tags.all) out.req = 'Avoir 1 tag de chaque type.';
     else out.req = 'Avoir ' + Object.entries(c.req.tags).map(([k, n]) => `${n} ${TAG_NAMES[k]}`).join(' et ') + '.';
   }
-  if (c.sx) out.sx = 'Les âmes dépensées pour cette œuvre quittent le cycle (réserve générale).';
+  if (c.sx) out.sx = 'Les âmes dépensées pour cette œuvre retournent dans votre réserve au lieu de renaître.';
   if (c.gd && c.g !== 'voy') out.gd = `Coûte 1 de moins par offrande sur votre ${ALTAR[c.g]}.`;
   if (c.d) out.disc = opsTxt(c.d);
   return out;
@@ -1258,7 +1258,7 @@ function exportTables(opts) {
     const t = cardText(c);
     cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Œuvre de sage (une âme ancienne, niveau 5)' : c.f === 'ag' ? 'Œuvre de maturité (une âme mûre, niveau 3+)' : c.f === 'br' ? 'Œuvre de jeunesse (jeunes âmes uniquement, niveaux 1-2)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
   }
-  const wonders = [['ID', 'Sanctuaire', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
+  const wonders = [['ID', 'Sanctuaire', '1re âme', '2e âme', '3e âme', 'Multiplicateur', 'Bonus', 'Texte']];
   for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
   const theme = { art: 'Vos âmes apprennent : des niveaux à répartir', eru: 'Du Karma : réduit le coût des œuvres, ou fait ignorer un prérequis ou un âge exigé', mar: 'Une âme s’incarne', voy: 'Joker : autel au choix' };
   const guilds = [['Autel', 'Bénédiction', 'Nombre d’offrandes', 'Œuvres avec réduction de cet autel']];
@@ -1267,12 +1267,12 @@ function exportTables(opts) {
   for (const g of ['mar', 'art', 'eru']) gcards.push([ALTAR[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
   gcards.push(['Moine errant (joker)', 'Autel au choix : appliquez la bénédiction de cet autel', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
   gcards.push(['Colonne complète', 'Dès qu’une colonne contient une offrande sur chaque autel : la roue tourne', '', '', '', '', '', '']);
-  gcards.push(['Karma', 'Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (tag, marqueur Sanctuaire, âge exigé).', '', '', '', '', '', '']);
+  gcards.push(['Karma', 'Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (tag, âme sur un Sanctuaire, âge exigé).', '', '', '', '', '', '']);
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
   const lbl = { startWheel: 'Roue de départ (âmes par niveau 0→5)', endWonders: 'Fin : âmes sur les Sanctuaires (0 = 3 par joueur + 2)', wonderScoring: 'Score des Sanctuaires', market: 'Cartes visibles par niveau', costMode: 'Coûts', wonderMode: 'Marqueurs sur les Sanctuaires', retireStep: 'Taille de la zone d’Éveil (âmes éveillées pour 1 marqueur)', supply: 'Âmes dépensées', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une offrande, puis réaliser une œuvre ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
-  const human = { arrival: 'À l’arrivée du marqueur', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par âme', track: 'Zone d’Éveil (2 âmes éveillées = 1 marqueur)', auto: '1 marqueur à chaque Éveil', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
+  const human = { arrival: 'À l’arrivée de l’âme', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par âme', track: 'Éveil direct : une âme qui dépasse le niveau 5 rejoint un Sanctuaire', auto: '1 marqueur à chaque Éveil', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
   settings.push(['Offrandes visibles', '4'], ['Offrandes dans le paquet', String(GCARDS.length)], ['Œuvres par niveau', String(CARDS.filter(c => c.lvl === 1).length)]);
   for (const k in lbl) { let v = o[k]; if (Array.isArray(v)) v = "'" + v.join(', '); if (typeof v === 'boolean') v = v ? 'oui' : 'non'; if (human[v]) v = human[v]; settings.push([lbl[k], String(v)]); }
   return { 'Œuvres': cards, 'Offrandes': gcards, 'Sanctuaires': wonders, 'Autels': guilds, 'Tags': tags, 'Réglages': settings };
