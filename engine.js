@@ -308,7 +308,44 @@ function effectiveCost(G, pi, card, coverCell, noPlans, ignoreAge) {
 // Cadre argent / or : le paiement doit contenir au moins une âme de la zone argent (niveau 3+) ou or (niveau 5).
 // Cadre bronze : uniquement des âmes de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
 const FRAME_MIN = { ag: 3, or: 5, br: -2 };
-const BYPASS_COST = 2;
+const BYPASS_COST = 2; // Karma par élément de prérequis ignoré (un tag manquant, un marqueur Sanctuaire manquant, l'âge exigé)
+// Nombre d'éléments de prérequis qui manquent (chacun peut être ignoré pour BYPASS_COST Karma)
+function reqMissing(G, pi, card) {
+  if (!card.req || G.opts.prereqs === false) return 0;
+  const p = G.players[pi]; let m = 0;
+  if (card.req.wonder) m += Math.max(0, card.req.wonder - wondersPresent(G, pi));
+  if (card.req.tags) {
+    const t = tagCounts(p);
+    if (card.req.tags.all) m += TAGS.filter(k => !(t[k] >= 1)).length;
+    else for (const k in card.req.tags) m += Math.max(0, card.req.tags[k] - (t[k] || 0));
+  }
+  return m;
+}
+// Contournement : coût en Karma pour réaliser cette œuvre avec ce paiement (âge ignoré seulement si le paiement ne le respecte pas)
+function bypassInfo(G, pi, card, cell, pay) {
+  const p = G.players[pi], miss = reqMissing(G, pi, card);
+  let cost = miss * BYPASS_COST;
+  p.plans -= cost;
+  const okAge = !card.f || payOk(p.wheel, effectiveCost(G, pi, card, cell), pay, frameMin(G, card));
+  p.plans += cost;
+  const ageIg = !okAge;
+  if (ageIg) cost += BYPASS_COST;
+  return { cost, miss, ageIg };
+}
+// Meilleur paiement avec contournement, du moins cher au plus cher en Karma
+function bypassPlan(G, pi, card, cell, mode) {
+  const p = G.players[pi], miss = reqMissing(G, pi, card);
+  if (!legalCells(G, pi, card, true).includes(cell)) return null;
+  for (const ageIg of card.f ? [false, true] : [false]) {
+    const cost = (miss + (ageIg ? 1 : 0)) * BYPASS_COST;
+    if (!cost || (p.plans || 0) < cost) continue;
+    p.plans -= cost;
+    const pay = autoPay(p.wheel, effectiveCost(G, pi, card, cell, false, ageIg), mode || 'exact', ageIg ? 0 : frameMin(G, card));
+    p.plans += cost;
+    if (pay) return { pay, cost, miss, ageIg };
+  }
+  return null;
+}
 const frameMin = (G, card) => (G.opts.costMode !== 'levels' && card.f) ? FRAME_MIN[card.f] : 0;
 function payOk(wheel, reqs, pay, minLvl = 0) {
   if (minLvl < 0) { if (pay.some(l => l > -minLvl)) return false; minLvl = 0; }
@@ -634,14 +671,15 @@ function apply(G, a) {
       if (bonus) G.bonusBuilt = true; else G.lastMain = 'build';
       const id = G.market[a.L][a.idx]; if (!id) throw new Error('Carte absente');
       const card = BY_ID[id];
-      const byp = a.bypass ? BYPASS_COST : 0; // 2 Savoir : ignorer le prérequis et le cadre de ce bâtiment
-      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Karma pour ignorer un prérequis ou un âge exigé`);
+      const bi = a.bypass ? bypassInfo(G, pi, card, a.cell, a.pay) : null; // 2 Karma par élément de prérequis ignoré
+      const byp = bi ? bi.cost : 0, ageIg = !!(bi && bi.ageIg);
+      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${byp} Karma (${BYPASS_COST} par élément de prérequis ignoré)`);
       if (!legalCells(G, pi, card, !!byp).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
       p.plans -= byp;
-      const reqs = effectiveCost(G, pi, card, a.cell, false, !!byp);
-      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1 et 2)' : `${card.f === 'or' ? 'Œuvre de sage : il faut une âme ancienne (niveau 5)' : 'Œuvre de maturité : il faut une âme mûre (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
-      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true, !!byp); p.plans -= Math.max(0, Math.min(p.plans, before - reqs)); } // Karma réellement utilisé
+      const reqs = effectiveCost(G, pi, card, a.cell, false, ageIg);
+      if (!payOk(p.wheel, reqs, a.pay, ageIg ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1 et 2)' : `${card.f === 'or' ? 'Œuvre de sage : il faut une âme ancienne (niveau 5)' : 'Œuvre de maturité : il faut une âme mûre (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
+      if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true, ageIg); p.plans -= Math.max(0, Math.min(p.plans, before - reqs)); } // Karma réellement utilisé
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
       if (cover) { G.disc[1].push(p.grid[a.cell].id); }
@@ -836,13 +874,8 @@ function mainOptions(G) {
       }
     }
     // Aucun moyen normal : 2 Savoir permettent d'ignorer le prérequis et le cadre
-    if (!seen.size && G.opts.matrix && (p.plans || 0) >= BYPASS_COST && (card.req || card.f)) {
-      p.plans -= BYPASS_COST;
-      for (const cell of legalCells(G, pi, card, true)) {
-        const pay = autoPay(p.wheel, effectiveCost(G, pi, card, cell, false, true), 'exact', 0); if (!pay) continue;
-        out.push({ type: 'build', L, idx, cell, pay, bypass: true });
-      }
-      p.plans += BYPASS_COST;
+    if (!seen.size && G.opts.matrix && (card.req || card.f)) {
+      for (const cell of legalCells(G, pi, card, true)) { const bp = bypassPlan(G, pi, card, cell, 'exact'); if (bp) out.push({ type: 'build', L, idx, cell, pay: bp.pay, bypass: true }); }
     }
   });
   if (G.opts.guildChoice && !G.mainDone) { const g = out.filter(a => a.type === 'guild'); return g.length ? g : [{ type: 'rest' }]; }
@@ -1231,7 +1264,7 @@ function exportTables(opts) {
 }
 const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
-  cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
+  reqMissing, bypassInfo, bypassPlan, cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
   retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, matrixOps, matrixText, guildColumns, BYPASS_COST,
 };

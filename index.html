@@ -378,6 +378,15 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .agebar{display:flex;align-items:center;gap:4px;font-size:11px;line-height:1.2;color:#34291f;padding:2px 8px;margin:0 6px 4px;border-radius:5px}
 .agebar img{width:13px;height:13px}.agebar b{font-weight:800}
 .agebar.miss{outline:2px solid #b3261e;color:#7a1414;font-weight:700}
+
+#tutoBubble .tb-r{display:flex;align-items:center;gap:8px}
+#tutoBubble .tb-prev{min-height:34px;padding:5px 12px;background:#fffaf0;border:1px solid #cdbb9a;color:#6e4128;font-size:14px}
+#tutoBubble p .ti{width:18px;height:18px;vertical-align:-4px}#tutoBubble p .bico{vertical-align:-4px}#tutoBubble p .pv.sm{vertical-align:-6px}
+
+.minicity.picking div{height:30px;line-height:30px}
+.minicity div.legal{outline:2px solid var(--or);outline-offset:-1px;background:color-mix(in srgb,var(--or) 35%,var(--panel));color:var(--brown);font-weight:700;cursor:pointer}
+.minicity div.legal[data-hc]{outline-width:3px}
+@media(prefers-reduced-motion:no-preference){.minicity div.legal:not([data-hc]){animation:pulse 1.4s ease-in-out infinite}}
 </style>
 </head>
 <body>
@@ -544,7 +553,7 @@ function cardHTML(card, o = {}) {
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
   return `<div data-tip="${card.id}" class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
-    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${E.BYPASS_COST} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
+    <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${ageBar}${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${o.can.bypCost} Karma (${o.can.byp})` : ''}</div>` : o.can.age ? '' : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
     <div class="ft"><span class="lv">Niv. ${card.lvl}</span>${giveZone}</div>${o.extra || ''}</div>`;
@@ -739,7 +748,7 @@ function gameHTML() {
       <div class="ow" style="margin-top:6px">${q.wheel.map((n, l) => `<span title="niveau ${l}">${l}:${n}</span>`).join('')}</div>
       <div class="small mute">${G.opts.supply === 'cycle' ? `Âmes ${E.wheelCount(q) + q.grid.filter(c => c && c.occ).length}` : `Réserve ${q.reserve} · Bloqués ${q.locked}`} · Karma ${q.plans || 0}</div>
       ${q.guilds ? `<div class="row small" style="gap:8px;margin-top:4px">${E.GUILDS.map(g => `<span title="${E.GUILD_NAMES[g]}"><img src="img/${g}.svg" alt="${E.GUILD_NAMES[g]}" style="width:16px;height:16px;vertical-align:-3px;border-radius:3px"> ${q.guilds[g].length}</span>`).join('')}</div>` : ''}
-      <div class="minicity">${q.grid.map(c => c ? `<div data-hc="${c.id}" tabindex="0" style="background:${TAGC[Object.keys(E.BY_ID[c.id].t)[0]] || '#7a6a55'};color:#fff;cursor:help">${esc(E.BY_ID[c.id].name)}</div>` : '<div></div>').join('')}</div></div>`;
+      <div class="minicity ${i === G.cur && my && sel && canBuildNow() ? 'picking' : ''}">${q.grid.map((c, ci) => { const lg = i === G.cur && my && sel && canBuildNow() && affordable(sel, ci); const la = lg ? ` data-cell="${ci}" role="button" aria-label="Placer l’œuvre ici (case ${ci + 1})"` : ''; return c ? `<div data-hc="${c.id}"${la} tabindex="0" class="${lg ? 'legal' : ''}" style="background:${TAGC[Object.keys(E.BY_ID[c.id].t)[0]] || '#7a6a55'};color:#fff;cursor:${lg ? 'pointer' : 'help'}">${esc(E.BY_ID[c.id].name)}</div>` : `<div${la} ${lg ? 'tabindex="0" class="legal"' : ''}>${lg ? 'Ici' : ''}</div>`; }).join('')}</div>${i === G.cur && my && sel && canBuildNow() ? '<div class="small" style="color:var(--brown);font-weight:700;margin-top:3px">Cliquez sur une case dorée pour placer l’œuvre.</div>' : ''}</div>`;
   }).join('');
   const over = G.over ? finalHTML() : '';
   return `${over}
@@ -753,7 +762,7 @@ function gameHTML() {
       <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.">Karma ${p.plans || 0}</span></div></div>
+          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
         <div id="tPanel">${panel}</div>
         <div class="me" style="margin-top:12px">
           <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
@@ -805,7 +814,7 @@ function buildInfo(L, idx) {
   if (!all.length) return { ok: false, why: 'Aucun emplacement libre' };
   const plans = all.map(c => buildPlan({ L, idx }, c)).filter(Boolean);
   if (plans.some(x => !x.bypass)) return { ok: true };
-  if (plans.length) return { ok: true, byp: card.req && card.f ? 'prérequis et âge ignorés' : card.req ? 'prérequis ignoré' : 'âge ignoré' };
+  if (plans.length) { const b = plans.reduce((a, x) => x.cost < a.cost ? x : a); const parts = []; if (b.miss) parts.push(b.miss > 1 ? b.miss + ' éléments de prérequis' : '1 élément de prérequis'); if (b.ageIg) parts.push('l’âge'); return { ok: true, byp: parts.join(' et ') + ' ignoré' + (b.miss + (b.ageIg ? 1 : 0) > 1 ? 's' : ''), bypCost: b.cost }; }
   if (!E.prereqOk(G, G.cur, card)) return { ok: false, why: 'Prérequis non rempli' };
   const cells = E.legalCells(G, G.cur, card);
   const fm = E.frameMin(G, card), w = G.players[G.cur].wheel;
@@ -814,16 +823,16 @@ function buildInfo(L, idx) {
   if (fm < 0) return { ok: false, why: 'Pas assez de jeunes âmes (niveaux 1-2)', age: true };
   return { ok: false, why: 'Âmes insuffisantes' };
 }
-// Comment payer cette carte à cet emplacement : paiement normal, ou en dépensant 2 Karma pour ignorer prérequis et cadre
+// Comment payer cette carte à cet emplacement : paiement normal, ou en dépensant 2 Karma par élément de prérequis ignoré
 function buildPlan(s, cell) {
   const card = E.BY_ID[G.market[s.L][s.idx]], p = G.players[G.cur];
   if (E.legalCells(G, G.cur, card).includes(cell)) {
     const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell), payMode, E.frameMin(G, card));
     if (pay) return { pay };
   }
-  if (G.opts.matrix && (p.plans || 0) >= E.BYPASS_COST && (card.req || card.f) && E.legalCells(G, G.cur, card, true).includes(cell)) {
-    p.plans -= E.BYPASS_COST; const pay = E.autoPay(p.wheel, E.effectiveCost(G, G.cur, card, cell, false, true), payMode, 0); p.plans += E.BYPASS_COST;
-    if (pay) return { pay, bypass: true };
+  if (G.opts.matrix && (card.req || card.f)) {
+    const bp = E.bypassPlan(G, G.cur, card, cell, payMode);
+    if (bp) return { pay: bp.pay, bypass: true, cost: bp.cost, miss: bp.miss, ageIg: bp.ageIg };
   }
   return null;
 }
@@ -905,23 +914,34 @@ function scheduleBot() {
 // Partie à 2 (vous contre un bot). Étapes « Suivant » (explications) et étapes « action » qui avancent quand vous avez joué.
 const meTurn = () => G && G.cur === 0 && !G.over;
 const TUTO = [
-  { t: 'Bienvenue', p: 'Vous guidez des âmes à travers la roue des renaissances. Leurs œuvres forment votre mandala de 9 cases, et les plus sages atteignent l’Éveil. Cette partie guidée se joue contre un bot : je vous explique chaque étape au fur et à mesure.' },
-  { t: 'La roue du Samsara', s: '#tWheel', p: 'Vos âmes sont sur la roue, de 0 à 5. Leur niveau, c’est leur sagesse et leur valeur : une âme de niveau 3 apporte 3. La roue a trois âges : jeunes âmes (1-2), âmes mûres (3-4) et âme ancienne (5).' },
-  { t: 'Un tour en deux temps', s: '#tPanel', p: '<strong>1.</strong> Déposez une offrande. <strong>2.</strong> Accomplissez une œuvre, <strong>ou</strong> tournez la roue d’un cran : toutes vos âmes vivent une vie de plus et gagnent un niveau.' },
-  { t: 'Les offrandes', s: '#tGuilds', p: 'Chaque offrande va sur l’un de vos trois autels. Elle n’a pas de texte : sa bénédiction dépend de votre matrice des autels. Chaque carte indique ce qu’elle vous rapporterait maintenant.' },
-  { t: 'Les trois autels', s: '.matrix', p: '<strong>Vie</strong> : une âme s’incarne. <strong>Enseignement</strong> : des niveaux à répartir. <strong>Karma</strong> : du Karma. Plus un autel est honoré, plus l’offrande suivante est puissante. Quand une colonne contient une offrande sur chaque autel, l’équilibre fait tourner la roue.' },
+  { t: 'Bienvenue', p: 'Vous guidez des âmes {ame} à travers la roue des renaissances. Leurs œuvres forment votre mandala de 9 cases, et les plus sages atteignent l’Éveil {eveil}. Cette partie guidée se joue contre un bot : je vous explique chaque étape au fur et à mesure.' },
+  { t: 'La roue du Samsara', s: '#tWheel', p: 'Vos âmes {ame} sont sur la roue, de 0 à 5. Leur niveau, c’est leur sagesse et leur valeur : une âme de niveau 3 apporte 3. La roue a trois âges : jeunes âmes {jeune} (1-2), âmes mûres {mure} (3-4) et âme ancienne {ancienne} (5).' },
+  { t: 'Un tour en deux temps', s: '#tPanel', p: '<strong>1.</strong> Déposez une offrande. <strong>2.</strong> Accomplissez une œuvre, <strong>ou</strong> tournez la roue {tourne} d’un cran : toutes vos âmes vivent une vie de plus et gagnent un niveau.' },
+  { t: 'Les offrandes', s: '#tGuilds', p: 'Chaque offrande va sur l’un de vos trois autels {vie}{ens}{eru}. Elle n’a pas de texte : sa bénédiction dépend de votre matrice des autels. Chaque carte indique ce qu’elle vous rapporterait maintenant.' },
+  { t: 'Les trois autels', s: '.matrix', p: '{vie} <strong>Vie</strong> : une âme s’incarne {ame}. {ens} <strong>Enseignement</strong> : des niveaux à répartir {up}. {eru} <strong>Karma</strong> : du Karma {karma}. Plus un autel est honoré, plus l’offrande suivante est puissante. Quand une colonne contient une offrande sur chaque autel, l’équilibre fait tourner la roue {tourne}.' },
   { t: 'À vous : déposez une offrande', s: '#tGuilds', act: true, p: 'Cliquez sur une des offrandes. Pour commencer, la Vie ou l’Enseignement sont de bons choix.', until: () => meTurn() && G.mainDone },
-  { t: 'Les œuvres', s: '#tMarket1', p: 'Le chiffre dans la flamme, en haut à gauche d’une carte, est son coût : additionnez les niveaux des âmes que vous y consacrez. Une fois l’œuvre accomplie, ces âmes meurent et renaissent au niveau 0. Les cartes encadrées en vert sont réalisables.' },
+  { t: 'Les œuvres', s: '#tMarket1', p: 'Le chiffre dans la flamme {cout}, en haut à gauche d’une carte, est son coût : additionnez les niveaux des âmes que vous y consacrez. Une fois l’œuvre accomplie, ces âmes meurent et renaissent au niveau 0. Les cartes encadrées en vert sont réalisables.' },
   { t: 'À vous : accomplissez une œuvre', s: '#tMarket1', act: true, p: 'Cliquez sur une carte encadrée en vert, puis sur une case de votre mandala. Si rien n’est réalisable, cliquez sur « Tournez votre roue » dans le panneau d’action.', until: () => meTurn() && G.mainDone && !canBuildNow() },
-  { t: 'Votre mandala', s: '.city', p: 'Une grille de 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. En bas d’une carte : les tags qu’elle apporte (Prospérité, Dévotion, Connaissance, Arts) et ses points. Passez la souris sur une œuvre pour revoir ses effets.' },
+  { t: 'Votre mandala', s: '.city', p: 'Une grille de 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. En bas d’une carte : les tags qu’elle apporte ({P} Prospérité, {M} Dévotion, {S} Connaissance, {C} Arts) et ses points {pv}. Passez la souris sur une œuvre pour revoir ses effets.' },
   { t: 'À vous : terminez votre tour', s: '#endTurn', act: true, p: 'Cliquez sur « Fin du tour ». Le bot jouera ensuite.', until: () => !G || G.cur !== 0 },
   { t: 'Le bot joue…', act: true, p: 'Le journal, à droite, raconte ce qu’il fait.', until: () => meTurn() && !G.mainDone && !G.pending },
-  { t: 'L’Éveil', s: '.retz', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil et attend ici. Dès que deux âmes sont éveillées, vous posez un marqueur sur un Sanctuaire ; elles renaissent alors au niveau 0, et une nouvelle génération commence.' },
-  { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire rapporte des points ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
-  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma réduit de 1 le coût d’une œuvre, automatiquement. Avec 2 Karma, vous pouvez aussi ignorer le prérequis ou l’âge exigé d’une œuvre : ces cartes sont encadrées en bleu.' },
+  { t: 'L’Éveil', s: '.retz', p: 'Une âme qui dépasse le niveau 5 atteint l’Éveil {eveil} et attend ici. Dès que deux âmes sont éveillées, vous posez un marqueur sur un Sanctuaire {sanct} ; elles renaissent alors au niveau 0, et une nouvelle génération commence.' },
+  { t: 'Les Sanctuaires', s: '.wonders', p: 'Chaque Sanctuaire {sanct} rapporte des points {pv} ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Sanctuaires, ou quand un mandala compte 9 œuvres. On finit alors le tour de table.' },
+  { t: 'Le Karma', s: '#tKarma', p: 'Le Karma {karma} réduit de 1 le coût d’une œuvre, automatiquement. Avec 2 Karma, vous pouvez aussi ignorer un élément de prérequis : un tag manquant, un marqueur Sanctuaire manquant ou l’âge exigé (2 Karma chacun). Ces cartes affichent un bandeau bleu.' },
   { t: 'À vous de jouer !', p: 'Vous connaissez l’essentiel. Continuez la partie librement ; les règles complètes sont dans l’onglet Règles.' },
 ];
 let tuto = { on: false, i: 0, last: -1 };
+// Pictogrammes glissés dans les bulles du tutoriel, pour que le joueur s'y familiarise
+function tutoIcons(s) {
+  const I = {
+    ame: soulIco(2, 18), cout: soulIco(3, 18), up: upIco(1, 14), karma: karmaIco(1, 18), tourne: TURNICO.replace('width="22" height="22"', 'width="18" height="18"'), pv: pvIcon(2, 'sm'),
+    vie: '<img class="ti" src="img/mar.svg" alt="">', ens: '<img class="ti" src="img/art.svg" alt="">', eru: '<img class="ti" src="img/eru.svg" alt="">',
+    eveil: '<img class="ti" src="img/eveil.svg" alt="">', sanct: '<img class="ti" src="img/sanctuaire.svg" alt="">',
+    jeune: '<img class="ti" src="img/age1.svg" alt="">', mure: '<img class="ti" src="img/age2.svg" alt="">', ancienne: '<img class="ti" src="img/age3.svg" alt="">',
+    P: tagImg('P'), M: tagImg('M'), S: tagImg('S'), C: tagImg('C'),
+  };
+  return s.replace(/\{(\w+)\}/g, (m, k) => I[k] || m);
+}
 function tutoSeed() { for (let s = 20261128; s < 20261128 + 500; s++) { const g = E.newGame(['Noir', 'Blanc'], {}, s); if (g.start === 0 && g.market[1].some(id => E.cardValue(E.BY_ID[id]) <= 2)) return s; } return 20261128; }
 function startTutorial() {
   seats = [{ bot: false, color: SEATS[0].c, label: SEATS[0].n }, { bot: true, color: SEATS[1].c, label: SEATS[1].n }];
@@ -953,9 +973,9 @@ function tutoSync() {
   const fresh = key !== tuto.last; tuto.last = key;
   const n = TUTO.length;
   const cur = Math.min(tuto.i + 1, n), mala = Array.from({ length: n }, (_, k) => `<i class="${k < cur ? 'on' : ''}${k === cur - 1 ? ' now' : ''}"></i>`).join('');
-  b.innerHTML = `<div class="tb-roll"></div><div class="tb-body"><div class="tb-head">${MONK}<div><div class="tb-who">Le vieux moine</div><b>${st.t}</b></div></div><p>${st.p}</p>
+  b.innerHTML = `<div class="tb-roll"></div><div class="tb-body"><div class="tb-head">${MONK}<div><div class="tb-who">Le vieux moine</div><b>${st.t}</b></div></div><p>${tutoIcons(st.p)}</p>
     <div class="tb-mala" role="img" aria-label="Étape ${cur} sur ${n}">${mala}</div>
-    <div class="tb-btns"><button type="button" class="ghost" data-tq>Quitter le tutoriel</button>${st.act ? '<span class="small mute">À vous de jouer…</span>' : `<button type="button" class="pri" data-tn>${tuto.i === n - 1 ? 'Terminer 🙏' : 'Suivant'}</button>`}</div></div><div class="tb-roll"></div>`;
+    <div class="tb-btns"><button type="button" class="ghost" data-tq>Quitter le tutoriel</button><span class="tb-r">${tuto.i > 0 ? '<button type="button" class="tb-prev" data-tp>← Précédent</button>' : ''}${st.act ? '<span class="small mute">À vous de jouer…</span>' : `<button type="button" class="pri" data-tn>${tuto.i === n - 1 ? 'Terminer 🙏' : 'Suivant'}</button>`}</span></div></div><div class="tb-roll"></div>`;
   b.hidden = false;
   if (fresh && !st.act) { const nb = b.querySelector('[data-tn]'); if (nb) nb.focus({ preventScroll: true }); }
 }
@@ -963,6 +983,7 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#tutoBubble')) return;
   if (e.target.closest('[data-tq]')) return tutoStop();
   if (e.target.closest('[data-tn]')) { tuto.i++; tutoSync(); }
+  if (e.target.closest('[data-tp]')) { let j = tuto.i - 1; while (j > 0 && TUTO[j].until && TUTO[j].until()) j--; tuto.i = Math.max(0, j); tutoSync(); }
 });
 /* ---------- En ligne ---------- */
 function pushOnline() {
@@ -1265,7 +1286,7 @@ function rulesHTML() {
   <tr><td><strong>Autel du Karma</strong> : Karma gagné</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr></tbody></table></div>
   <p><strong>L’équilibre.</strong> Dès qu’une colonne contient une offrande sur chaque autel (votre 1re offrande sur chacun, puis votre 2e, etc.), <strong>votre roue tourne</strong>. Honorer un seul autel renforce ses bénédictions ; honorer les trois fait tourner la roue.</p>
   <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, qui donne sa bénédiction.</p>
-  <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer le prérequis et l’âge exigé d’une œuvre. Le Karma ne vaut aucun point, sauf effet de carte.</p>
+  <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer <em>un</em> élément de prérequis d’une œuvre : un tag manquant, un marqueur Sanctuaire manquant, ou l’âge exigé (on peut en ignorer plusieurs : 2 Karma chacun). Le Karma ne vaut aucun point, sauf effet de carte.</p>
   <p><strong>Âge exigé et réductions.</strong> Une œuvre de maturité coûte toujours au moins 3, une œuvre de sage au moins 5 : il faut de toute façon y dépenser cette âme. Les réductions (Karma, autels, effets) ne descendent pas en dessous ; le Karma en trop n’est pas dépensé.</p>
   <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
   <h3>Accomplir une œuvre</h3>
@@ -1279,7 +1300,7 @@ function rulesHTML() {
   <ul><li><strong>Œuvre de jeunesse</strong> (cadre vert) : uniquement des jeunes âmes (Laver le linge au fleuve, Exercer les novices, Ouvrir une école, Peupler les faubourgs, Construire la maison commune).</li>
   <li><strong>Œuvre de maturité</strong> (cadre safran) : au moins une âme mûre ; plusieurs jeunes âmes ne suffisent pas.</li>
   <li><strong>Œuvre de sage</strong> (cadre doré) : au moins une âme ancienne. La plupart sont aussi des Sacrifices : l’âme ancienne quitte le cycle.</li></ul>
-  <p>Le reste du coût se complète normalement. Avec 2 Karma, on peut ignorer l’âge exigé. Une âme ancienne est donc tiraillée : accomplir une œuvre de sage, ou atteindre l’Éveil.</p>
+  <p>Le reste du coût se complète normalement. Avec 2 Karma, on peut ignorer l’âge exigé (2 Karma par élément de prérequis ignoré). Une âme ancienne est donc tiraillée : accomplir une œuvre de sage, ou atteindre l’Éveil.</p>
   <h3>Le mandala</h3>
   <p>Une grille de 3 × 3. La première œuvre se place n’importe où, les suivantes à côté d’une œuvre déjà accomplie. Le placement compte : certaines œuvres marquent selon leur ligne, leur colonne, leurs voisines ou leur position dans un coin, et « Débattre des écritures » redéclenche l’effet immédiat de ses voisines.</p>
   <h3>La roue et l’Éveil</h3>
