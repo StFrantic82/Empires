@@ -619,6 +619,7 @@ aside .city .cell{min-height:84px}
 .pb2-l div{border-left:none;border-radius:0 2mm 2mm 0}.pb2-r div{border-right:none;border-radius:2mm 0 0 2mm}
 .pb2-notch img{width:7mm;height:7mm}.pb2-notch .dot{width:5mm;height:5mm}
 .pb2-wheel{display:grid;place-items:center}.pb2-wheel .wheel{width:178mm!important;max-width:none!important}
+.czreq img.agei{width:18px;height:20px;border-radius:0}.czreq img.agei.miss{outline:2px solid #b3261e;outline-offset:1px;border-radius:4px;background:#fde2e2}
 </style>
 </head>
 <body>
@@ -776,10 +777,11 @@ function cardHTML(card, o = {}) {
   // Âge exigé : affiché une seule fois, dans le bandeau du haut sous le coût (en rouge s'il manque)
   const ageMiss = o.can && !o.can.ok && o.can.age;
   const AGESHORT = { br: 'jeunes âmes seulement (1-2)', ag: 'une âme mûre (3+)', or: 'une âme ancienne (5)' };
-  const ageBar = fr ? `<div class="agebar ${ageMiss ? 'miss' : ''}" style="background:${AGES[fr].bg}" title="${esc(AGES[fr].txt)}"><img src="img/${AGES[fr].img}" alt=""><span><b>${AGES[fr].label}</b> · ${AGESHORT[fr]}${ageMiss ? ' : manquante' : ''}</span></div>` : '';
+  const ageBar = ''; // l'âge exigé est une icône à côté du coût
   // Zone de coût (haut gauche) : coût + prérequis + réduction de guilde. Zone d'apport (bas droite) : tags fournis + PV.
   const ICON = TAGICON;
   const reqI = [];
+  if (fr) reqI.push(`<img class="agei ${ageMiss ? 'miss' : ''}" src="img/${AGES[fr].img}" alt="${AGES[fr].label}" title="${esc(AGES[fr].label + ' : ' + AGES[fr].txt)}${ageMiss ? ' (manquante)' : ''}">`);
   if (card.req && (!G || G.opts.prereqs !== false)) {
     if (card.req.wonder) reqI.push(`<img src="img/sanctuaire.svg" alt="Sanctuaire" title="Avoir au moins 1 âme sur un Sanctuaire">`);
     else if (card.req.tags.all) ['P', 'M', 'S', 'C'].forEach(k => reqI.push(`<img src="img/${ICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="1 tag de chaque type">`));
@@ -821,6 +823,7 @@ function wheelSVG(p, color, opts = {}) {
       o.push(`<g transform="translate(${f(mx - 10)} ${f(my - 11)})" pointer-events="none"><path d="${FLAME}" fill="${color}" stroke="${ink}" stroke-width="1.3"/><path d="M10.3 10.5c1.8 1.9 3 3.2 3 5.1 0 1.9-1.4 3.2-3.2 3.2S6.9 17.5 6.9 15.6c0-1.6 1.3-3 3.4-5.1z" fill="#fff3c4" opacity=".85"/></g>`);
     }
     if (n > 6) { const [bx, by] = pt(104, c); o.push(`<g pointer-events="none"><circle cx="${f(bx)}" cy="${f(by)}" r="10" fill="${ink}"/><text x="${f(bx)}" y="${f(by + 4)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fbf7ee">×${n}</text></g>`); }
+    if (i > 0) { const [ax, ay] = pt(R - 14, c); o.push(`<image href="img/age${i >= 5 ? 3 : i >= 3 ? 2 : 1}.svg" x="${f(ax - 6)}" y="${f(ay - 6.6)}" width="12" height="13.2" opacity=".9" pointer-events="none"/>`); }
     // badge de niveau : meeple chiffré, comme le coût des cartes
     const [lx, ly] = pt(R + 16, c);
     o.push(`<g pointer-events="none"><circle cx="${f(lx)}" cy="${f(ly)}" r="14" fill="${i === 5 ? '#b8961f' : i >= 3 ? '#c27a12' : i >= 1 ? '#4f8a33' : ink}" stroke="#fbf7ee" stroke-width="2"/>
@@ -1569,7 +1572,7 @@ function rulesFigs() {
   const mid = { wheel: [1, 0, 2, 1, 1, 1], guilds: { mar: ['x', 'x'], art: ['x', 'x', 'x'], eru: ['x'] }, retired: 1, plans: 3 };
   const ex = E.CARDS.find(c => c.f === 'ag' && c.req && c.req.tags && c.imm) || E.CARDS[0];
   const W = E.WONDERS[0];
-  const legend = [['Coût', 'flamme chiffrée en haut à gauche : somme des niveaux des âmes dépensées'], ['Prérequis', 'icônes à côté du coût : tags (ou une âme sur un Sanctuaire) à avoir déjà'], ['Âge exigé', 'bandeau coloré sous le coût'], ['Effets', 'Immédiat, Activation, Permanent, Fin de partie, Sacrifice'], ['Apport', 'bandeau du bas : tags apportés et PV']];
+  const legend = [['Coût', 'flamme chiffrée en haut à gauche : somme des niveaux des âmes dépensées'], ['Prérequis', 'icônes à côté du coût : tags (ou une âme sur un Sanctuaire) à avoir déjà'], ['Âge exigé', 'flamme colorée à côté du coût (verte : jeunes âmes seulement, safran : une âme mûre, dorée : une âme ancienne)'], ['Effets', 'Immédiat, Activation, Permanent, Fin de partie, Sacrifice'], ['Apport', 'bandeau du bas : tags apportés et PV']];
   const icons = [[soulIco(3, 26), 'Âme (ici de niveau 3)'], [upIco(2, 20), 'Niveaux à répartir'], [karmaIco(2, 26), 'Karma'], [pvIcon(3), 'Points de victoire'], [TURNICO, 'La roue tourne'], ['<img class="ri" src="img/eveil.svg" alt="">', 'Éveil'], ['<img class="ri" src="img/sanctuaire.svg" alt="">', 'Sanctuaire'],
     ...['P', 'M', 'S', 'C'].map(k => [`<img class="ri" src="img/${TAGICON[k]}.svg" alt="">`, E.TAG_NAMES[k]]), ...['mar', 'art', 'eru', 'voy'].map(g => [`<img class="ri" src="img/${g}.svg" alt="">`, E.ALTAR[g]])];
   return {
