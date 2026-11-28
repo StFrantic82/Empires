@@ -1,13 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Éveil : les yeux de la sagesse (yeux mi-clos, troisième œil, volute) sur un disque d'aube dorée -->
-  <defs><radialGradient id="a" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#fff2c4"/><stop offset="1" stop-color="#e2a93a"/></radialGradient></defs>
-  <circle cx="32" cy="32" r="30" fill="url(#a)" stroke="#5b3a1e" stroke-width="2.5"/>
-  <g stroke="#3b2a6e" stroke-linecap="round" fill="none">
-    <path d="M9 27q8-6 17-1" stroke-width="2.6"/><path d="M38 26q9-5 17 1" stroke-width="2.6"/>
-    <path d="M10 32q7-5 15 0q-7 4-15 0z" fill="#fffaf0" stroke-width="2"/><path d="M39 32q7-5 15 0q-7 4-15 0z" fill="#fffaf0" stroke-width="2"/>
-    <path d="M30 37c4-3 6 2 2 4-3 1.5-2 5 1 6" stroke-width="2.6"/>
-  </g>
-  <circle cx="17.5" cy="31.5" r="2.6" fill="#3b2a6e"/><circle cx="46.5" cy="31.5" r="2.6" fill="#3b2a6e"/>
-  <circle cx="32" cy="17" r="3" fill="#b3261e" stroke="#5b3a1e" stroke-width="1"/>
-  <g stroke="#b9822a" stroke-width="1.6" stroke-linecap="round"><path d="M32 4.5v4M10.5 13l3 2.6M53.5 13l-3 2.6"/></g>
+  <!-- Éveil : l'œil de la sagesse, en amande horizontale -->
+  <defs><radialGradient id="ev" cx="50%" cy="45%" r="60%"><stop offset="0" stroke-width="0" stop-color="#fff2c4"/><stop offset="1" stop-color="#e2a93a"/></radialGradient></defs>
+  <path d="M2 32 Q32 4 62 32 Q32 60 2 32 Z" fill="url(#ev)" stroke="#5b3a1e" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M10 32 Q32 14 54 32 Q32 50 10 32 Z" fill="#fffaf0" stroke="#3b2a6e" stroke-width="2"/>
+  <circle cx="32" cy="32" r="9.5" fill="#3b2a6e"/><circle cx="32" cy="32" r="4" fill="#120c24"/><circle cx="35" cy="29" r="2" fill="#fff"/>
+  <path d="M12 23 Q32 8 52 23" fill="none" stroke="#b3261e" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
 </svg>

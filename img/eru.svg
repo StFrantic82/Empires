@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="2.5" y="2.5" width="59" height="59" rx="10" fill="#3d3d3d" stroke="#5b3a1e" stroke-width="2.5"/><rect x="7" y="7" width="50" height="50" rx="7" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/><path d="M45 20a17 17 0 1 0 4 14" stroke="#fffaf0" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="46" cy="21" r="2" fill="#fffaf0"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="2.5" y="2.5" width="59" height="59" rx="10" fill="#3d3d3d" stroke="#5b3a1e" stroke-width="2.5"/><rect x="7" y="7" width="50" height="50" rx="7" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
+  <!-- Karma : la balance des actes -->
+  <g stroke="#fffaf0" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M32 14v34" stroke-width="3"/><path d="M14 20h36" stroke-width="3"/><circle cx="32" cy="13" r="2.4" fill="#fffaf0" stroke="none"/>
+    <path d="M18 20l-6 13M18 20l6 13M46 20l-6 13M46 20l6 13" stroke-width="1.8"/>
+    <path d="M10 33h16a8 5 0 0 1-16 0zM38 33h16a8 5 0 0 1-16 0z" fill="#fffaf0" stroke-width="1.5"/>
+    <path d="M24 49h16" stroke-width="3.4"/>
+  </g>
+</svg>

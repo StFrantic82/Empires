@@ -182,7 +182,7 @@
     b21: () => sky('J') + ground() + fire(40) + `<rect x="70" y="${G - 14}" width="30" height="14" fill="${STONE}" ${st}/>` + coins(130) + `<path d="M84 ${G - 34} L84 ${G - 16}" stroke="${WOOD}" stroke-width="4"/><rect x="76" y="${G - 40}" width="16" height="8" fill="#8a7a62" ${st}/>`,
     b22: () => sky('X') + ground() + banners() + stall(8, RED) + stall(52, SAF) + stall(96, '#2e7d5b') + stall(140, '#2b5aa8') + camel(26, .7),
     b23: () => sky('J') + sand() + rock(60, 1.4) + rock(130, 1) + `<circle cx="60" cy="${G + 2}" r="20" fill="none" stroke="#c9bb9c"/><circle cx="60" cy="${G + 2}" r="26" fill="none" stroke="#c9bb9c"/>` + pine(170, .8),
-    b26: () => sky('C') + ground() + banners() + person(50, 1, RED) + `<circle cx="80" cy="${G - 30}" r="5" fill="${GOLD}" ${st}/>` + person(110, 1, '#2b5aa8') + crowd(140, 3),
+    b26: () => sky('M') + ground() + pagoda(150, 3) + table(30, 96) + riceBowl(46, G - 14) + bowl(66, G - 14, '#b0713a') + riceBowl(86, G - 14) + jar(110, G - 14, '#b0713a', .7) + monk(20, .9, SAF) + person(140, .9, '#8fb36a') + lantern(78, 18) + lantern(108, 18, '#f2b84b'),
     b28: () => sky('S') + ground() + monk(60, 1.25, '#c9661e') + monk(120, 1.25, SAF) + halo(60, G - 26, 10) + halo(120, G - 26, 10) + scroll(93, G - 34),
     b31: () => sky('M') + ground() + pavilion(48, 90, RED) + monks(14, 2, 'sit') + monks(146, 2, 'sit'),
     b32: () => sky('C') + river(G - 10) + lotus(40, G - 4) + lotus(70, G) + lotus(120, G - 2) + monk(150, 1, SAF, 'stand', G - 4) + `<path d="M140 ${G - 26} q-6 8 0 14" stroke="${WAT}" stroke-width="2" fill="none"/>`,
@@ -199,7 +199,7 @@
     b50: () => sky('M') + halo(130, 26, 22) + `<path d="M30 ${G} L60 ${G - 12} L90 ${G - 20} L120 ${G - 34}" fill="none" stroke="${GOLD}" stroke-width="2" stroke-dasharray="3 3"/>` + ground() + monk(60, 1, SAF, 'walk') + monk(110, .8, '#f2d27a', 'walk', G - 26),
     b51: () => sky('C') + ground('#d9c9a6') + banners() + well(93) + crowd(20, 3) + crowd(130, 3),
     b52: () => sky('X') + ground() + pavilion(40, 106, SAF) + bowl(40, G) + riceBowl(146) + lamp(166, G, .8),
-    b55: () => sky('S') + sun(30, 14) + ground() + gnomon(93) + person(150, 1, '#2e7d5b'),
+    b55: () => sky('C') + grass() + `<path d="M0 ${G} V12 H14 V${G - 12} H186 V${G}Z" fill="${STONE}" opacity=".5"/>` + tree(150, 1, '#c8553d') + T(60, G, 1, `<rect x="-4" y="-14" width="8" height="14" fill="#b8ad97" ${st}/><rect x="-11" y="-18" width="22" height="4" fill="#b8ad97" ${st}/><rect x="-7" y="-28" width="14" height="10" fill="#b8ad97" ${st}/><rect x="-3" y="-26" width="6" height="5" fill="#f2b84b"/><path d="M-12 -28 L0 -36 L12 -28Z" fill="#8a7a62" ${st}/>`) + rock(100, .8) + lotus(30, G + 4) + bamboo(170, 2),
     b56: () => sky('P') + hills() + ground() + house(6, 40, SAF) + house(50, 36, '#8a5a3a') + house(90, 40, SAF) + house(134, 46, RED) + child(88),
     b57: () => sky('C') + ground() + pavilion(40, 106, '#2b5aa8') + crowd(16, 2) + crowd(150, 2),
   };
