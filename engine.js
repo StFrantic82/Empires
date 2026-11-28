@@ -4,12 +4,13 @@
 'use strict';
 
 const TAGS = ['P', 'M', 'S', 'C'];
-const TAG_NAMES = { P: 'Prospérité', M: 'Militaire', S: 'Science', C: 'Culture', J: 'Joker' };
+const TAG_NAMES = { P: 'Prospérité', M: 'Dévotion', S: 'Connaissance', C: 'Arts', J: 'Joker' };
 const GUILDS = ['art', 'eru', 'mar'];
 // Proposition d'effets fixes par guilde (variante « effet fixe par guilde »)
 // fb : si l'effet ne peut pas s'appliquer (réserve vide, roue vide), le joueur prend 1 Plan à la place
 const GUILD_FIXED = { art: [{ op: 'progress', n: 1, by: 1, fb: true }], mar: [{ op: 'gain', n: 1, lvl: 0, fb: true }], eru: [{ op: 'plan', n: 1 }] };
-const GUILD_NAMES = { art: 'Artisans', eru: 'Érudits', mar: 'Marchands', voy: 'Voyageurs' };
+const GUILD_NAMES = { art: 'Enseignement', eru: 'Karma', mar: 'Vie', voy: 'Moine errant' };
+const ALTAR = { art: 'Autel de l’Enseignement', eru: 'Autel du Karma', mar: 'Autel de la Vie', voy: 'Moine errant' };
 
 /* ---------- Effets défausse ---------- */
 const D = {
@@ -25,101 +26,101 @@ const IF_ALL = (ops) => [{ op: 'if', cond: 'allTypes', then: ops }];
 // t: tags, c: coût (niveau minimum de chaque ouvrier), imm/act: listes d'effets, perm, end, d: défausse
 const CARDS = [
   // Niveau 1
-  { id: 'a1', lvl: 1, g: 'art', name: 'Officine', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'P', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.A },
-  { id: 'a2', lvl: 1, g: 'mar', name: 'Université', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'M', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.B },
-  { id: 'a3', lvl: 1, g: 'eru', name: 'Atelier', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'S', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.C },
-  { id: 'a4', lvl: 1, g: 'voy', name: 'Scriptorium', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'C', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.E },
-  { id: 'a5', lvl: 1, g: 'art', name: 'Échoppe', t: { P: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: { c: 'P', max: 5 } }], d: D.A },
-  { id: 'a6', lvl: 1, g: 'mar', name: 'Taverne', t: { P: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: { c: 'P' }, lvl: 0 }], d: D.B },
-  { id: 'a7', lvl: 1, g: 'eru', f: 'ag', name: 'Marché', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 3 }], d: D.C },
-  { id: 'a8', lvl: 1, g: 'art', gd: true, f: 'or', sx: true, name: 'Ferme', t: { P: 2 }, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: D.D },
-  { id: 'a9', lvl: 1, g: 'art', name: 'Tour de guet', t: { M: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'progress', n: 1, by: { c: 'M', max: 3 } }], d: D.A },
-  { id: 'a10', lvl: 1, g: 'mar', name: 'Fort', t: { M: 1 }, c: [1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: { c: 'M', max: 5 } }], d: D.B },
-  { id: 'a11', lvl: 1, g: 'eru', gd: true, f: 'ag', name: 'Palissade', t: { M: 1 }, v: 6, c: [1, 1, 2, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.C },
-  { id: 'a12', lvl: 1, g: 'voy', f: 'ag', name: 'Caserne', t: { M: 2 }, c: [2, 2], pv: 2, imm: [{ op: 'retrigger', times: 1 }], d: D.D },
-  { id: 'a14', lvl: 1, g: 'mar', name: 'Autel', t: { C: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'M', pts: 2 }, d: D.B },
-  { id: 'a15', lvl: 1, g: 'eru', name: 'Bains', t: { C: 1 }, v: 3, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }], end: { col: 'S', pts: 2 }, d: D.C },
-  { id: 'a16', lvl: 1, g: 'mar', name: 'Odéon', t: { C: 1 }, c: [1], pv: 1, end: { col: 'C', pts: 2 }, d: D.E },
-  { id: 'a17', lvl: 1, name: 'Caravansérail', t: { P: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 2, lvl: 3, free: true }]), d: D.A },
-  { id: 'a18', lvl: 1, name: 'Citadelle', t: { M: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 1, lvl: 5, free: true }]), d: D.B },
-  { id: 'a19', lvl: 1, name: 'Laboratoire', t: { S: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'progress', n: 3, by: 2 }]), d: D.C },
-  { id: 'a20', lvl: 1, name: 'Théâtre', t: { C: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'vp', n: 5 }]), d: D.A },
-  { id: 'a23', lvl: 1, name: 'Grue', t: {}, v: 2, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], perm: { crane: true }, d: D.D },
-  { id: 'a21', lvl: 1, g: 'art', gd: true, name: 'Forum', t: { J: 1 }, end: { guildMax: 1 }, v: 8, c: [1, 2, 4], pv: 5, d: D.D },
-  { id: 'a22', lvl: 1, g: 'mar', gd: true, f: 'or', sx: true, name: 'Villa', t: {}, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.D },
-  { id: 'a25', lvl: 1, g: 'art', name: 'Grenier', t: {}, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: { c: 'diff', max: 5 } }], d: D.D },
+  { id: 'a1', lvl: 1, g: 'art', name: 'Bénir les récoltes', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'P', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.A },
+  { id: 'a2', lvl: 1, g: 'mar', name: 'Former les pèlerins', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'M', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.B },
+  { id: 'a3', lvl: 1, g: 'eru', name: 'Copier les sutras', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'S', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.C },
+  { id: 'a4', lvl: 1, g: 'voy', name: 'Inspirer les poètes', t: { S: 1 }, c: [1, 1], pv: 3, perm: { on: 'build', tag: 'C', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.E },
+  { id: 'a5', lvl: 1, g: 'art', name: 'Ouvrir une échoppe', t: { P: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: { c: 'P', max: 5 } }], d: D.A },
+  { id: 'a6', lvl: 1, g: 'mar', name: 'Accueillir les voyageurs', t: { P: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: { c: 'P' }, lvl: 0 }], d: D.B },
+  { id: 'a7', lvl: 1, g: 'eru', f: 'ag', name: 'Tenir le marché', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 3 }], d: D.C },
+  { id: 'a8', lvl: 1, g: 'art', gd: true, f: 'or', sx: true, name: 'Cultiver la rizière', t: { P: 2 }, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: D.D },
+  { id: 'a9', lvl: 1, g: 'art', name: 'Veiller au monastère', t: { M: 1 }, c: [1, 1], pv: 3, imm: [{ op: 'progress', n: 1, by: { c: 'M', max: 3 } }], d: D.A },
+  { id: 'a10', lvl: 1, g: 'mar', name: 'Gravir la montagne sacrée', t: { M: 1 }, c: [1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: { c: 'M', max: 5 } }], d: D.B },
+  { id: 'a11', lvl: 1, g: 'eru', gd: true, f: 'ag', name: 'Ériger la porte du temple', t: { M: 1 }, v: 6, c: [1, 1, 2, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.C },
+  { id: 'a12', lvl: 1, g: 'voy', f: 'ag', name: 'Méditer en silence', t: { M: 2 }, c: [2, 2], pv: 2, imm: [{ op: 'retrigger', times: 1 }], d: D.D },
+  { id: 'a14', lvl: 1, g: 'mar', name: 'Brûler l’encens', t: { C: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'M', pts: 2 }, d: D.B },
+  { id: 'a15', lvl: 1, g: 'eru', name: 'Bain rituel au fleuve', t: { C: 1 }, v: 3, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }], end: { col: 'S', pts: 2 }, d: D.C },
+  { id: 'a16', lvl: 1, g: 'mar', name: 'Chanter les mantras', t: { C: 1 }, c: [1], pv: 1, end: { col: 'C', pts: 2 }, d: D.E },
+  { id: 'a17', lvl: 1, name: 'Ouvrir la route des caravanes', t: { P: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 2, lvl: 3, free: true }]), d: D.A },
+  { id: 'a18', lvl: 1, name: 'Rassembler les ordres', t: { M: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'gain', n: 1, lvl: 5, free: true }]), d: D.B },
+  { id: 'a19', lvl: 1, name: 'Unir les savoirs', t: { S: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'progress', n: 3, by: 2 }]), d: D.C },
+  { id: 'a20', lvl: 1, name: 'Jouer le grand drame', t: { C: 1 }, v: 3, c: [1, 2], pv: 1, imm: IF_ALL([{ op: 'vp', n: 5 }]), d: D.A },
+  { id: 'a23', lvl: 1, name: 'Dresser l’échafaudage', t: {}, v: 2, c: [1, 1], pv: 1, imm: [{ op: 'plan', n: 1 }], perm: { crane: true }, d: D.D },
+  { id: 'a21', lvl: 1, g: 'art', gd: true, name: 'Réunir les fidèles', t: { J: 1 }, end: { guildMax: 1 }, v: 8, c: [1, 2, 4], pv: 5, d: D.D },
+  { id: 'a22', lvl: 1, g: 'mar', gd: true, f: 'or', sx: true, name: 'Recevoir un mécène', t: {}, c: [1, 4], pv: 4, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: D.D },
+  { id: 'a25', lvl: 1, g: 'art', name: 'Remplir le grenier', t: {}, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: { c: 'diff', max: 5 } }], d: D.D },
   // Niveau 1 — nouveaux bâtiments
-  { id: 'a27', lvl: 1, g: 'mar', name: 'Boulangerie', t: { P: 1 }, v: 2, c: [1, 2], pv: 2, perm: { on: 'build', tag: 'P', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
-  { id: 'a28', lvl: 1, g: 'eru', name: 'Pressoir', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'progress', n: 2, by: 1 }], d: D.A },
-  { id: 'a29', lvl: 1, g: 'art', name: 'Verger', t: { P: 1 }, c: [1], pv: 1, end: { row: 'P', pts: 1 }, d: D.A },
-  { id: 'a30', lvl: 1, g: 'mar', gd: true, name: 'Bergerie', t: { P: 1 }, v: 5, c: [1, 3], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 2 }], d: D.A },
-  { id: 'a32', lvl: 1, g: 'art', name: 'Poterie', t: {}, c: [1, 1], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.A },
-  { id: 'a34', lvl: 1, g: 'art', name: 'Forge', t: { M: 1 }, c: [1, 2], pv: 1, imm: [{ op: 'plan', n: 3 }], d: D.A },
-  { id: 'a35', lvl: 1, g: 'eru', name: 'Armurerie', t: { M: 1 }, v: 2, c: [1, 2], pv: 2, perm: { discount: 1, tag: 'M' }, d: D.A },
-  { id: 'a38', lvl: 1, g: 'eru', name: 'Poste de garde', t: { M: 1 }, c: [1, 1], pv: 1, end: { row: 'M', pts: 2 }, d: D.A },
-  { id: 'a39', lvl: 1, g: 'mar', f: 'or', sx: true, name: 'Arène', t: { M: 1, C: 1 }, c: [5], pv: 2, imm: [{ op: 'vp', n: 1 }], end: { atLvl: 5, pts: 2 }, d: D.A },
-  { id: 'a40', lvl: 1, g: 'art', name: 'Cadran solaire', t: { S: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }, { op: 'plan', n: 1 }], d: D.A },
-  { id: 'a42', lvl: 1, g: 'eru', name: 'Archives', t: { S: 1 }, v: 2, c: [1, 2], pv: 1, perm: { on: 'discard', g: 'eru', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
-  { id: 'a43', lvl: 1, g: 'art', name: 'Cartographe', t: { S: 2 }, c: [1, 1], pv: 3, perm: { discount: 1, lvl: 2 }, d: D.A },
-  { id: 'a44', lvl: 1, g: 'eru', name: 'Puits', t: { S: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 1 }], d: D.A },
-  { id: 'a45', lvl: 1, g: 'mar', name: 'Fontaine', t: { S: 1, C: 1 }, c: [2, 2], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'S', pts: 1 }, d: D.A },
-  { id: 'a46', lvl: 1, g: 'art', name: 'Stèle', t: { C: 1 }, c: [1, 2], pv: 1, end: { guild: 'eru', pts: 1 }, d: D.A },
-  { id: 'a48', lvl: 1, g: 'mar', name: 'Nécropole', t: { C: 1 }, c: [1, 1], pv: 2, perm: { onMarker: [{ op: 'plan', n: 3 }] }, d: D.A },
-  { id: 'a49', lvl: 1, g: 'art', gd: true, name: 'Bosquet sacré', t: { C: 2 }, v: 5, c: [1, 3], pv: 2, end: { row: 'C', pts: 2 }, d: D.A },
-  { id: 'a50', lvl: 1, g: 'voy', name: 'Relais', t: { J: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'takeGuild' }], d: D.A },
+  { id: 'a27', lvl: 1, g: 'mar', name: 'Partager le riz', t: { P: 1 }, v: 2, c: [1, 2], pv: 2, perm: { on: 'build', tag: 'P', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
+  { id: 'a28', lvl: 1, g: 'eru', name: 'Presser l’huile des lampes', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'progress', n: 2, by: 1 }], d: D.A },
+  { id: 'a29', lvl: 1, g: 'art', name: 'Planter un verger', t: { P: 1 }, c: [1], pv: 1, end: { row: 'P', pts: 1 }, d: D.A },
+  { id: 'a30', lvl: 1, g: 'mar', gd: true, name: 'Garder les troupeaux', t: { P: 1 }, v: 5, c: [1, 3], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 2 }], d: D.A },
+  { id: 'a32', lvl: 1, g: 'art', name: 'Façonner les bols', t: {}, c: [1, 1], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'gain', n: 1, lvl: 0 }] }, d: D.A },
+  { id: 'a34', lvl: 1, g: 'art', name: 'Fondre la cloche', t: { M: 1 }, c: [1, 2], pv: 1, imm: [{ op: 'plan', n: 3 }], d: D.A },
+  { id: 'a35', lvl: 1, g: 'eru', name: 'Tisser les robes', t: { M: 1 }, v: 2, c: [1, 2], pv: 2, perm: { discount: 1, tag: 'M' }, d: D.A },
+  { id: 'a38', lvl: 1, g: 'eru', name: 'Allumer les lampes', t: { M: 1 }, c: [1, 1], pv: 1, end: { row: 'M', pts: 2 }, d: D.A },
+  { id: 'a39', lvl: 1, g: 'mar', f: 'or', sx: true, name: 'Danse des anciens', t: { M: 1, C: 1 }, c: [5], pv: 2, imm: [{ op: 'vp', n: 1 }], end: { atLvl: 5, pts: 2 }, d: D.A },
+  { id: 'a40', lvl: 1, g: 'art', name: 'Observer le soleil', t: { S: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }, { op: 'plan', n: 1 }], d: D.A },
+  { id: 'a42', lvl: 1, g: 'eru', name: 'Classer les rouleaux', t: { S: 1 }, v: 2, c: [1, 2], pv: 1, perm: { on: 'discard', g: 'eru', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
+  { id: 'a43', lvl: 1, g: 'art', name: 'Dessiner les plans du temple', t: { S: 2 }, c: [1, 1], pv: 3, perm: { discount: 1, lvl: 2 }, d: D.A },
+  { id: 'a44', lvl: 1, g: 'eru', name: 'Creuser le puits', t: { S: 1 }, c: [1], pv: 2, imm: [{ op: 'gain', n: 1, lvl: 1 }], d: D.A },
+  { id: 'a45', lvl: 1, g: 'mar', name: 'Aménager la source', t: { S: 1, C: 1 }, c: [2, 2], pv: 1, imm: [{ op: 'plan', n: 1 }], end: { col: 'S', pts: 1 }, d: D.A },
+  { id: 'a46', lvl: 1, g: 'art', name: 'Graver une stèle', t: { C: 1 }, c: [1, 2], pv: 1, end: { guild: 'eru', pts: 1 }, d: D.A },
+  { id: 'a48', lvl: 1, g: 'mar', name: 'Honorer les ancêtres', t: { C: 1 }, c: [1, 1], pv: 2, perm: { onMarker: [{ op: 'plan', n: 3 }] }, d: D.A },
+  { id: 'a49', lvl: 1, g: 'art', gd: true, name: 'Planter le bosquet sacré', t: { C: 2 }, v: 5, c: [1, 3], pv: 2, end: { row: 'C', pts: 2 }, d: D.A },
+  { id: 'a50', lvl: 1, g: 'voy', name: 'Accueillir un moine errant', t: { J: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'takeGuild' }], d: D.A },
   // Niveau 2
   // Cadre bronze : payables uniquement avec des ouvriers de niveau 1 ou 2
-  { id: 'a56', lvl: 1, f: 'br', name: 'Lavoir', t: { P: 1 }, v: 3, c: [1, 2], pv: 2, imm: [{ op: 'gain', n: 2, lvl: 1, free: true }], d: D.A },
-  { id: 'a57', lvl: 1, f: 'br', name: 'Camp d’entraînement', t: { M: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.C },
-  { id: 'a58', lvl: 1, f: 'br', name: 'École', t: { S: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'plan', n: 2 }], d: D.A },
-  { id: 'b1', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Vignoble', t: { P: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: [{ op: 'gain', n: 4, lvl: 0 }] },
-  { id: 'b2', lvl: 2, g: 'mar', req: { tags: { M: 1 } }, name: 'Murailles', t: { M: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
-  { id: 'b3', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, f: 'ag', name: 'Étude', t: { S: 1 }, c: [1, 2], pv: 3, imm: [{ op: 'adjImm' }], d: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'b4', lvl: 2, g: 'art', gd: true, name: 'Agora', t: { C: 1 }, c: [1, 2, 2], pv: 3, end: { perTag: ['C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
-  { id: 'b5', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Comptoir', t: { P: 1 }, end: { guildEach: 2 }, c: [1, 2], pv: 3, perm: { on: 'discard', g: 'mar', ops: [{ op: 'gain', n: 1, lvl: 1 }] }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
-  { id: 'b6', lvl: 2, g: 'eru', req: { tags: { M: 1 } }, name: 'Écuries', t: { M: 1 }, c: [1, 2], pv: 5, perm: { on: 'build', tag: 'M', ops: [{ op: 'gain', n: 1, lvl: 2, free: true }] }, d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
-  { id: 'b7', lvl: 2, g: 'voy', req: { tags: { S: 1 } }, name: 'Observatoire', t: { S: 1 }, v: 3, c: [2, 2], pv: 4, perm: { keep5: true }, d: [{ op: 'turn', n: 2 }] },
-  { id: 'b8', lvl: 2, g: 'art', req: { tags: { C: 1 } }, name: 'Aqueduc', t: { C: 1 }, v: 2, c: [1, 1], pv: 2, end: { row: 'P', pts: 2 }, d: [{ op: 'vp', n: 2 }] },
-  { id: 'b10', lvl: 2, g: 'eru', req: { tags: { P: 1, S: 1 } }, f: 'ag', name: 'Dispensaire', t: { P: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'takeGuild' }, { op: 'turn', n: 1 }], d: [{ op: 'turn', n: 2 }] },
-  { id: 'b11', lvl: 2, g: 'art', req: { tags: { P: 1, C: 1 } }, f: 'ag', name: 'Thermes', t: { P: 1, C: 1 }, c: [3, 3], pv: 2, end: { perWheel: 0.5 }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
-  { id: 'b12', lvl: 2, g: 'mar', req: { tags: { M: 1, S: 1 } }, name: 'Arsenal', t: { M: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 2, by: 2 }], d: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'b13', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'ag', name: 'Cirque', t: { M: 1, C: 1 }, c: [2, 2], pv: 5, imm: [{ op: 'gain', n: { c: 'wondW', max: 2 }, lvl: 3, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
-  { id: 'b14', lvl: 2, g: 'voy', req: { tags: { S: 1, C: 1 } }, f: 'ag', name: 'Bibliothèque', t: { S: 1, C: 1 }, v: 6, c: [2, 2], pv: 2, end: { perTag: ['S', 'C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
-  { id: 'b15', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Trésor royal', t: { P: 3 }, c: [3, 3], pv: 4, imm: [{ op: 'gain', n: 3, lvl: 2 }], d: [{ op: 'gain', n: 5, lvl: 0 }] },
-  { id: 'b16', lvl: 2, g: 'mar', req: { wonder: 1 }, f: 'or', sx: true, name: 'Fortifications', t: { M: 3 }, c: [3, 3], pv: 6, imm: [{ op: 'gain', n: 2, lvl: 2, free: true }], d: [{ op: 'recall', n: 9 }, { op: 'gain', n: 1, lvl: 2, free: true }] },
-  { id: 'b17', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'or', sx: true, name: 'Académie', t: { S: 3 }, v: 7, c: [3, 3], pv: 4, perm: { discount: 1 }, d: [{ op: 'turn', n: 2 }, { op: 'progress', n: 1, by: 1 }] },
-  { id: 'b18', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Panthéon', t: { C: 3 }, c: [3, 4], pv: 8, d: [{ op: 'vp', n: 3 }] },
-  { id: 'b19', lvl: 2, g: 'voy', req: { tags: { all: 1 } }, f: 'ag', name: 'Palais', t: { P: 1, M: 1, S: 1, C: 1 }, c: [1, 2, 3], pv: 6, d: [{ op: 'turn', n: 2 }] },
-  { id: 'b20', lvl: 2, g: 'mar', req: { wonder: 1 }, name: 'Chancellerie', t: {}, v: 4, c: [1, 3], pv: 4, imm: [{ op: 'retrigger', times: 2 }], d: [{ op: 'retrigger', times: 1 }] },
-  { id: 'b21', lvl: 2, g: 'eru', gd: true, name: 'Hôtel des monnaies', t: { J: 1 }, c: [1, 1, 2], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 5 }], d: [{ op: 'gain', n: 1, lvl: 4 }] },
-  { id: 'b22', lvl: 2, g: 'art', gd: true, name: 'Grand marché', t: {}, end: { guild: 'mar', pts: 1 }, c: [1, 3, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 4 }], d: [{ op: 'gain', n: 2, lvl: 2 }] },
-  { id: 'b23', lvl: 2, g: 'mar', gd: true, name: 'Jardins', t: { J: 1 }, v: 8, c: [2, 2, 3], pv: 2, end: { lines: 2 }, d: [{ op: 'vp', n: 2 }] },
+  { id: 'a56', lvl: 1, f: 'br', name: 'Laver le linge au fleuve', t: { P: 1 }, v: 3, c: [1, 2], pv: 2, imm: [{ op: 'gain', n: 2, lvl: 1, free: true }], d: D.A },
+  { id: 'a57', lvl: 1, f: 'br', name: 'Exercer les novices', t: { M: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.C },
+  { id: 'a58', lvl: 1, f: 'br', name: 'Ouvrir une école', t: { S: 1 }, v: 4, c: [2, 2], pv: 3, imm: [{ op: 'plan', n: 2 }], d: D.A },
+  { id: 'b1', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Terrasser les collines', t: { P: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 2, lvl: 1 }], d: [{ op: 'gain', n: 4, lvl: 0 }] },
+  { id: 'b2', lvl: 2, g: 'mar', req: { tags: { M: 1 } }, name: 'Fortifier le monastère', t: { M: 1 }, v: 3, c: [1, 1], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 2, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
+  { id: 'b3', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, f: 'ag', name: 'Débattre des écritures', t: { S: 1 }, c: [1, 2], pv: 3, imm: [{ op: 'adjImm' }], d: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'b4', lvl: 2, g: 'art', gd: true, name: 'Peindre les fresques', t: { C: 1 }, c: [1, 2, 2], pv: 3, end: { perTag: ['C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
+  { id: 'b5', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Commercer au port', t: { P: 1 }, end: { guildEach: 2 }, c: [1, 2], pv: 3, perm: { on: 'discard', g: 'mar', ops: [{ op: 'gain', n: 1, lvl: 1 }] }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
+  { id: 'b6', lvl: 2, g: 'eru', req: { tags: { M: 1 } }, name: 'Fonder un ordre', t: { M: 1 }, c: [1, 2], pv: 5, perm: { on: 'build', tag: 'M', ops: [{ op: 'gain', n: 1, lvl: 2, free: true }] }, d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
+  { id: 'b7', lvl: 2, g: 'voy', req: { tags: { S: 1 } }, name: 'Calculer le cours des astres', t: { S: 1 }, v: 3, c: [2, 2], pv: 4, perm: { keep5: true }, d: [{ op: 'turn', n: 2 }] },
+  { id: 'b8', lvl: 2, g: 'art', req: { tags: { C: 1 } }, name: 'Irriguer la vallée', t: { C: 1 }, v: 2, c: [1, 1], pv: 2, end: { row: 'P', pts: 2 }, d: [{ op: 'vp', n: 2 }] },
+  { id: 'b10', lvl: 2, g: 'eru', req: { tags: { P: 1, S: 1 } }, f: 'ag', name: 'Soigner les malades', t: { P: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'takeGuild' }, { op: 'turn', n: 1 }], d: [{ op: 'turn', n: 2 }] },
+  { id: 'b11', lvl: 2, g: 'art', req: { tags: { P: 1, C: 1 } }, f: 'ag', name: 'Ouvrir les bains publics', t: { P: 1, C: 1 }, c: [3, 3], pv: 2, end: { perWheel: 0.5 }, d: [{ op: 'gain', n: 4, lvl: 0 }] },
+  { id: 'b12', lvl: 2, g: 'mar', req: { tags: { M: 1, S: 1 } }, name: 'Instruire les moines', t: { M: 1, S: 1 }, c: [2, 2], pv: 3, imm: [{ op: 'progress', n: 2, by: 2 }], d: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'b13', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'ag', name: 'Célébrer les éveillés', t: { M: 1, C: 1 }, c: [2, 2], pv: 5, imm: [{ op: 'gain', n: { c: 'wondW', max: 2 }, lvl: 3, free: true }], d: [{ op: 'gain', n: 1, lvl: 2, free: true }] },
+  { id: 'b14', lvl: 2, g: 'voy', req: { tags: { S: 1, C: 1 } }, f: 'ag', name: 'Fonder la bibliothèque', t: { S: 1, C: 1 }, v: 6, c: [2, 2], pv: 2, end: { perTag: ['S', 'C'], pts: 1 }, d: [{ op: 'vp', n: 2 }] },
+  { id: 'b15', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Remplir le trésor', t: { P: 3 }, c: [3, 3], pv: 4, imm: [{ op: 'gain', n: 3, lvl: 2 }], d: [{ op: 'gain', n: 5, lvl: 0 }] },
+  { id: 'b16', lvl: 2, g: 'mar', req: { wonder: 1 }, f: 'or', sx: true, name: 'Ériger le grand stupa', t: { M: 3 }, c: [3, 3], pv: 6, imm: [{ op: 'gain', n: 2, lvl: 2, free: true }], d: [{ op: 'recall', n: 9 }, { op: 'gain', n: 1, lvl: 2, free: true }] },
+  { id: 'b17', lvl: 2, g: 'eru', req: { wonder: 1 }, f: 'or', sx: true, name: 'Fonder l’université', t: { S: 3 }, v: 7, c: [3, 3], pv: 4, perm: { discount: 1 }, d: [{ op: 'turn', n: 2 }, { op: 'progress', n: 1, by: 1 }] },
+  { id: 'b18', lvl: 2, g: 'art', req: { wonder: 1 }, f: 'or', sx: true, name: 'Écrire l’épopée', t: { C: 3 }, c: [3, 4], pv: 8, d: [{ op: 'vp', n: 3 }] },
+  { id: 'b19', lvl: 2, g: 'voy', req: { tags: { all: 1 } }, f: 'ag', name: 'Unir le royaume', t: { P: 1, M: 1, S: 1, C: 1 }, c: [1, 2, 3], pv: 6, d: [{ op: 'turn', n: 2 }] },
+  { id: 'b20', lvl: 2, g: 'mar', req: { wonder: 1 }, name: 'Rédiger les lois', t: {}, v: 4, c: [1, 3], pv: 4, imm: [{ op: 'retrigger', times: 2 }], d: [{ op: 'retrigger', times: 1 }] },
+  { id: 'b21', lvl: 2, g: 'eru', gd: true, name: 'Frapper la monnaie', t: { J: 1 }, c: [1, 1, 2], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 5 }], d: [{ op: 'gain', n: 1, lvl: 4 }] },
+  { id: 'b22', lvl: 2, g: 'art', gd: true, name: 'Tenir la grande foire', t: {}, end: { guild: 'mar', pts: 1 }, c: [1, 3, 3], pv: 3, imm: [{ op: 'gain', n: 1, lvl: 4 }], d: [{ op: 'gain', n: 2, lvl: 2 }] },
+  { id: 'b23', lvl: 2, g: 'mar', gd: true, name: 'Dessiner le jardin sec', t: { J: 1 }, v: 8, c: [2, 2, 3], pv: 2, end: { lines: 2 }, d: [{ op: 'vp', n: 2 }] },
   // Niveau 2 — nouveaux bâtiments
-  { id: 'b26', lvl: 2, g: 'eru', req: { tags: { M: 1, C: 1 } }, name: 'Hippodrome', t: { M: 1, C: 1 }, c: [2, 3], pv: 1, end: { atLvl: 3, pts: 1 }, d: D.A },
-  { id: 'b28', lvl: 2, g: 'art', req: { tags: { S: 1 } }, name: 'Lycée', t: { S: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'build', tag: 'S', ops: [{ op: 'progress', n: 1, by: 1 }] }, d: D.A },
-  { id: 'b31', lvl: 2, g: 'mar', f: 'or', sx: true, req: { wonder: 1 }, name: 'Capitole', t: { M: 1, S: 1 }, c: [3, 5], pv: 6, imm: [{ op: 'guildAct', g: 'max', times: 2 }], d: D.A },
-  { id: 'b32', lvl: 2, g: 'eru', req: { tags: { C: 1 } }, name: 'Nymphée', t: { C: 1 }, v: 6, c: [2, 2], pv: 1, end: { guild: 'art', pts: 1 }, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.A },
-  { id: 'b33', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Stade', t: { M: 1 }, c: [2, 3], pv: 3, end: { atLvl: 5, pts: 2 }, d: D.A },
-  { id: 'b34', lvl: 2, g: 'art', gd: true, req: { tags: { P: 1 } }, name: 'Quartier des artisans', t: { P: 1 }, v: 5, c: [3, 3], pv: 3, imm: [{ op: 'guildAct', g: 'art', times: 1 }], d: D.A },
-  { id: 'b37', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Douane', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'vp', n: 1 }] }, d: D.A },
-  { id: 'b38', lvl: 2, g: 'eru', f: 'or', sx: true, req: { tags: { P: 2 } }, name: 'Banque', t: { P: 1 }, c: [3, 5], pv: 4, imm: [{ op: 'plan', n: 3 }], end: { perPlans: 1 }, d: D.A },
-  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Halle aux grains', t: { P: 1 }, c: [2, 2], pv: 4, perm: { cap: 2 }, d: D.A },
-  { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Conservatoire', t: { S: 1 }, c: [2, 2], pv: 3, perm: { discount: 1, tag: 'S' }, d: D.A },
-  { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Arc de triomphe', t: { M: 1 }, c: [3, 5], pv: 5, end: { markers: 2 }, d: D.A },
-  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Oracle', t: { S: 1 }, v: 5, c: [2, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
-  { id: 'b46', lvl: 2, g: 'eru', gd: true, name: 'Archives impériales', t: { S: 1 }, c: [2, 4], pv: 2, end: { guildMax: 1 }, d: D.A },
-  { id: 'b49', lvl: 2, g: 'eru', req: { wonder: 1 }, name: 'Hospice des vétérans', t: { C: 1 }, c: [2, 3], pv: 3, perm: { retireLvl: 2 }, d: D.A },
-  { id: 'b50', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Caserne des vétérans', t: { M: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'zone', n: 1, min: 3 }], d: D.A },
+  { id: 'b26', lvl: 2, g: 'eru', req: { tags: { M: 1, C: 1 } }, name: 'Organiser les jeux', t: { M: 1, C: 1 }, c: [2, 3], pv: 1, end: { atLvl: 3, pts: 1 }, d: D.A },
+  { id: 'b28', lvl: 2, g: 'art', req: { tags: { S: 1 } }, name: 'Former les maîtres', t: { S: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'build', tag: 'S', ops: [{ op: 'progress', n: 1, by: 1 }] }, d: D.A },
+  { id: 'b31', lvl: 2, g: 'mar', f: 'or', sx: true, req: { wonder: 1 }, name: 'Convoquer le concile', t: { M: 1, S: 1 }, c: [3, 5], pv: 6, imm: [{ op: 'guildAct', g: 'max', times: 2 }], d: D.A },
+  { id: 'b32', lvl: 2, g: 'eru', req: { tags: { C: 1 } }, name: 'Purifier les eaux', t: { C: 1 }, v: 6, c: [2, 2], pv: 1, end: { guild: 'art', pts: 1 }, imm: [{ op: 'progress', n: 3, by: 1 }], d: D.A },
+  { id: 'b33', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Honorer les sages', t: { M: 1 }, c: [2, 3], pv: 3, end: { atLvl: 5, pts: 2 }, d: D.A },
+  { id: 'b34', lvl: 2, g: 'art', gd: true, req: { tags: { P: 1 } }, name: 'Ouvrir les ateliers', t: { P: 1 }, v: 5, c: [3, 3], pv: 3, imm: [{ op: 'guildAct', g: 'art', times: 1 }], d: D.A },
+  { id: 'b37', lvl: 2, g: 'art', req: { tags: { P: 1 } }, name: 'Prélever l’octroi', t: { P: 1 }, v: 3, c: [2, 2], pv: 2, perm: { on: 'discard', g: 'art', ops: [{ op: 'vp', n: 1 }] }, d: D.A },
+  { id: 'b38', lvl: 2, g: 'eru', f: 'or', sx: true, req: { tags: { P: 2 } }, name: 'Fonder la banque du temple', t: { P: 1 }, c: [3, 5], pv: 4, imm: [{ op: 'plan', n: 3 }], end: { perPlans: 1 }, d: D.A },
+  { id: 'b39', lvl: 2, g: 'mar', req: { tags: { P: 1 } }, name: 'Nourrir les orphelins', t: { P: 1 }, c: [2, 2], pv: 4, perm: { cap: 2 }, d: D.A },
+  { id: 'b41', lvl: 2, g: 'eru', req: { tags: { S: 1 } }, name: 'Compiler l’encyclopédie', t: { S: 1 }, c: [2, 2], pv: 3, perm: { discount: 1, tag: 'S' }, d: D.A },
+  { id: 'b44', lvl: 2, g: 'eru', f: 'or', sx: true, req: { wonder: 1 }, name: 'Bâtir la porte des éveillés', t: { M: 1 }, c: [3, 5], pv: 5, end: { markers: 2 }, d: D.A },
+  { id: 'b45', lvl: 2, g: 'mar', req: { tags: { S: 1 } }, name: 'Consulter l’oracle', t: { S: 1 }, v: 5, c: [2, 3], pv: 1, imm: [{ op: 'choice', options: [[{ op: 'turn', n: 2 }], [{ op: 'progress', n: 2, by: 2 }]] }], d: D.A },
+  { id: 'b46', lvl: 2, g: 'eru', gd: true, name: 'Conserver les archives', t: { S: 1 }, c: [2, 4], pv: 2, end: { guildMax: 1 }, d: D.A },
+  { id: 'b49', lvl: 2, g: 'eru', req: { wonder: 1 }, name: 'Accueillir les sages', t: { C: 1 }, c: [2, 3], pv: 3, perm: { retireLvl: 2 }, d: D.A },
+  { id: 'b50', lvl: 2, g: 'mar', f: 'ag', req: { tags: { M: 1 } }, name: 'Guider vers l’Éveil', t: { M: 1 }, v: 3, c: [2, 2], pv: 2, imm: [{ op: 'zone', n: 1, min: 3 }], d: D.A },
   // Bâtiments de placement et de guilde
-  { id: 'a51', lvl: 1, name: 'Place publique', t: { C: 1 }, c: [1, 2], pv: 1, end: { adjAny: 1 } },
-  { id: 'a52', lvl: 1, name: 'Entrepôt', t: { P: 1 }, c: [1, 1], pv: 1, end: { adjTag: 'P', pts: 2 } },
-  { id: 'a53', lvl: 1, name: 'Borne milliaire', t: {}, c: [1], pv: 1, end: { corner: 4 } },
-  { id: 'a55', lvl: 1, name: 'Tour des signaux', t: { M: 1 }, c: [1, 2], pv: 2, end: { adjTag: 'M', pts: 2 } },
-  { id: 'b51', lvl: 2, req: { tags: { C: 1 } }, name: 'Grand-place', t: { C: 1 }, v: 7, c: [2, 4], pv: 0, end: { adjAny: 2 } },
-  { id: 'b52', lvl: 2, name: 'Maison des guildes', t: {}, v: 6, c: [2, 3], pv: 2, end: { guildTotal: 2 } },
-  { id: 'b55', lvl: 2, req: { tags: { S: 1 } }, name: 'Gnomon', t: { S: 1 }, c: [2, 2], pv: 2, end: { corner: 4 } },
-  { id: 'b56', lvl: 2, f: 'br', req: { tags: { P: 1 } }, name: 'Faubourg', t: { P: 1 }, v: 6, c: [2, 2, 2], pv: 2, end: { bronze: 1 }, d: D.A },
-  { id: 'b57', lvl: 2, f: 'br', req: { tags: { C: 1 } }, name: 'Maison commune', t: { C: 1 }, v: 7, c: [1, 2, 2, 2], pv: 7, d: D.A },
+  { id: 'a51', lvl: 1, name: 'Animer la place', t: { C: 1 }, c: [1, 2], pv: 1, end: { adjAny: 1 } },
+  { id: 'a52', lvl: 1, name: 'Stocker les récoltes', t: { P: 1 }, c: [1, 1], pv: 1, end: { adjTag: 'P', pts: 2 } },
+  { id: 'a53', lvl: 1, name: 'Planter une borne', t: {}, c: [1], pv: 1, end: { corner: 4 } },
+  { id: 'a55', lvl: 1, name: 'Sonner le tambour', t: { M: 1 }, c: [1, 2], pv: 2, end: { adjTag: 'M', pts: 2 } },
+  { id: 'b51', lvl: 2, req: { tags: { C: 1 } }, name: 'Ouvrir la grand-place', t: { C: 1 }, v: 7, c: [2, 4], pv: 0, end: { adjAny: 2 } },
+  { id: 'b52', lvl: 2, name: 'Bâtir la maison des offrandes', t: {}, v: 6, c: [2, 3], pv: 2, end: { guildTotal: 2 } },
+  { id: 'b55', lvl: 2, req: { tags: { S: 1 } }, name: 'Dresser le gnomon', t: { S: 1 }, c: [2, 2], pv: 2, end: { corner: 4 } },
+  { id: 'b56', lvl: 2, f: 'br', req: { tags: { P: 1 } }, name: 'Peupler les faubourgs', t: { P: 1 }, v: 6, c: [2, 2, 2], pv: 2, end: { bronze: 1 }, d: D.A },
+  { id: 'b57', lvl: 2, f: 'br', req: { tags: { C: 1 } }, name: 'Construire la maison commune', t: { C: 1 }, v: 7, c: [1, 2, 2, 2], pv: 7, d: D.A },
 ];
 // Les bâtiments ne sont plus des cartes de guilde : ils ne gardent un symbole de guilde que s'ils ont une réduction de guilde
 for (const c of CARDS) { if (!c.gd) delete c.g; delete c.d; }
@@ -138,25 +139,25 @@ for (const c of GCARDS) BY_ID[c.id] = c;
 
 const WONDERS = [
   // Valeur fixe : la cible des joueurs pressés
-  { id: 'M1', name: 'Pyramide', vals: [9, 6, 3] },
+  { id: 'M1', name: 'Mont Kailash', vals: [9, 6, 3] },
   // Un tag chacune : récompense la spécialisation
-  { id: 'M2', name: 'Colosse', vals: [3, 2, 1], mult: 'M' },
-  { id: 'M3', name: 'Phare', vals: [3, 2, 1], mult: 'P' },
-  { id: 'M4', name: 'Jardins suspendus', vals: [3, 2, 1], mult: 'S' },
-  { id: 'M5', name: 'Temple', vals: [3, 2, 1], mult: 'C' },
+  { id: 'M2', name: 'Shwedagon', vals: [3, 2, 1], mult: 'M' },
+  { id: 'M3', name: 'Angkor', vals: [3, 2, 1], mult: 'P' },
+  { id: 'M4', name: 'Nalanda', vals: [3, 2, 1], mult: 'S' },
+  { id: 'M5', name: 'Ellora', vals: [3, 2, 1], mult: 'C' },
   // La forme de la ville, la variété, les vétérans, les guildes
-  { id: 'M6', name: 'Grande Muraille', vals: [4, 3, 2], by: 'lines' },
-  { id: 'M7', name: 'Acropole', vals: [3, 2, 1], by: 'lvl2' },
-  { id: 'M8', name: 'Cercle de pierres', vals: [3, 2, 1], by: 'diff' },
-  { id: 'M9', name: 'Armée de terre cuite', vals: [2, 1, 1], by: 'vets' },
-  { id: 'M10', name: 'Grand Bazar', vals: [3, 2, 1], by: 'sets' },
+  { id: 'M6', name: 'Borobudur', vals: [4, 3, 2], by: 'lines' },
+  { id: 'M7', name: 'Potala', vals: [3, 2, 1], by: 'lvl2' },
+  { id: 'M8', name: 'Mont Wutai', vals: [3, 2, 1], by: 'diff' },
+  { id: 'M9', name: 'Bodh-Gaya', vals: [2, 1, 1], by: 'vets' },
+  { id: 'M10', name: 'Lumbini', vals: [3, 2, 1], by: 'sets' },
   // Peu de points, mais un effet immédiat : du tempo
-  { id: 'M11', name: 'Mausolée', vals: [5, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
-  { id: 'M12', name: 'Sphinx', vals: [6, 4, 3], bonus: [{ op: 'plan', n: 2 }] },
-  { id: 'M13', name: 'Porte d’Ishtar', vals: [6, 4, 3], bonus: [{ op: 'takeGuild' }] },
-  { id: 'M14', name: 'Statue de Zeus', vals: [6, 4, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
-  { id: 'M15', name: 'Grande Bibliothèque', vals: [6, 4, 3], bonus: [{ op: 'progress', n: 3, by: 1 }] },
-  { id: 'M16', name: 'Pétra', vals: [6, 4, 3], bonus: [{ op: 'zone', n: 1, min: 3 }] },
+  { id: 'M11', name: 'Varanasi', vals: [5, 3, 2], bonus: [{ op: 'retrigger', times: 1 }] },
+  { id: 'M12', name: 'Tōdai-ji', vals: [6, 4, 3], bonus: [{ op: 'plan', n: 2 }] },
+  { id: 'M13', name: 'Kinkaku-ji', vals: [6, 4, 3], bonus: [{ op: 'takeGuild' }] },
+  { id: 'M14', name: 'Mont Kōya', vals: [6, 4, 3], bonus: [{ op: 'gain', n: 1, lvl: 3, free: true }] },
+  { id: 'M15', name: 'Shaolin', vals: [6, 4, 3], bonus: [{ op: 'progress', n: 3, by: 1 }] },
+  { id: 'M16', name: 'Kushinagar', vals: [6, 4, 3], bonus: [{ op: 'zone', n: 1, min: 3 }] },
 ];
 const W_BY_ID = Object.fromEntries(WONDERS.map(w => [w.id, w]));
 const BASE_WONDERS = JSON.parse(JSON.stringify(WONDERS));
@@ -273,8 +274,8 @@ function num(G, pi, v) {
 const rowOf = i => Math.floor(i / 3), colOf = i => i % 3;
 
 /* ---------- Coûts ----------
-   Mode 'sum' (défaut) : le bâtiment a une valeur (chiffre dans un meeple) ; on paie avec des ouvriers
-   dont la somme des niveaux atteint cette valeur. Mode 'levels' : chaque ouvrier doit atteindre un niveau minimum. */
+   Mode 'sum' (défaut) : l’œuvre a une valeur (chiffre dans un meeple) ; on paie avec des âmes
+   dont la somme des niveaux atteint cette valeur. Mode 'levels' : chaque âme doit atteindre un niveau minimum. */
 const cardValue = (card) => card.v != null ? card.v : card.c.reduce((a, b) => a + b, 0);
 function discountFor(G, pi, card) {
   let d = 0;
@@ -301,8 +302,8 @@ function effectiveCost(G, pi, card, coverCell, noPlans) {
   if (d && c.length) c[c.length - 1] = Math.max(0, c[c.length - 1] - d);
   return c;
 }
-// Cadre argent / or : le paiement doit contenir au moins un ouvrier de la zone argent (niveau 3+) ou or (niveau 5).
-// Cadre bronze : uniquement des ouvriers de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
+// Cadre argent / or : le paiement doit contenir au moins une âme de la zone argent (niveau 3+) ou or (niveau 5).
+// Cadre bronze : uniquement des âmes de la zone bronze (niveaux 1 et 2) ; codé par une valeur négative = niveau maximal.
 const FRAME_MIN = { ag: 3, or: 5, br: -2 };
 const BYPASS_COST = 2;
 const frameMin = (G, card) => (G.opts.costMode !== 'levels' && card.f) ? FRAME_MIN[card.f] : 0;
@@ -505,7 +506,7 @@ function run(G) {
         if (op.noReturn) { if (!free.length) break; if (free.length === 1) placeOnWonder(G, pi, free[0]); else G.pending = { type: 'eject', options: free }; break; }
         if (G.opts.supply === 'cycle') p.wheel[0]++;
         else if (G.opts.ejectReturn && G.opts.supply !== 'general') p.reserve++;
-        if (!free.length) { p.st.lost++; log(G, `${p.name} : un ouvrier part à la retraite mais toutes les Merveilles sont pleines${G.opts.ejectReturn ? ' (il retourne dans la réserve)' : ''}.`); }
+        if (!free.length) { p.st.lost++; log(G, `${p.name} : une âme atteint l’Éveil mais tous les Sanctuaires sont pleins${G.opts.ejectReturn ? ' (il retourne dans la réserve)' : ''}.`); }
         else if (free.length === 1) placeOnWonder(G, pi, free[0]);
         else G.pending = { type: 'eject', options: free };
         break;
@@ -522,7 +523,7 @@ function addToZone(G, pi) {
     const k = p.retired; p.retired = 0;
     let back = 0; for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.retireLvl) back = Math.max(back, pm.retireLvl); }
     if (G.opts.supply === 'cycle') p.wheel[back] += k;
-    log(G, `${p.name} : ${k} retraités, un marqueur sur une Merveille ; ils reviennent au niveau ${back}.`);
+    log(G, `${p.name} : ${k} âmes éveillées : un marqueur sur un Sanctuaire ; elles renaissent au niveau ${back}.`);
     G.queue.unshift({ op: { op: 'eject', marker: true, noReturn: true } });
   }
 }
@@ -540,16 +541,16 @@ function matrixOps(g, k) {
   return [{ op: 'plan', n: k }];
 }
 function matrixText(g, k) {
-  if (g === 'mar') return `Gagnez 1 ouvrier de niveau ${Math.min(5, k - 1)}`;
-  if (g === 'art') return `${k} niveau${k > 1 ? 'x' : ''} à répartir entre vos ouvriers`;
-  return `Gagnez ${k} Savoir`;
+  if (g === 'mar') return `Une âme s’incarne au niveau ${Math.min(5, k - 1)}`;
+  if (g === 'art') return `${k} niveau${k > 1 ? 'x' : ''} à répartir entre vos âmes`;
+  return `Gagnez ${k} Karma`;
 }
 function guildColumns(p) { return Math.min(...GUILDS.map(x => p.guilds[x].length)); }
 function matrixEffect(G, pi, g) {
   const p = G.players[pi], k = p.guilds[g].length + 1;
   const before = guildColumns(p), after = Math.min(...GUILDS.map(x => p.guilds[x].length + (x === g ? 1 : 0)));
   const ops = matrixOps(g, k);
-  if (after > before) { ops.push({ op: 'turn', n: 1 }); p.st.cols = (p.st.cols || 0) + 1; log(G, `${p.name} complète une colonne de guildes : sa roue tourne.`); }
+  if (after > before) { ops.push({ op: 'turn', n: 1 }); p.st.cols = (p.st.cols || 0) + 1; log(G, `${p.name} honore les trois autels : sa roue tourne.`); }
   push(G, ops, false);
 }
 function chainGuild(G, pi, g) {
@@ -572,7 +573,7 @@ function retriggerCells(G, pi) {
   // pas de boucle : on ne redéclenche ni un autre redéclenchement, ni l'Étude (qui active des cartes)
   return G.players[pi].grid.map((c, i) => { if (!c || !BY_ID[c.id].imm) return -1; const j = JSON.stringify(BY_ID[c.id].imm); return j.includes('retrigger') || j.includes('"line"') || j.includes('adjImm') ? -1 : i; }).filter(i => i >= 0);
 }
-const WONDER_BY = { lines: 'nb de lignes et colonnes complètes de votre ville', lvl2: 'nb de bâtiments de niveau 2', diff: 'nb de types de tags différents', vets: 'nb d’ouvriers de niveau 5 sur votre roue', sets: 'nb de séries Artisans + Érudits + Marchands' };
+const WONDER_BY = { lines: 'nb de lignes et colonnes complètes de votre mandala', lvl2: 'nb d’œuvres de niveau 2', diff: 'nb de types de tags différents', vets: 'nb d’âmes de niveau 5 sur votre roue', sets: 'nb de séries d’offrandes (une sur chaque autel)' };
 function wonderCount(p, k) {
   if (k === 'lines') { let L = 0; for (let i = 0; i < 3; i++) { if ([0, 1, 2].every(j => p.grid[i * 3 + j])) L++; if ([0, 1, 2].every(j => p.grid[j * 3 + i])) L++; } return L; }
   if (k === 'lvl2') return p.grid.filter(c => c && BY_ID[c.id].lvl === 2).length;
@@ -593,23 +594,23 @@ function wonderPointsRaw(G, pi, wi, slotIndex) {
 function placeOnWonder(G, pi, wi) {
   const w = G.wonders[wi], W = W_BY_ID[w.id], p = G.players[pi];
   const slot = w.slots.length; w.slots.push(pi);
-  if (G.opts.wonderScoring === 'arrival') { const pts = wonderPoints(G, pi, wi, slot); p.vp += pts; (G.wst = G.wst || []).push([W.id, slot, pts, pi]); log(G, `${p.name} : un ouvrier part à la retraite, marqueur sur ${W.name} (+${pts} PV).`); }
-  else log(G, `${p.name} : un ouvrier rejoint ${W.name}.`);
+  if (G.opts.wonderScoring === 'arrival') { const pts = wonderPoints(G, pi, wi, slot); p.vp += pts; (G.wst = G.wst || []).push([W.id, slot, pts, pi]); log(G, `${p.name} : une âme atteint l’Éveil, marqueur sur ${W.name} (+${pts} PV).`); }
+  else log(G, `${p.name} : une âme rejoint ${W.name}.`);
   if (W.bonus) push(G, W.bonus);
   for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.onMarker) push(G, pm.onMarker); }
 }
 function checkEnd(G) {
   if (G.endTriggered) return;
-  if (placedOnWonders(G) >= G.endAt) { G.endTriggered = true; G.endReason = 'Merveilles'; log(G, `Fin de partie déclenchée (Merveilles) : on termine le tour de table.`); }
-  else if (G.opts.guildFrom === 'gdeck' && !G.gdeck.length && !G.grow.length) { G.endTriggered = true; G.endReason = 'Pioche épuisée'; log(G, `Fin de partie déclenchée (plus de cartes de guilde) : on termine le tour de table.`); }
+  if (placedOnWonders(G) >= G.endAt) { G.endTriggered = true; G.endReason = 'Sanctuaires'; log(G, `Fin de partie déclenchée (Sanctuaires) : on termine le tour de table.`); }
+  else if (G.opts.guildFrom === 'gdeck' && !G.gdeck.length && !G.grow.length) { G.endTriggered = true; G.endReason = 'Pioche épuisée'; log(G, `Fin de partie déclenchée (plus de offrandes) : on termine le tour de table.`); }
   else if (!G.decks[1].length && !G.disc[1].length) { G.endTriggered = true; G.endReason = 'Pioche épuisée'; log(G, `Fin de partie déclenchée (pioche de niveau 1 épuisée) : on termine le tour de table.`); }
-  else if (G.players.some(p => p.grid.every(Boolean))) { G.endTriggered = true; G.endReason = 'Ville complète'; log(G, `Fin de partie déclenchée (ville de 9 bâtiments) : on termine le tour de table.`); }
+  else if (G.players.some(p => p.grid.every(Boolean))) { G.endTriggered = true; G.endReason = 'Mandala achevé'; log(G, `Fin de partie déclenchée (mandala de 9 œuvres) : on termine le tour de table.`); }
 }
 function checkUnlocks(G, pi) {
   const p = G.players[pi];
-  if (!p.u1 && hasAllTypes(p)) { p.u1 = true; const k = Math.min(1, p.locked); p.locked -= k; if (G.opts.supply === 'cycle') p.wheel[0] += k; else p.reserve += k; if (k) log(G, `${p.name} débloque un ouvrier (1 tag de chaque type).`); }
+  if (!p.u1 && hasAllTypes(p)) { p.u1 = true; const k = Math.min(1, p.locked); p.locked -= k; if (G.opts.supply === 'cycle') p.wheel[0] += k; else p.reserve += k; if (k) log(G, `${p.name} débloque une âme (1 tag de chaque type).`); }
   const t = tagCounts(p);
-  if (!p.u2 && TAGS.some(k => t[k] >= 4)) { p.u2 = true; const k = Math.min(1, p.locked); p.locked -= k; if (G.opts.supply === 'cycle') p.wheel[0] += k; else p.reserve += k; if (k) log(G, `${p.name} débloque un ouvrier (4 tags identiques).`); }
+  if (!p.u2 && TAGS.some(k => t[k] >= 4)) { p.u2 = true; const k = Math.min(1, p.locked); p.locked -= k; if (G.opts.supply === 'cycle') p.wheel[0] += k; else p.reserve += k; if (k) log(G, `${p.name} débloque une âme (4 tags identiques).`); }
 }
 
 /* ---------- Actions ---------- */
@@ -626,17 +627,17 @@ function apply(G, a) {
     case 'build': {
       const bonus = G.mainDone;
       if (bonus && !((G.opts.guildThenBuild || G.opts.guildChoice) && G.lastMain === 'guild' && !G.bonusBuilt)) throw new Error('Action principale déjà jouée');
-      if (!bonus && G.opts.guildChoice) throw new Error('Prenez d’abord une carte de guilde');
+      if (!bonus && G.opts.guildChoice) throw new Error('Prenez d’abord une offrande');
       if (bonus) G.bonusBuilt = true; else G.lastMain = 'build';
       const id = G.market[a.L][a.idx]; if (!id) throw new Error('Carte absente');
       const card = BY_ID[id];
       const byp = a.bypass ? BYPASS_COST : 0; // 2 Savoir : ignorer le prérequis et le cadre de ce bâtiment
-      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Savoir pour ignorer un prérequis ou un cadre`);
+      if (byp && (p.plans || 0) < byp) throw new Error(`Il faut ${BYPASS_COST} Karma pour ignorer un prérequis ou un cadre`);
       if (!legalCells(G, pi, card, !!byp).includes(a.cell)) throw new Error('Emplacement interdit');
       const cover = !!p.grid[a.cell];
       p.plans -= byp;
       const reqs = effectiveCost(G, pi, card, a.cell);
-      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Ce bâtiment se paie uniquement avec des ouvriers de la zone bronze (niveaux 1 et 2)' : `Il faut un ouvrier de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
+      if (!payOk(p.wheel, reqs, a.pay, byp ? 0 : frameMin(G, card))) { p.plans += byp; throw new Error(card.f && G.opts.costMode !== 'levels' ? (card.f === 'br' ? 'Cette œuvre se paie uniquement avec des âmes de la zone bronze (niveaux 1 et 2)' : `Il faut une âme de la zone ${card.f === 'or' ? 'or (niveau 5)' : 'argent (niveau 3 ou plus)'}`) : 'Paiement insuffisant'); }
       if (G.opts.costMode !== 'levels' && p.plans) { const before = effectiveCost(G, pi, card, a.cell, true); p.plans -= Math.min(p.plans, before); }
       for (const l of a.pay) { p.wheel[l]--; if (G.opts.supply === 'cycle' && !card.sx) p.wheel[0]++; else if (G.opts.supply !== 'general' && G.opts.supply !== 'cycle') p.reserve++; }
       G.market[a.L].splice(a.idx, 1); refill(G, a.L);
@@ -646,7 +647,7 @@ function apply(G, a) {
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'build' && (card.t[pm.tag] || 0) > 0) triggers.push(...pm.ops); }
       p.grid[a.cell] = { id, occ: false };
       p.st.built++; G.mainDone = true; G._lastCell = a.cell; cs(G, id).b++;
-      log(G, `${p.name} construit ${card.name}${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Savoir pour ignorer ${card.req && card.f ? 'le prérequis et le cadre' : card.req ? 'le prérequis' : 'le cadre'}` : ''}.`);
+      log(G, `${p.name} accomplit « ${card.name} »${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Karma pour ignorer ${card.req && card.f ? 'le prérequis et le cadre' : card.req ? 'le prérequis' : 'le cadre'}` : ''}.`);
       push(G, (G.opts.turnOnBuild ? [{ op: 'turn', n: 1 }] : []).concat(card.imm || [], triggers), false);
       run(G); return G;
     }
@@ -664,7 +665,7 @@ function apply(G, a) {
       G.lastGuild = id;
       if (G.opts.guildRows === false && a.gi == null) G.disc[a.L].push(id);
       p.st.guild++; G.mainDone = true; G.lastMain = 'guild'; cs(G, id).g++;
-      log(G, a.gi != null ? `${p.name} prend une carte de guilde ${card.name}.` : a.idx != null ? `${p.name} prend ${card.name} en guilde.` : `${p.name} pioche face cachée et joue ${card.name} en guilde.`);
+      log(G, a.gi != null ? `${p.name} dépose une offrande ${card.g === 'voy' ? '(moine errant)' : 'sur l’' + ALTAR[card.g]}.` : a.idx != null ? `${p.name} prend ${card.name} en guilde.` : `${p.name} pioche face cachée et joue ${card.name} en guilde.`);
       const extra = [];
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'discard' && (!pm.g || pm.g === card.g)) extra.push(...pm.ops); }
       const place = G.opts.guildRows === false ? [] : [{ op: 'guildPlace', id }];
@@ -685,21 +686,21 @@ function apply(G, a) {
     }
     case 'rest': {
       if (G.mainDone) throw new Error('Action principale déjà jouée');
-      G.mainDone = true; gain(G, pi, 1, 0); log(G, `${p.name} se repose (1 ouvrier de niveau 0).`); run(G); return G;
+      G.mainDone = true; gain(G, pi, 1, 0); log(G, `${p.name} se repose (1 âme de niveau 0).`); run(G); return G;
     }
     case 'consecrate': {
       if (G.opts.wonderMode !== 'consecrate') throw new Error('Variante inactive');
       if (G.actUsed) throw new Error('Activation déjà utilisée ce tour');
-      if (!(p.wheel[5] > 0)) throw new Error('Il faut un ouvrier de niveau 5');
-      if (!G.wonders.some(w => w.slots.length < 3)) throw new Error('Merveilles complètes');
+      if (!(p.wheel[5] > 0)) throw new Error('Il faut une âme de niveau 5');
+      if (!G.wonders.some(w => w.slots.length < 3)) throw new Error('Sanctuaires complets');
       p.wheel[5]--; G.actUsed = true; p.st.consecrated = (p.st.consecrated || 0) + 1;
-      log(G, `${p.name} consacre un vétéran à une Merveille.`);
+      log(G, `${p.name} consacre un vétéran à un Sanctuaire.`);
       G.queue.unshift({ op: { op: 'eject', marker: true, noReturn: true } }); run(G); return G;
     }
     case 'activate': {
       if (G.actUsed) throw new Error('Activation déjà utilisée ce tour');
-      const c = p.grid[a.cell]; if (!c || c.occ || !BY_ID[c.id].act) throw new Error('Bâtiment non activable');
-      if (!(p.wheel[a.lvl] > 0)) throw new Error('Aucun ouvrier à ce niveau');
+      const c = p.grid[a.cell]; if (!c || c.occ || !BY_ID[c.id].act) throw new Error('Œuvre non activable');
+      if (!(p.wheel[a.lvl] > 0)) throw new Error('Aucune âme à ce niveau');
       p.wheel[a.lvl]--; c.occ = true; G.actUsed = true; p.st.acts++;
       log(G, `${p.name} active ${BY_ID[c.id].name}.`);
       push(G, BY_ID[c.id].act, false); G._lastCell = a.cell;
@@ -712,8 +713,8 @@ function apply(G, a) {
       run(G); return G;
     }
     case 'end': {
-      if (!G.mainDone) throw new Error('Jouez d’abord une carte (guilde ou construction)');
-      if (G.opts.guildChoice && G.lastMain === 'guild' && !G.bonusBuilt) throw new Error('Choisissez : construire ou tourner la roue');
+      if (!G.mainDone) throw new Error('Déposez d’abord une offrande');
+      if (G.opts.guildChoice && G.lastMain === 'guild' && !G.bonusBuilt) throw new Error('Choisissez : réaliser ou tourner la roue');
       p.st.turns++;
       G.mainDone = false; G.actUsed = false; G._lastCell = null; G.lastMain = null; G.bonusBuilt = false;
       G.cur = (G.cur + 1) % G.players.length; G.turn++;
@@ -735,7 +736,7 @@ function resolve(G, v) {
     G.pending = null; G.grow.splice(v, 1); if (G.gdeck.length) G.grow.push(G.gdeck.pop());
     const card = BY_ID[id], extra = [];
     for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'discard' && (!pm.g || pm.g === card.g)) extra.push(...pm.ops); }
-    log(G, `${p.name} prend une carte de guilde ${card.name} grâce à un bâtiment.`);
+    log(G, `${p.name} dépose une offrande ${card.g === 'voy' ? '(moine errant)' : 'sur l’' + ALTAR[card.g]} grâce à une œuvre.`);
     push(G, [{ op: 'guildPlace', id }].concat(G.opts.matrix ? [] : card.d, extra));
   }
   else if (pd.type === 'retire') {
@@ -744,15 +745,15 @@ function resolve(G, v) {
     else if (v === 'zone') addToZone(G, pi);
     else throw new Error('Choix invalide');
   }
-  else if (pd.type === 'guildRow') { if (!GUILDS.includes(v)) throw new Error('Rangée invalide'); G.pending = null; chainGuild(G, pi, v); p.guilds[v].push(pd.id); log(G, `${p.name} range ${BY_ID[pd.id].name} chez les ${GUILD_NAMES[v]}.`); }
-  else if (pd.type === 'eject') { if (!pd.options.includes(v)) throw new Error('Merveille invalide'); G.pending = null; placeOnWonder(G, pi, v); }
+  else if (pd.type === 'guildRow') { if (!GUILDS.includes(v)) throw new Error('Rangée invalide'); G.pending = null; chainGuild(G, pi, v); p.guilds[v].push(pd.id); log(G, `Le moine errant de ${p.name} rejoint l’${ALTAR[v]}.`); }
+  else if (pd.type === 'eject') { if (!pd.options.includes(v)) throw new Error('Sanctuaire invalide'); G.pending = null; placeOnWonder(G, pi, v); }
   else if (pd.type === 'retrigger') {
     G.pending = null;
-    if (v >= 0) { if (!pd.cells.includes(v)) throw new Error('Bâtiment invalide'); const c = BY_ID[p.grid[v].id]; G._lastCell = v; for (let i = 0; i < pd.times; i++) push(G, c.imm, false); }
+    if (v >= 0) { if (!pd.cells.includes(v)) throw new Error('Œuvre invalide'); const c = BY_ID[p.grid[v].id]; G._lastCell = v; for (let i = 0; i < pd.times; i++) push(G, c.imm, false); }
   } else if (pd.type === 'progress') {
     if (v < 0) G.pending = null;
     else {
-      if (!(p.wheel[v] > 0)) throw new Error('Aucun ouvrier à ce niveau');
+      if (!(p.wheel[v] > 0)) throw new Error('Aucune âme à ce niveau');
       p.wheel[v]--; const to = v + pd.by;
       if (to > 5) ejectN(G, 1); else p.wheel[to]++;
       pd.left--; if (pd.left <= 0 || wheelCount(p) === 0) G.pending = null;
@@ -1108,7 +1109,7 @@ function botTurn(G, noise = 0.6, level) {
 /* ---------- Texte des effets ---------- */
 function nTxt(v) {
   if (typeof v === 'number') return String(v);
-  const lbl = { P: 'nb de Prospérité', M: 'nb de Militaire', S: 'nb de Science', C: 'nb de Culture', diff: 'nb de tags différents', wondW: 'nb de Merveilles où vous êtes', PM: 'nb de Prospérité + Militaire' }[v.c];
+  const lbl = { P: 'nb de Prospérité', M: 'nb de Dévotion', S: 'nb de Connaissance', C: 'nb de Arts', diff: 'nb de tags différents', wondW: 'nb de Sanctuaires où vous êtes', PM: 'nb de Prospérité + Dévotion' }[v.c];
   return 'X' + (v.max ? ` (max ${v.max})` : '') + ` — X = ${lbl}`;
 }
 function opTxt(o) {
@@ -1116,23 +1117,23 @@ function opTxt(o) {
     case 'gain': {
       const n = typeof o.n === 'number' ? o.n : 'X', l = typeof o.lvl === 'number' ? o.lvl : 'X';
       const x = typeof o.n !== 'number' ? o.n : (typeof o.lvl !== 'number' ? o.lvl : null);
-      return `Gagnez ${n} ouvrier${n === 1 ? '' : 's'} de niveau ${l}` + (x ? ` (${nTxt(x).replace(/^X( \(max \d\))? — /, '').replace(/^/, 'X = ').replace('X = X = ', 'X = ')}${x.max ? `, max ${x.max}` : ''})` : '');
+      return `Gagnez ${n} âme${n === 1 ? '' : 's'} de niveau ${l}` + (x ? ` (${nTxt(x).replace(/^X( \(max \d\))? — /, '').replace(/^/, 'X = ').replace('X = X = ', 'X = ')}${x.max ? `, max ${x.max}` : ''})` : '');
     }
     case 'turn': return o.n === 1 ? 'Tournez votre roue' : `Tournez votre roue ${o.n} fois`;
-    case 'progress': return typeof o.by !== 'number' ? `Faites progresser 1 ouvrier de X niveaux (X = nb de ${TAG_NAMES[o.by.c]}, max ${o.by.max})` : o.n === 1 ? `Faites progresser 1 ouvrier de ${o.by} niveau${o.by > 1 ? 'x' : ''}` : `Faites progresser jusqu’à ${o.n} ouvriers de ${o.by} niveau${o.by > 1 ? 'x' : ''}`;
-    case 'unlock': return typeof o.n === 'number' ? `Débloquez ${o.n} ouvrier${o.n > 1 ? 's' : ''}` : `Débloquez 1 ouvrier par Merveille où vous êtes présent (max ${o.n.max})`;
-    case 'recall': return typeof o.n === 'number' ? (o.n >= 9 ? 'Reprenez tous vos ouvriers posés sur vos cartes' : `Reprenez ${o.n} ouvrier${o.n > 1 ? 's' : ''} posé${o.n > 1 ? 's' : ''} sur vos cartes`) : `Reprenez jusqu’à X ouvriers posés sur vos cartes (X = nb de Militaire)`;
+    case 'progress': return typeof o.by !== 'number' ? `Faites progresser 1 âme de X niveaux (X = nb de ${TAG_NAMES[o.by.c]}, max ${o.by.max})` : o.n === 1 ? `Faites progresser 1 âme de ${o.by} niveau${o.by > 1 ? 'x' : ''}` : `Faites progresser jusqu’à ${o.n} âmes de ${o.by} niveau${o.by > 1 ? 'x' : ''}`;
+    case 'unlock': return typeof o.n === 'number' ? `Débloquez ${o.n} âme${o.n > 1 ? 's' : ''}` : `Débloquez 1 âme par Sanctuaire où vous êtes présent (max ${o.n.max})`;
+    case 'recall': return typeof o.n === 'number' ? (o.n >= 9 ? 'Reprenez tous vos âmes posées sur vos cartes' : `Reprenez ${o.n} âme${o.n > 1 ? 's' : ''} posé${o.n > 1 ? 's' : ''} sur vos cartes`) : `Reprenez jusqu’à X âmes posées sur vos cartes (X = nb de Dévotion)`;
     case 'token': return `Gagnez ${o.n} jeton${o.n > 1 ? 's' : ''} Bonus`;
-    case 'takeGuild': return 'Prenez une carte de guilde visible et appliquez son effet';
-    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Savoir` : `Gagnez 1 Savoir par ${TAG_NAMES[o.n.c]}${o.n.max ? ` (max ${o.n.max})` : ''}`;
-    case 'retrigger': return o.times > 1 ? `Déclenchez ${o.times} fois l’effet immédiat d’un de vos bâtiments` : `Déclenchez l’effet immédiat d’un de vos bâtiments`;
-    case 'adjImm': return 'Déclenchez l’effet immédiat de chaque bâtiment adjacent';
+    case 'takeGuild': return 'Prenez une offrande visible et appliquez son effet';
+    case 'plan': return typeof o.n === 'number' ? `Gagnez ${o.n} Karma` : `Gagnez 1 Karma par ${TAG_NAMES[o.n.c]}${o.n.max ? ` (max ${o.n.max})` : ''}`;
+    case 'retrigger': return o.times > 1 ? `Déclenchez ${o.times} fois l’effet immédiat d’une de vos œuvres` : `Déclenchez l’effet immédiat d’une de vos œuvres`;
+    case 'adjImm': return 'Déclenchez l’effet immédiat de chaque œuvre adjacente';
     case 'line': return `Activez gratuitement les cartes de sa ligne ou de sa colonne`;
     case 'choice': return o.options.map(ops => ops.map(opTxt).join(' + ')).join(' OU ');
     case 'if': return `Si vous avez 1 tag de chaque type : ${o.then.map(opTxt).join(' + ').replace(/^./, c => c.toLowerCase())}`;
     case 'vp': return typeof o.n === 'number' ? `Marquez ${o.n} PV` : `Gagnez 1 PV par ${TAG_NAMES[o.n.c]}`;
-    case 'guildAct': return `Rejouez ${o.times > 1 ? o.times + ' fois ' : ''}l’effet de ${o.g === 'max' ? 'votre plus longue rangée de guilde' : 'votre rangée ' + GUILD_NAMES[o.g]}, à son rang actuel`;
-    case 'zone': return `Envoyez ${o.n} ouvrier${o.n > 1 ? 's' : ''} de niveau ${o.min} ou plus dans votre zone de retraite`;
+    case 'guildAct': return `Rejouez ${o.times > 1 ? o.times + ' fois ' : ''}l’effet de ${o.g === 'max' ? 'votre autel le plus honoré' : 'votre ' + ALTAR[o.g]}, à son rang actuel`;
+    case 'zone': return `Envoyez ${o.n} âme${o.n > 1 ? 's' : ''} de niveau ${o.min} ou plus dans votre zone d’Éveil`;
   }
   return '';
 }
@@ -1140,58 +1141,58 @@ const opsTxt = (ops) => ops ? ops.map(opTxt).join('. ') + '.' : '';
 function cardText(c) {
   const out = {};
   if (c.imm) out.imm = opsTxt(c.imm);
-  if (c.act) out.act = 'Placez 1 ouvrier : ' + opsTxt(c.act).replace(/^./, m => m.toLowerCase());
+  if (c.act) out.act = 'Placez 1 âme : ' + opsTxt(c.act).replace(/^./, m => m.toLowerCase());
   if (c.perm) {
     const pm = c.perm;
-    if (pm.on === 'build') out.perm = `Quand vous construisez un bâtiment ${TAG_NAMES[pm.tag]} : ${opsTxt(pm.ops).replace(/^./, m => m.toLowerCase())}`;
-    else if (pm.on === 'discard') out.perm = `Quand vous prenez une carte de guilde${pm.g ? ' ' + GUILD_NAMES[pm.g] : ''} : ${opsTxt(pm.ops).replace(/^./, m => m.toLowerCase())}`;
-    else if (pm.keep5) out.perm = 'Quand votre roue tourne, un ouvrier de niveau 5 peut rester sur place.';
-    else if (pm.discount) out.perm = `Vos bâtiments${pm.tag ? ' ' + TAG_NAMES[pm.tag] : ''}${pm.lvl ? ' de niveau ' + pm.lvl : ''} coûtent ${pm.discount} de moins.`;
-    else if (pm.onMarker) out.perm = `Quand vous posez un marqueur sur une Merveille : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
-    else if (pm.cap) out.perm = `Votre case 0 peut accueillir ${3 + pm.cap} nouveaux ouvriers au lieu de 3.`;
-    else if (pm.retireLvl) out.perm = `Vos retraités reviennent sur la roue au niveau ${pm.retireLvl} au lieu de 0.`;
-    else if (pm.actBack) out.perm = `Vos ouvriers posés sur des bâtiments reviennent au niveau ${pm.actBack} au lieu de 0.`;
-    else if (pm.retire) out.perm = `Votre zone de retraite se déclenche avec ${3 + pm.retire} ouvriers au lieu de 3.`;
-    else if (pm.crane) out.perm = 'Un bâtiment de niveau 2 peut recouvrir la Grue : payez seulement la différence de coût.';
+    if (pm.on === 'build') out.perm = `Quand vous réalisez une œuvre ${TAG_NAMES[pm.tag]} : ${opsTxt(pm.ops).replace(/^./, m => m.toLowerCase())}`;
+    else if (pm.on === 'discard') out.perm = `Quand vous déposez une offrande${pm.g ? ' sur l’' + ALTAR[pm.g] : ''} : ${opsTxt(pm.ops).replace(/^./, m => m.toLowerCase())}`;
+    else if (pm.keep5) out.perm = 'Quand votre roue tourne, une âme de niveau 5 peut rester sur place.';
+    else if (pm.discount) out.perm = `Vos œuvres${pm.tag ? ' ' + TAG_NAMES[pm.tag] : ''}${pm.lvl ? ' de niveau ' + pm.lvl : ''} coûtent ${pm.discount} de moins.`;
+    else if (pm.onMarker) out.perm = `Quand vous posez un marqueur sur un Sanctuaire : ${opsTxt(pm.onMarker).replace(/^./, m => m.toLowerCase())}`;
+    else if (pm.cap) out.perm = `Votre case 0 peut accueillir ${3 + pm.cap} nouvelles âmes au lieu de 3.`;
+    else if (pm.retireLvl) out.perm = `Vos âmes éveillées renaissent au niveau ${pm.retireLvl} au lieu de 0.`;
+    else if (pm.actBack) out.perm = `Vos âmes posées sur des œuvres reviennent au niveau ${pm.actBack} au lieu de 0.`;
+    else if (pm.retire) out.perm = `Votre zone d’Éveil se déclenche avec ${3 + pm.retire} âmes au lieu de 3.`;
+    else if (pm.crane) out.perm = 'Une œuvre de niveau 2 peut recouvrir la Grue : payez seulement la différence de coût.';
   }
   if (c.end) {
     const e = c.end;
     if (e.col) out.end = `${e.pts} PV par ${TAG_NAMES[e.col]} dans sa colonne.`;
     else if (e.row) out.end = `${e.pts} PV par ${TAG_NAMES[e.row]} dans sa ligne.`;
     else if (e.perTag) out.end = `${e.pts} PV par tag ${e.perTag.map(k => TAG_NAMES[k]).join(' et ')}.`;
-    else if (e.perWheel) out.end = e.perWheel < 1 ? `1 PV par ${Math.round(1 / e.perWheel)} ouvriers sur votre roue.` : `${e.perWheel} PV par ouvrier sur votre roue.`;
-    else if (e.adjAny) out.end = `${e.adjAny} PV par bâtiment adjacent.`;
-    else if (e.adjTag) out.end = `${e.pts} PV par bâtiment ${TAG_NAMES[e.adjTag]} adjacent.`;
-    else if (e.corner) out.end = `${e.corner} PV si ce bâtiment est dans un coin de votre ville.`;
-    else if (e.guildTotal) out.end = `1 PV par ${e.guildTotal} cartes de guilde que vous possédez.`;
-    else if (e.atLvl) out.end = `${e.pts} PV par ouvrier de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
-    else if (e.bronze) out.end = `${e.bronze} PV par ouvrier de niveau 1 ou 2 sur votre roue.`;
-    else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Merveilles.`;
-    else if (e.perPlans) out.end = `${e.perPlans} PV par Savoir non dépensé.`;
-    else if (e.guildMax) out.end = `${e.guildMax} PV par carte de votre plus grande guilde.`;
-    else if (e.guild) out.end = `${e.pts} PV par carte ${GUILD_NAMES[e.guild]} dans votre guilde.`;
-    else if (e.guildEach) out.end = `${e.guildEach} PV par série Artisans + Érudits + Marchands.`;
-    else if (e.lines) out.end = `${e.lines} PV par ligne ou colonne complète de votre ville.`;
+    else if (e.perWheel) out.end = e.perWheel < 1 ? `1 PV par ${Math.round(1 / e.perWheel)} âmes sur votre roue.` : `${e.perWheel} PV par âme sur votre roue.`;
+    else if (e.adjAny) out.end = `${e.adjAny} PV par œuvre adjacente.`;
+    else if (e.adjTag) out.end = `${e.pts} PV par œuvre ${TAG_NAMES[e.adjTag]} adjacente.`;
+    else if (e.corner) out.end = `${e.corner} PV si cette œuvre est dans un coin de votre mandala.`;
+    else if (e.guildTotal) out.end = `1 PV par ${e.guildTotal} offrandes que vous possédez.`;
+    else if (e.atLvl) out.end = `${e.pts} PV par âme de niveau ${e.atLvl}${e.atLvl < 5 ? ' ou plus' : ''} sur votre roue.`;
+    else if (e.bronze) out.end = `${e.bronze} PV par âme de niveau 1 ou 2 sur votre roue.`;
+    else if (e.markers) out.end = `${e.markers} PV par marqueur à vous sur les Sanctuaires.`;
+    else if (e.perPlans) out.end = `${e.perPlans} PV par Karma non dépensé.`;
+    else if (e.guildMax) out.end = `${e.guildMax} PV par offrande de votre autel le plus honoré.`;
+    else if (e.guild) out.end = `${e.pts} PV par offrande sur votre ${ALTAR[e.guild]}.`;
+    else if (e.guildEach) out.end = `${e.guildEach} PV par série d’offrandes (une sur chaque autel).`;
+    else if (e.lines) out.end = `${e.lines} PV par ligne ou colonne complète de votre mandala.`;
   }
   if (c.req) {
-    if (c.req.wonder) out.req = c.req.wonder > 1 ? `Avoir des marqueurs sur ${c.req.wonder} Merveilles.` : 'Avoir au moins 1 marqueur sur une Merveille.';
+    if (c.req.wonder) out.req = c.req.wonder > 1 ? `Avoir des marqueurs sur ${c.req.wonder} Sanctuaires.` : 'Avoir au moins 1 marqueur sur un Sanctuaire.';
     else if (c.req.tags.all) out.req = 'Avoir 1 tag de chaque type.';
     else out.req = 'Avoir ' + Object.entries(c.req.tags).map(([k, n]) => `${n} ${TAG_NAMES[k]}`).join(' et ') + '.';
   }
-  if (c.sx) out.sx = 'Les ouvriers dépensés pour ce bâtiment quittent votre roue (réserve générale).';
-  if (c.gd && c.g !== 'voy') out.gd = `Coûte 1 de moins par carte ${GUILD_NAMES[c.g]} dans votre guilde (max 3).`;
+  if (c.sx) out.sx = 'Les âmes dépensées pour cette œuvre quittent le cycle (réserve générale).';
+  if (c.gd && c.g !== 'voy') out.gd = `Coûte 1 de moins par offrande sur votre ${ALTAR[c.g]} (max 3).`;
   if (c.d) out.disc = opsTxt(c.d);
   return out;
 }
 function guildText(g, opts) {
   const fx = (opts && opts.guildFixed) || GUILD_FIXED;
-  if (!opts || opts.matrix !== false) return g === 'voy' ? 'Joker : rangez-la dans la rangée de votre choix et appliquez l’effet de cette rangée.' : { mar: 'Gagnez 1 ouvrier de niveau 0 / 1 / 2 / 3 / 4 / 5 selon le rang de la carte.', art: '1 / 2 / 3 / 4 / 5 / 6… niveaux à répartir selon le rang de la carte.', eru: 'Gagnez 1 / 2 / 3 / 4 / 5 / 6… Savoir selon le rang de la carte.' }[g];
-  if (g === 'voy') return 'Joker : rangez-la dans la guilde de votre choix, qui s’active.';
+  if (!opts || opts.matrix !== false) return g === 'voy' ? 'Moine errant : déposez son offrande sur l’autel de votre choix, qui donne sa bénédiction.' : { mar: 'Une âme s’incarne, de niveau 0 / 1 / 2 / 3 / 4 / 5 selon le rang de l’offrande.', art: '1 / 2 / 3 / 4 / 5 / 6… niveaux à répartir selon le rang de l’offrande.', eru: 'Gagnez 1 / 2 / 3 / 4 / 5 / 6… Karma selon le rang de l’offrande.' }[g];
+  if (g === 'voy') return 'Moine errant : déposez son offrande sur l’autel de votre choix.';
   return opsTxt(fx[g]) + (fx[g].some(o => o.fb) ? ' Si c’est impossible, prenez 1 Plan à la place.' : '');
 }
 function wonderText(W) {
   const v = W.vals.join(' / ');
-  let s = W.by ? `${v} PV × ${WONDER_BY[W.by]}` : W.multG ? `${v} PV × nb de cartes de guilde ${GUILD_NAMES[W.multG]}` : W.mult ? `${v} PV × nb de ${TAG_NAMES[W.mult]}` : `${v} PV`;
+  let s = W.by ? `${v} PV × ${WONDER_BY[W.by]}` : W.multG ? `${v} PV × nb d’offrandes sur l’${ALTAR[W.multG]}` : W.mult ? `${v} PV × nb de ${TAG_NAMES[W.mult]}` : `${v} PV`;
   if (W.bonus) s += ' + ' + opsTxt(W.bonus).replace(/^./, m => m.toLowerCase());
   return s;
 }
@@ -1201,35 +1202,35 @@ function exportTables(opts) {
   const o = Object.assign({}, DEFAULT_OPTS, opts || {});
   const fx = GUILD_FIXED;
   const tagStr = t => Object.entries(t).map(([k, v]) => (v > 1 ? v + ' ' : '') + TAG_NAMES[k]).join(', ');
-  const cards = [['ID', 'Nom', 'Niveau', 'Symbole de guilde (réduction)', 'Tags apportés', 'Coût', 'Cadre', 'Sacrifice', 'Prérequis', 'Réduction de guilde', 'PV', 'Immédiat', 'Activation', 'Permanent', 'Fin de partie']];
+  const cards = [['ID', 'Nom', 'Niveau', 'Autel (réduction)', 'Tags apportés', 'Coût', 'Cadre', 'Sacrifice', 'Prérequis', 'Réduction d’autel', 'PV', 'Immédiat', 'Activation', 'Permanent', 'Fin de partie']];
   for (const c of CARDS) {
     const t = cardText(c);
     cards.push([c.id, c.name, c.lvl, GUILD_NAMES[c.g] || '', tagStr(c.t) || 'aucun', cardValue(c), c.f === 'or' ? 'Or (niveau 5)' : c.f === 'ag' ? 'Argent (niveau 3+)' : c.f === 'br' ? 'Bronze (niveaux 1-2 uniquement)' : '', c.sx ? 'oui' : '', t.req || '', c.gd && c.g !== 'voy' ? '−1 par carte ' + GUILD_NAMES[c.g] + ' (max 3)' : '', c.pv, t.imm || '', t.act || '', t.perm || '', t.end || '']);
   }
-  const wonders = [['ID', 'Merveille', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
+  const wonders = [['ID', 'Sanctuaire', '1er marqueur', '2e marqueur', '3e marqueur', 'Multiplicateur', 'Bonus', 'Texte']];
   for (const W of WONDERS) wonders.push([W.id, W.name, W.vals[0], W.vals[1], W.vals[2], W.by ? WONDER_BY[W.by] : W.multG ? 'nb de cartes ' + GUILD_NAMES[W.multG] : W.mult ? 'nb de ' + TAG_NAMES[W.mult] : '', W.bonus ? opsTxt(W.bonus) : '', wonderText(W)]);
-  const theme = { art: 'Expérience : des niveaux à répartir', eru: 'Savoir : une ressource qui réduit les coûts ou fait ignorer un prérequis ou un cadre', mar: 'Population : gagner des ouvriers', voy: 'Joker : rangée au choix' };
-  const guilds = [['Guilde', 'Thème', 'Nombre de cartes de guilde', 'Bâtiments avec réduction de cette guilde']];
-  for (const g of ['art', 'eru', 'mar', 'voy']) guilds.push([GUILD_NAMES[g], theme[g], GCARDS.filter(c => c.g === g).length, CARDS.filter(c => c.gd && c.g === g).length]);
-  const gcards = [['Rangée', '1re carte', '2e carte', '3e carte', '4e carte', '5e carte', '6e carte et suivantes', 'Cartes dans le paquet']];
-  for (const g of ['mar', 'art', 'eru']) gcards.push([GUILD_NAMES[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
-  gcards.push(['Voyageurs (joker)', 'Rangée au choix : appliquez l’effet de cette rangée', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
-  gcards.push(['Colonne complète', 'Dès qu’une colonne contient une carte de chaque guilde : tournez votre roue', '', '', '', '', '', '']);
-  gcards.push(['Savoir', '1 Savoir = 1 de moins sur le coût d’un bâtiment (utilisé automatiquement). 2 Savoir = ignorer le prérequis et le cadre d’un bâtiment.', '', '', '', '', '', '']);
+  const theme = { art: 'Vos âmes apprennent : des niveaux à répartir', eru: 'Du Karma : réduit le coût des œuvres, ou fait ignorer un prérequis ou un cadre', mar: 'Une âme s’incarne', voy: 'Joker : autel au choix' };
+  const guilds = [['Autel', 'Bénédiction', 'Nombre d’offrandes', 'Œuvres avec réduction de cet autel']];
+  for (const g of ['art', 'eru', 'mar', 'voy']) guilds.push([ALTAR[g], theme[g], GCARDS.filter(c => c.g === g).length, CARDS.filter(c => c.gd && c.g === g).length]);
+  const gcards = [['Autel', '1re offrande', '2e offrande', '3e offrande', '4e offrande', '5e offrande', '6e offrande et suivantes', 'Offrandes dans le paquet']];
+  for (const g of ['mar', 'art', 'eru']) gcards.push([ALTAR[g], ...[1, 2, 3, 4, 5, 6].map(k => matrixText(g, k)), GCARDS.filter(c => c.g === g).length]);
+  gcards.push(['Moine errant (joker)', 'Autel au choix : appliquez la bénédiction de cet autel', '', '', '', '', '', GCARDS.filter(c => c.g === 'voy').length]);
+  gcards.push(['Colonne complète', 'Dès qu’une colonne contient une offrande sur chaque autel : la roue tourne', '', '', '', '', '', '']);
+  gcards.push(['Karma', '1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et le cadre d’une œuvre.', '', '', '', '', '', '']);
   const tags = [['Tag', 'Cartes niveau 1 (tags apportés)', 'Cartes niveau 2 (tags apportés)']];
   for (const k of ['P', 'M', 'S', 'C', 'J']) tags.push([TAG_NAMES[k], CARDS.filter(c => c.lvl === 1).reduce((a, c) => a + (c.t[k] || 0), 0), CARDS.filter(c => c.lvl === 2).reduce((a, c) => a + (c.t[k] || 0), 0)]);
   const settings = [['Réglage', 'Valeur par défaut']];
-  const lbl = { startWheel: 'Roue de départ (ouvriers par niveau 0→5)', endWonders: 'Fin : marqueurs sur les Merveilles (0 = 2 par joueur)', wonderScoring: 'Score des Merveilles', market: 'Cartes visibles par niveau', costMode: 'Coûts', wonderMode: 'Marqueurs sur les Merveilles', retireStep: 'Taille de la zone de retraite (retraités pour 1 marqueur)', supply: 'Ouvriers dépensés', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une carte de guilde, puis construire ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
-  const human = { arrival: 'À l’arrivée du marqueur', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par ouvrier', track: 'Zone de retraite (2 retraités = 1 marqueur)', auto: '1 marqueur à chaque retraite', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
-  settings.push(['Cartes de guilde visibles', '4'], ['Cartes de guilde dans le paquet', String(GCARDS.length)], ['Bâtiments par niveau', String(CARDS.filter(c => c.lvl === 1).length)]);
+  const lbl = { startWheel: 'Roue de départ (âmes par niveau 0→5)', endWonders: 'Fin : marqueurs sur les Sanctuaires (0 = 2 par joueur)', wonderScoring: 'Score des Sanctuaires', market: 'Cartes visibles par niveau', costMode: 'Coûts', wonderMode: 'Marqueurs sur les Sanctuaires', retireStep: 'Taille de la zone d’Éveil (âmes éveillées pour 1 marqueur)', supply: 'Âmes dépensées', recruitCap: 'Limite de recrutement en case 0', guildChoice: 'Tour : une offrande, puis réaliser une œuvre ou tourner la roue', copies1: 'Exemplaires des cartes niveau 1', copies2: 'Exemplaires des cartes niveau 2' };
+  const human = { arrival: 'À l’arrivée du marqueur', end: 'En fin de partie', sum: 'Somme des niveaux', levels: 'Niveau minimum par âme', track: 'Zone d’Éveil (2 âmes éveillées = 1 marqueur)', auto: '1 marqueur à chaque Éveil', consecrate: 'Consacrer volontairement un vétéran', cycle: 'Reviennent au niveau 0 de la roue', general: 'Partent dans la réserve générale' };
+  settings.push(['Offrandes visibles', '4'], ['Offrandes dans le paquet', String(GCARDS.length)], ['Œuvres par niveau', String(CARDS.filter(c => c.lvl === 1).length)]);
   for (const k in lbl) { let v = o[k]; if (Array.isArray(v)) v = "'" + v.join(', '); if (typeof v === 'boolean') v = v ? 'oui' : 'non'; if (human[v]) v = human[v]; settings.push([lbl[k], String(v)]); }
-  return { 'Cartes': cards, 'Cartes de guilde': gcards, 'Merveilles': wonders, 'Guildes': guilds, 'Tags': tags, 'Réglages': settings };
+  return { 'Œuvres': cards, 'Offrandes': gcards, 'Sanctuaires': wonders, 'Autels': guilds, 'Tags': tags, 'Réglages': settings };
 }
 const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
   cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
-  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, exportTables, opsTxt, matrixOps, matrixText, guildColumns, BYPASS_COST,
+  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, matrixOps, matrixText, guildColumns, BYPASS_COST,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Empires = API;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
