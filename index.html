@@ -334,6 +334,20 @@ button.pri:hover:not(:disabled){background:linear-gradient(180deg,#b35a3a,var(--
 .toast{background:#4a3020;border-color:#c99a4a}
 #tutoBubble .tb-roll,#leaveDlg .tb-roll{background:linear-gradient(180deg,#a87a4a,#7d552f 50%,#5a3a1c);border-color:#3d2610}
 #tutoBubble .tb-head b,#leaveDlg h3{color:#7a3b1e}
+
+/* ===== Dominante beige neutre, plus reposante pour les yeux ===== */
+:root{--bg:light-dark(#ebe4d6,#201a16);--panel:light-dark(#faf7f0,#2d2520);--panel2:light-dark(#f2ece0,#382e27);
+--ink:light-dark(#34291f,#ede4d6);--mute:light-dark(#76695a,#bfb1a0);--line:light-dark(#d9cdb8,#55483d);--brown:light-dark(#6e4128,#e2bf8c);
+--or:#c9a96a;
+--tex:url(img/filigrane.svg),radial-gradient(ellipse 70% 50% at 50% -10%,rgba(255,252,245,.8),transparent 65%)}
+header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#cdbb9a;box-shadow:none}
+:root[data-theme=dark] header{background:linear-gradient(180deg,#2f2722,#241d19)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) header{background:linear-gradient(180deg,#2f2722,#241d19)}}
+.cell{border-color:var(--line);background:var(--panel2)}
+.matrix .mx-s{border-color:var(--line)}
+.home-wheel{box-shadow:0 0 0 4px #eee6d6,0 0 0 5px #cdbb9a,0 8px 24px rgba(80,60,30,.2)}
+#tutoBubble .tb-body,#leaveDlg .ld-body{background:url(img/filigrane.svg),linear-gradient(180deg,#fcf9f2,#f1eadc)}
+.tutoBtn{background:#faf7f0;border-color:var(--or);color:var(--brown)}
 </style>
 </head>
 <body>
