@@ -812,7 +812,7 @@ function cardHTML(card, o = {}) {
 function wheelSVG(p, color, opts = {}) {
   // Même langage que les cartes : parchemin, encre brune, badges meeple chiffrés, or pour les points, violet Sanctuaire
   const cx = 150, cy = 150, R = 116, ink = '#5b4a36', o = [];
-  const fills = ['#e9e1cd', '#d3e7bb', '#d3e7bb', '#f6cfa6', '#f6cfa6', '#e6d6f0']; // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
+  const fills = ['#e9e1cd', '#cfe5bd', '#cfe5bd', '#f9cdaa', '#f9cdaa', '#dfcbee']; // teintes des âmes : vert (jeunes), orange (mûres), violet (ancienne) // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
   const A0 = opts.a0 != null ? opts.a0 : 180, rot = A0 - 180; // A0 : angle de la case 0 (180 = à gauche, 270 = en haut)
   const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
   const f = n => n.toFixed(1);
@@ -834,7 +834,7 @@ function wheelSVG(p, color, opts = {}) {
       o.push(`<g transform="translate(${f(mx - 10)} ${f(my - 11)})" pointer-events="none"><path d="${FLAME}" fill="${color}" stroke="${ink}" stroke-width="1.3"/><path d="M10.3 10.5c1.8 1.9 3 3.2 3 5.1 0 1.9-1.4 3.2-3.2 3.2S6.9 17.5 6.9 15.6c0-1.6 1.3-3 3.4-5.1z" fill="#fff3c4" opacity=".85"/></g>`);
     }
     if (n > 6) { const [bx, by] = pt(104, c); o.push(`<g pointer-events="none"><circle cx="${f(bx)}" cy="${f(by)}" r="10" fill="${ink}"/><text x="${f(bx)}" y="${f(by + 4)}" text-anchor="middle" font-size="11" font-weight="700" fill="#fbf7ee">×${n}</text></g>`); }
-    if (i > 0) { const [ax, ay] = pt(R - 14, c); o.push(`<image href="img/age${i >= 5 ? 3 : i >= 3 ? 2 : 1}.svg" x="${f(ax - 6)}" y="${f(ay - 6.6)}" width="12" height="13.2" opacity=".9" pointer-events="none"/>`); }
+    { const [ax, ay] = pt(R - 17, c); const col = i >= 5 ? '#7b3fa0' : i >= 3 ? '#d9661a' : i >= 1 ? '#4f8a33' : '#7a6650'; o.push(`<g transform="translate(${f(ax - 9)} ${f(ay - 10)}) scale(.9)" pointer-events="none" opacity=".85"><path d="${FLAME}" fill="${col}" stroke="#3a2e1f" stroke-width=".8"/></g>`); } // icône de l'âme de ce cran
     // badge de niveau : meeple chiffré, comme le coût des cartes
     const [lx, ly] = pt(R + 16, c);
     o.push(`<g pointer-events="none"><circle cx="${f(lx)}" cy="${f(ly)}" r="14" fill="${i === 5 ? '#7b3fa0' : i >= 3 ? '#d9661a' : i >= 1 ? '#4f8a33' : ink}" stroke="#fbf7ee" stroke-width="2"/>
