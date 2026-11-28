@@ -348,6 +348,16 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .home-wheel{box-shadow:0 0 0 4px #eee6d6,0 0 0 5px #cdbb9a,0 8px 24px rgba(80,60,30,.2)}
 #tutoBubble .tb-body,#leaveDlg .ld-body{background:url(img/filigrane.svg),linear-gradient(180deg,#fcf9f2,#f1eadc)}
 .tutoBtn{background:#faf7f0;border-color:var(--or);color:var(--brown)}
+
+.mk-peek.gsize{position:static;width:120px;min-height:140px;flex:none;margin-left:auto;padding:6px 5px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mk-peek.gsize .wheel{max-width:104px}.mk-peek.gsize .mk-h{font-size:12px}.mk-peek.gsize .mk-st{margin:2px 0;font-size:11px;gap:3px}.mk-peek.gsize .mk-st .chip{padding:0 6px}.mk-peek.gsize a{font-size:12px}
+.wonder .slots{gap:6px;align-items:center}.wonder .pv{width:32px;height:32px;font-size:14px}
+.slot.taken{width:26px;height:26px;border-radius:50%;border:2px solid #4a3b2c;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
+
+.ti{width:16px;height:16px;vertical-align:-3px;display:inline-block;margin:0 1px}
+.card .fx .pv.sm,.wonder .small .pv.sm,.wtx .pv.sm,.gtip .pv.sm{width:20px;height:20px;font-size:10px;vertical-align:-5px}
+.card .fx .bico,.wonder .bico,.wtx .bico,.gtip .bico{vertical-align:-4px}
+.mk-peek.gsize{align-self:stretch}.mk-peek.gsize .mk-st{flex-direction:column;align-items:center}
 </style>
 </head>
 <body>
@@ -446,7 +456,7 @@ function tagsHTML(t) {
   const out = [];
   const ICON = TAGICON;
   for (const k of ['P', 'M', 'S', 'C', 'J']) for (let i = 0; i < (t[k] || 0); i++) out.push(ICON[k] ? `<img class="tagi" src="img/${ICON[k]}.svg" alt="${esc(E.TAG_NAMES[k])}" title="${esc(E.TAG_NAMES[k])}">` : `<span class="tag" style="background:${TAGC[k]}" title="Joker">★</span>`);
-  return `<div class="tags">${out.join('') || '<span class="small" style="color:#8a8a8a">sans tag</span>'}</div>`;
+  return `<div class="tags">${out.join('')}</div>`;
 }
 function costHTML(card, cost) {
   const levels = (G ? G.opts.costMode : costModeSim()) === 'levels';
@@ -454,6 +464,21 @@ function costHTML(card, cost) {
   const v = cost ?? E.cardValue(card);
   const col = card.f === 'or' ? '#a88a1c' : card.f === 'ag' ? '#c27a12' : card.f === 'br' ? '#4f8a33' : '#5b4a36';
   return `<div class="cost" title="Coût : somme des niveaux des âmes dépensées${card.f ? (card.f === 'or' ? ' — œuvre de sage : dont une âme ancienne (niveau 5)' : card.f === 'br' ? ' — œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1-2)' : ' — œuvre de maturité : dont une âme mûre (niveau 3 ou plus)') : ''}">${meepleNum(v, col)}</div>`;
+}
+// Remplace dans les textes d'effet les mots qui ont un pictogramme : tags, PV, Karma, autels
+const TAGW = { 'Prospérité': 'P', 'Dévotion': 'M', 'Connaissance': 'S', 'Arts': 'C' };
+function tagImg(k) { return `<img class="ti" src="img/${TAGICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="${E.TAG_NAMES[k]}">`; }
+// Sur les tuiles Sanctuaire, les PV par rang sont déjà sur les cases : le texte commence par un lotus sans chiffre
+function wonderShort(W) { const t = E.wonderText(W), m = t.match(/^\d+ \/ \d+ \/ \d+ PV\s*/); return m ? `<span class="pv sm" title="${esc(W.vals.join(' / '))} PV"></span>` + iconize(t.slice(m[0].length)) : iconize(t); }
+function iconize(raw) {
+  let s = esc(raw);
+  s = s.replace(/(?:l’|l')?Autel (?:du Karma|de la Vie|de l’Enseignement|de l'Enseignement)/g, m => { const g = /Karma/.test(m) ? 'eru' : /Vie/.test(m) ? 'mar' : 'art'; return `<img class="ti" src="img/${g}.svg" alt="${E.ALTAR[g]}" title="${E.ALTAR[g]}">`; });
+  s = s.replace(/1 tag de chaque type/g, () => ['P', 'M', 'S', 'C'].map(tagImg).join(''));
+  s = s.replace(/\btags? (Prospérité|Dévotion|Connaissance|Arts)/g, (m, w) => tagImg(TAGW[w]));
+  s = s.replace(/(Prospérité|Dévotion|Connaissance|Arts)(?![\wÀ-ÿ])/g, (m, w) => tagImg(TAGW[w]));
+  s = s.replace(/(\d+(?: \/ \d+)*) PV/g, (m, ns) => ns.split(' / ').map(n => pvIcon(n, 'sm')).join('<span class="mute">/</span>'));
+  s = s.replace(/(\d+|X) Karma/g, (m, n) => karmaIco(n, 18));
+  return s;
 }
 // Pictogrammes des bénédictions : âme gagnée (flamme chiffrée), amélioration (flamme + flèche), Karma (jeton)
 const AGECOL = l => l >= 5 ? '#b8961f' : l >= 3 ? '#c27a12' : l >= 1 ? '#4f8a33' : '#7a6650';
@@ -471,13 +496,13 @@ function pvIcon(v, cls = '') {
 function cardHTML(card, o = {}) {
   const tx = E.cardText(card);
   const fx = [];
-  if (tx.req) fx.push(`<div><b class="k-req">Prérequis</b>${esc(tx.req)}</div>`);
-  if (tx.sx) fx.push(`<div><b class="k-sx">Sacrifice</b>${esc(tx.sx)}</div>`);
-  if (tx.gd) fx.push(`<div><b class="k-gd">Autel −1</b>${esc(tx.gd)}</div>`);
-  if (tx.imm) fx.push(`<div><b class="k-imm">Immédiat</b>${esc(tx.imm)}</div>`);
-  if (tx.act) fx.push(`<div><b class="k-act">Activation</b>${esc(tx.act)}</div>`);
-  if (tx.perm) fx.push(`<div><b class="k-perm">Permanent</b>${esc(tx.perm)}</div>`);
-  if (tx.end) fx.push(`<div><b class="k-end">Fin</b>${esc(tx.end)}</div>`);
+  if (tx.req) fx.push(`<div><b class="k-req">Prérequis</b>${iconize(tx.req)}</div>`);
+  if (tx.sx) fx.push(`<div><b class="k-sx">Sacrifice</b>${iconize(tx.sx)}</div>`);
+  if (tx.gd) fx.push(`<div><b class="k-gd">Autel −1</b>${iconize(tx.gd)}</div>`);
+  if (tx.imm) fx.push(`<div><b class="k-imm">Immédiat</b>${iconize(tx.imm)}</div>`);
+  if (tx.act) fx.push(`<div><b class="k-act">Activation</b>${iconize(tx.act)}</div>`);
+  if (tx.perm) fx.push(`<div><b class="k-perm">Permanent</b>${iconize(tx.perm)}</div>`);
+  if (tx.end) fx.push(`<div><b class="k-end">Fin</b>${iconize(tx.end)}</div>`);
   const gi = card.g ? `<img class="gicon" src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}" title="Réduction d’autel : ${esc(E.ALTAR[card.g])}${card.g === 'voy' ? ' (joker : rangée au choix)' : ''}">` : '';
   const sumMode = (G ? G.opts.costMode : costModeSim()) !== 'levels';
   const fr = sumMode && card.f ? card.f : '';
@@ -664,8 +689,8 @@ function gameHTML() {
   const p = G.players[G.cur], my = isMyTurn(), pi = G.cur;
   const wonders = G.wonders.map((w, wi) => {
     const W = E.W_BY_ID[w.id];
-    return `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${esc(E.wonderText(W))}</div>
-      <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot" style="background:${seats[w.slots[k]].color};border:1.5px solid #555" title="${esc(seatName(w.slots[k]))}"></span>` : `<span class="slot pvslot">${pvIcon(W.vals[k], 'sm')}</span>`).join('')}</div></div>`;
+    return `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
+      <div class="slots">${[0, 1, 2].map(k => w.slots[k] != null ? `<span class="slot taken" style="background:${seats[w.slots[k]].color}" title="${esc(seatName(w.slots[k]))} : ${W.vals[k]} PV"></span>` : `<span class="slot pvslot" title="${W.vals[k]} PV pour le ${k === 0 ? '1er' : k === 1 ? '2e' : '3e'} marqueur">${pvIcon(W.vals[k])}</span>`).join('')}</div></div>`;
   }).join('');
   const market = [1, 2].map(L => {
     const back = '';
@@ -677,7 +702,10 @@ function gameHTML() {
     return `<div id="tMarket${L}"><h3>Œuvres de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
   }).join('');
   const gpick = my && needGuild() && !G.pending;
-  const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}</div></div>`;
+  const PEEK = `<aside class="mk-peek gsize" aria-label="Rappel de votre roue"><div class="mk-h"><span class="dot" style="background:${seats[pi].color}"></span> Roue de ${esc(seatName(pi))}</div>${wheelSVG(p, WOOD, {})}
+          <div class="mk-st"><span class="chip">Karma ${p.plans || 0}</span>${G.opts.wonderMode === 'track' ? `<span class="chip">Éveil ${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div>
+          <a class="small" href="#tWheel" data-peek>Mon plateau ↓</a></aside>`;
+  const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}${PEEK}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
   const opps = G.players.map((q, i) => {
@@ -697,10 +725,7 @@ function gameHTML() {
   <section class="panel" style="margin-bottom:14px"><h2>Sanctuaires</h2><div class="wonders">${wonders}</div></section>
   <div class="table">
     <div style="display:grid;gap:14px">
-      <section class="panel mk-wrap"><div class="mk-main"><h2>Marché</h2>${guildRow}${market}</div>
-        <aside class="mk-peek" aria-label="Rappel de votre roue"><div class="mk-h"><span class="dot" style="background:${seats[pi].color}"></span> Roue de ${esc(seatName(pi))}</div>${wheelSVG(p, WOOD, {})}
-          <div class="mk-st"><span class="chip">Karma ${p.plans || 0}</span>${G.opts.wonderMode === 'track' ? `<span class="chip">Éveil ${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div>
-          <a class="small" href="#tWheel" data-peek>Voir mon plateau ↓</a></aside></section>
+      <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
           <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.">Karma ${p.plans || 0}</span></div></div>
@@ -723,7 +748,7 @@ function gameHTML() {
 function guildGain(p, g) {
   if (g === 'voy') return `<div class="bless">${['mar', 'art', 'eru'].map(x => blessIco(x, p.guilds[x].length + 1, 20)).join('<span class="mute">/</span>')}</div><span class="gtip">Joker : posez-la sur l’autel de votre choix et recevez sa bénédiction.</span>`;
   const k = p.guilds[g].length + 1, col = E.GUILDS.every(x => x === g || p.guilds[x].length >= k);
-  return `<div class="bless" >${blessIco(g, k, 34)}${col ? `<span class="mute">+</span>${TURNICO}` : ''}</div><span class="gtip">${esc(E.matrixText(g, k))}${col ? '<br><b>Puis la roue tourne</b> (colonne complète).' : ''}</span>`;
+  return `<div class="bless" >${blessIco(g, k, 34)}${col ? `<span class="mute">+</span>${TURNICO}` : ''}</div><span class="gtip">${iconize(E.matrixText(g, k))}${col ? '<br><b>Puis la roue tourne</b> (colonne complète).' : ''}</span>`;
 }
 const MSHORT = { mar: k => soulIco(Math.min(5, k - 1), 20), art: k => upIco(k, 15), eru: k => karmaIco(k, 21) };
 // Matrice des autels du plateau : 3 rangées, l'effet grandit avec le rang ; colonne complète = la roue tourne
@@ -1096,7 +1121,7 @@ function simResultHTML(R) {
 // Aperçu d'une carte ou d'un Sanctuaire au survol (ou au focus clavier) d'une ligne
 function wonderPreviewHTML(W) {
   return `<div class="wprev"><div class="wtop"><img src="img/sanctuaire.svg" alt="" width="44" height="44"><div class="wn">${esc(W.name)}</div></div>
-    <div class="wtx">${esc(E.wonderText(W))}</div>
+    <div class="wtx">${iconize(E.wonderText(W))}</div>
     <div class="slots">${W.vals.map((v, i) => `<span class="slot pvslot" title="${i + 1}ᵉ marqueur">${pvIcon(v, 'sm')}</span>`).join('')}</div></div>`;
 }
 function showHover(el, x, y) {
@@ -1133,7 +1158,7 @@ function cardsHTML() {
       <label>Valeur <input data-ov="${c.id}:v" type="number" min="0" max="20" value="${E.cardValue(c)}"></label>
       <label>PV <input data-ov="${c.id}:pv" type="number" min="0" max="20" value="${c.pv}"></label>
       <label>Niveaux <input data-ov="${c.id}:c" value="${c.c.join(',')}" style="width:70px"></label></div>` : '' })).join('')}</div>
-  <section class="panel" style="margin-top:16px"><h2>Sanctuaires</h2><div class="wonders">${E.WONDERS.map(W => `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${esc(E.wonderText(W))}</div>
+  <section class="panel" style="margin-top:16px"><h2>Sanctuaires</h2><div class="wonders">${E.WONDERS.map(W => `<div class="wonder"><div class="wn">${esc(W.name)}</div><div class="small">${wonderShort(W)}</div>
     <label class="f edit" style="margin-top:6px">Valeurs (1er/2e/3e)<input data-wov="${W.id}" value="${W.vals.join(',')}" style="width:100px"></label></div>`).join('')}</div>
     <details style="margin-top:12px"><summary>Mode avancé : modifier les effets en JSON</summary>
       <p class="note">Collez un objet { "cards": { "a1": { … } }, "wonders": { … } }. Les champs remplacent ceux de la carte d’origine (effets : imm, act, perm, end, d).</p>
