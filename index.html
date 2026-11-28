@@ -1557,7 +1557,7 @@ function pnpHTML() {
   const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
-    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
+    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 1 plateau personnel (à imprimer 4 fois), pions, règles. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
     <a class="cta" href="https://stfrantic82.github.io/Empires/pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
   <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
