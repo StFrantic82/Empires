@@ -646,6 +646,16 @@ aside .city .cell{min-height:84px}
 .card .fx .bico{transform:none;margin:0 1px}
 .card .fx .pv.sm{width:22px!important;height:22px!important;font-size:8.5px!important;padding-top:2px!important;vertical-align:-7px!important}
 .sxbar{font-size:9px}
+
+/* Carnet de score */
+.score-pad{border:1.5px solid #8a7350;border-radius:3mm;padding:4mm 5mm;margin-bottom:8mm;background:#fbf7ee}
+.sp-h{display:flex;align-items:center;gap:3mm;font-family:'Yatra One',serif;font-size:16pt;color:#6e4128;margin-bottom:3mm}.sp-h img{width:11mm}
+.sp-t{width:100%;border-collapse:collapse;font-size:10pt}
+.sp-t th,.sp-t td{border:1px solid #cdbb9a;padding:2mm;height:12mm}
+.sp-t thead th{height:11mm;background:#f3e8d0}.sp-name{height:7mm;border-bottom:1px dotted #8a7350}
+.sp-t tbody th{text-align:left;width:62mm;font-weight:400}.sp-t tbody th{display:table-cell}.sp-t tbody th img{width:7mm;height:7mm;vertical-align:middle;margin-right:2mm}
+.sp-t tbody th span{display:inline-flex;flex-direction:column;vertical-align:middle}.sp-t small{font-size:7pt;color:#8a7a5c}
+.sp-tot th,.sp-tot td{background:#f3e8d0;font-size:12pt}.sp-tie td{height:9mm}
 </style>
 </head>
 <body>
@@ -829,7 +839,7 @@ function wheelSVG(p, color, opts = {}) {
   // Même langage que les cartes : parchemin, encre brune, badges meeple chiffrés, or pour les points, violet Sanctuaire
   const cx = 150, cy = 150, R = 116, ink = '#5b4a36', o = [];
   const fills = ['#e9e1cd', '#cfe5bd', '#cfe5bd', '#f9cdaa', '#f9cdaa', '#dfcbee']; // teintes des âmes : vert (jeunes), orange (mûres), violet (ancienne) // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
-  const A0 = opts.a0 != null ? opts.a0 : 180, rot = A0 - 180; // A0 : angle de la case 0 (180 = à gauche, 270 = en haut)
+  const A0 = opts.a0 != null ? opts.a0 : 270, rot = A0 - 180; // A0 : angle de la case 0 (180 = à gauche, 270 = en haut)
   const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
   const f = n => n.toFixed(1);
   o.push(`<defs>
@@ -1585,11 +1595,16 @@ function pnpHTML() {
     <h3>Premier joueur</h3><div class="pnp-tok"><span class="tk tk-first"><img src="img/samsara.svg" alt=""></span></div>`);
   const rules = sheet('Règles', `<div class="pnp-rules">${rulesHTML().replace(/<section[^>]*>/, '').replace(/<\/section>\s*$/, '')}</div>`, 'pnp-flow');
   const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
+  const pad = () => `<div class="score-pad"><div class="sp-h"><img src="img/samsara.svg" alt=""> Carnet de score</div><table class="sp-t"><thead><tr><th></th>${[1, 2, 3, 4].map(() => '<th><div class="sp-name"></div></th>').join('')}</tr></thead><tbody>
+    ${[['pv', 'PV des œuvres', 'lotus en bas de chaque œuvre de votre mandala'], ['fin', 'Effets « Fin »', 'œuvres qui marquent en fin de partie'], ['sanct', 'Sanctuaires', 'points marqués à l’arrivée de vos âmes'], ['autre', 'Autres PV', 'effets immédiats ou permanents « marquez »']].map(([k, l, d]) => `<tr><th><img src="img/${k === 'sanct' ? 'sanctuaire' : 'pv'}.svg" alt=""><span><b>${l}</b><small>${d}</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>`).join('')}
+    <tr class="sp-tot"><th><span><b>Total</b></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr>
+    <tr class="sp-tie"><th><span><b>Égalité</b><small>âmes sur la roue</small></span></th>${[1, 2, 3, 4].map(() => '<td></td>').join('')}</tr></tbody></table></div>`;
+  const scores = sheet('Carnet de score', pad() + pad(), 'pnp-score');
   return `<section class="panel no-print"><h2>Print &amp; Play</h2>
     <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
-    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 1 plateau personnel (à imprimer 4 fois), pions, règles. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
+    <p class="small mute">Contenu : règles, carnet de score, ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 1 plateau personnel (à imprimer 4 fois), pions. Œuvres en cartes carrées de 63 × 63 mm, offrandes en 41 × 63 mm.</p>
     <a class="cta" href="https://stfrantic82.github.io/Empires/pnp.pdf" target="_blank" rel="noopener">Télécharger le PDF</a> <button id="pnpPrint">Imprimer cette page (version la plus récente)</button></section>
-  <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
+  <div class="pnp">${rules}${scores}${boards}${works}${offs}${wond}${tokens}</div>`;
 }
 
 // Illustrations des règles : construites avec les vrais éléments du jeu (roue, autels, cartes), donc toujours à jour
