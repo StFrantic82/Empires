@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" fill="none" stroke="#a5521b" stroke-width="1.4" stroke-linecap="round" opacity=".11">
+  <!-- lotus -->
+  <g transform="translate(45 52)">
+    <path d="M0 14C-6 4-5-8 0-16 5-8 6 4 0 14z"/>
+    <path d="M0 14C-9 10-15 1-15-9-6-7-1 2 0 14zM0 14C9 10 15 1 15-9 6-7 1 2 0 14z"/>
+    <path d="M0 14C-12 15-22 10-26 1-15-1-6 5 0 14zM0 14C12 15 22 10 26 1 15-1 6 5 0 14z"/>
+    <path d="M-20 18h40"/>
+  </g>
+  <!-- nuage de bon augure -->
+  <g transform="translate(128 130)">
+    <path d="M-30 6c-6 0-9-6-5-10 3-3 8-2 9 1 0-8 9-12 15-7 3-7 14-7 17 0 6-4 14 0 13 7 6 0 8 8 2 9z"/>
+    <path d="M-12 2c0-4 5-5 6-2M8-2c1-4 6-4 7 0"/>
+    <path d="M-30 14c10 0 14-3 22-3s12 3 22 3"/>
+  </g>
+  <circle cx="135" cy="40" r="2"/><circle cx="40" cy="138" r="2"/>
+</svg>

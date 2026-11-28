@@ -222,11 +222,53 @@ tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{ba
 .tuto-hl{outline:3px solid var(--gold)!important;outline-offset:4px;border-radius:8px;animation:tutoPulse 1.6s ease-in-out infinite}
 @keyframes tutoPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.55)}50%{box-shadow:0 0 0 8px rgba(201,162,39,0)}}
 @media (prefers-reduced-motion:reduce){.tuto-hl{animation:none}}
+
+/* ===== Habillage « Temple au soleil » : safran, ocre, laque rouge, lotus et nuages en filigrane, drapeaux de prière ===== */
+:root{--bg:light-dark(#f2d595,#22100c);--panel:light-dark(#fff4dc,#36190f);--panel2:light-dark(#fbe6bc,#45221a);
+--ink:light-dark(#3a1a0e,#f6e4c4);--mute:light-dark(#7a4f2c,#cfa979);--line:light-dark(#e0b264,#6e3d24);--brown:light-dark(#8e1b1f,#f2c46a);
+--accentInk:light-dark(#9b2226,#f6b28c);--laque:#9b2226;--laque2:#6f1216;--or:#e9b949;--safran:#e8902e;
+--tex:url(img/filigrane.svg),radial-gradient(ellipse 70% 55% at 50% -8%,rgba(255,246,210,.95),rgba(255,226,150,.35) 45%,transparent 70%),repeating-conic-gradient(from 0deg at 50% -10%,rgba(255,255,255,.07) 0 4deg,transparent 4deg 9deg)}
+:root[data-theme=dark]{--tex:url(img/filigrane.svg),radial-gradient(ellipse 70% 50% at 50% -10%,rgba(232,144,46,.22),transparent 65%)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--tex:url(img/filigrane.svg),radial-gradient(ellipse 70% 50% at 50% -10%,rgba(232,144,46,.22),transparent 65%)}}
+h1,h2,h3{font-family:'Yatra One',Georgia,serif;font-weight:400;letter-spacing:.01em}
+h2,h3{color:var(--brown)}
+header{position:relative;background:linear-gradient(180deg,#a8282c,var(--laque) 55%,var(--laque2));border-bottom:3px solid var(--or);box-shadow:inset 0 3px 0 rgba(255,214,120,.55),0 4px 10px -4px rgba(80,20,10,.5);margin-bottom:30px;color:#fbe9c4}
+header::after{content:"";position:absolute;left:0;right:0;top:100%;height:26px;margin-top:1px;background:url(img/drapeaux.svg) repeat-x center top/150px 26px;pointer-events:none}
+header h1{color:var(--or);text-shadow:0 2px 0 rgba(60,10,5,.45)}
+header .sub{color:#f3cf9c}
+nav a{color:#fbe3b0;font-weight:400;border-radius:999px;border-bottom:none;padding:6px 14px}
+nav a:hover{background:rgba(255,220,140,.14)}
+nav a.on{color:var(--laque2);background:var(--or);border-bottom:none}
+.panel,.home-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:inset 0 0 0 4px var(--panel),inset 0 0 0 5px color-mix(in srgb,var(--or) 55%,transparent),0 6px 16px -10px rgba(110,40,10,.45)}
+.panel>h3:first-child,.panel>h2:first-child{display:flex;align-items:center;gap:8px}
+.panel>h3:first-child::before,.panel>h2:first-child::before{content:"";width:18px;height:18px;flex:none;background:url(img/pv.svg) center/contain no-repeat}
+button{border-radius:999px;border-color:var(--line);background:var(--panel)}
+button:hover:not(:disabled){border-color:var(--laque);background:color-mix(in srgb,var(--or) 18%,var(--panel))}
+button.pri,.home .big,.cta{background:linear-gradient(180deg,#b3302f,var(--laque) 60%,var(--laque2));color:#fff3d6;border:1px solid var(--or);box-shadow:inset 0 1px 0 rgba(255,220,150,.45),0 2px 0 rgba(80,15,10,.35);border-radius:999px}
+button.pri:hover:not(:disabled){filter:brightness(1.08);background:linear-gradient(180deg,#b3302f,var(--laque) 60%,var(--laque2))}
+.home .big{font-family:'Yatra One',serif;font-weight:400;font-size:22px;letter-spacing:.03em}
+.tutoBtn{border-radius:999px;background:linear-gradient(180deg,#fff4d6,#f8dc9a);border-color:var(--or);color:var(--laque2)}
+.seg{border-color:var(--line)}.seg button{border-radius:0}.seg button.on{background:var(--laque);color:#fff3d6}
+.seat{background:var(--panel2)}
+.home .logo{color:var(--laque);text-shadow:0 2px 0 rgba(233,185,73,.55)}
+:root[data-theme=dark] .home .logo{color:var(--or)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .home .logo{color:var(--or)}}
+.home-wheel{box-shadow:0 0 0 5px var(--or),0 0 0 7px var(--laque),0 0 46px 14px rgba(255,196,80,.55)}
+.chip{background:var(--panel2);border-color:var(--line)}
+.oppc.cur{border-color:var(--laque);box-shadow:0 0 0 2px var(--or)}
+.wonder{border-left-color:var(--laque);background:linear-gradient(90deg,color-mix(in srgb,var(--or) 16%,var(--panel2)),var(--panel2) 40%)}
+.cell{border-color:color-mix(in srgb,var(--or) 70%,var(--line));background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--or) 14%,var(--panel2)),var(--panel2) 70%)}
+.matrix .mx-s{border-color:color-mix(in srgb,var(--or) 70%,var(--line))}
+.gcard{border-color:var(--laque);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--or)}
+.gcard.click{border-color:var(--or);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--or),0 0 0 3px var(--or)}
+.toast{background:var(--laque2);color:#fff3d6;border:1px solid var(--or);border-radius:999px}
+#tutoBubble{border-color:var(--or);box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px color-mix(in srgb,var(--or) 60%,transparent),0 10px 30px rgba(80,20,5,.35)}
+th{color:var(--brown);font-family:'Yatra One',serif;font-weight:400}
 </style>
 </head>
 <body>
 <header>
-  <div><h1 style="color:var(--brown)">La Roue des Vies</h1><div class="sub">Prototype de Régis Crosnier &amp; Matthieu Verdier</div></div>
+  <div><h1>La Roue des Vies</h1><div class="sub">Prototype de Régis Crosnier &amp; Matthieu Verdier</div></div>
   <nav id="nav">
     <a href="#jouer" data-v="jouer">Accueil</a>
     <a href="#simulateur" data-v="simulateur">Atelier</a>
