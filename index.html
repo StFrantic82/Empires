@@ -592,6 +592,7 @@ aside .city .cell{min-height:84px}
 .wc-sc .pv.sm,.wonders .wc-sc .pv.sm{font-size:10px}.card .ft .pv{font-size:17px}
 .card .hd .nm{white-space:nowrap;overflow:hidden;flex:1 1 0;min-width:0}
 .ft3 .ftt .tags{gap:1px}.ft3 .ftt .tagi{width:26px;height:26px}.card .ft.ft3{grid-template-columns:auto 1fr auto;gap:4px}
+.rti{width:16px;height:16px;vertical-align:-3px;margin-right:2px;display:inline-block}.rules-doc .bico.rti{vertical-align:-3px}.rules-doc svg.bico{vertical-align:-3px}
 </style>
 </head>
 <body>
@@ -702,13 +703,13 @@ function costHTML(card, cost) {
   const col = card.f === 'or' ? '#a88a1c' : card.f === 'ag' ? '#c27a12' : card.f === 'br' ? '#4f8a33' : '#5b4a36';
   return `<div class="cost" title="Coût : somme des niveaux des âmes dépensées${card.f ? (card.f === 'or' ? ' — œuvre de sage : dont une âme ancienne (niveau 5)' : card.f === 'br' ? ' — œuvre de jeunesse : uniquement des jeunes âmes (niveaux 1-2)' : ' — œuvre de maturité : dont une âme mûre (niveau 3 ou plus)') : ''}">${meepleNum(v, col)}</div>`;
 }
-// Remplace dans les textes d'effet les mots qui ont un pictogramme : tags, PV, Karma, autels
+// Remplace dans les textes d'effet les mots qui ont un icône : tags, PV, Karma, autels
 const TAGW = { 'Prospérité': 'P', 'Dévotion': 'M', 'Connaissance': 'S', 'Arts': 'C' };
 function tagImg(k) { return `<img class="ti" src="img/${TAGICON[k]}.svg" alt="${E.TAG_NAMES[k]}" title="${E.TAG_NAMES[k]}">`; }
 // Sur les tuiles Sanctuaire, les PV par rang sont déjà sur les cases : le texte commence par un lotus sans chiffre
 function wonderShort(W) { const t = E.wonderText(W), m = t.match(/^\d+ \/ \d+ \/ \d+ PV\s*/); return m ? `<span class="pv sm" title="${esc(W.vals.join(' / '))} PV"></span>` + iconize(t.slice(m[0].length)) : iconize(t); }
 function iconize(raw) {
-  // Chaque pictogramme est mis de côté sous un jeton, pour que les remplacements suivants ne touchent pas à ses attributs (alt, title)
+  // Chaque icône est mis de côté sous un jeton, pour que les remplacements suivants ne touchent pas à ses attributs (alt, title)
   const keep = [], tok = html => { keep.push(html); return `\u0001${keep.length - 1}\u0002`; };
   let s = esc(raw);
   s = s.replace(/(?:l’|l')?Autel (?:du Karma|de la Vie|de l’Enseignement|de l'Enseignement)/g, m => { const g = /Karma/.test(m) ? 'eru' : /Vie/.test(m) ? 'mar' : 'art'; return tok(`<img class="ti" src="img/${g}.svg" alt="${E.ALTAR[g]}" title="${E.ALTAR[g]}">`); });
@@ -1413,7 +1414,7 @@ function showHover(el, x, y) {
   if (top + hh > vh - 8) top = Math.max(8, vh - hh - 8);
   box.style.left = left + 'px'; box.style.top = top + 'px';
 }
-// Bulle d'aide en toutes lettres pour les œuvres (les cartes n'affichent que des pictogrammes)
+// Bulle d'aide en toutes lettres pour les œuvres (les cartes n'affichent que des icônes)
 function cardPlain(card) {
   const tx = E.cardText(card), L = [];
   const fr = card.f && AGES[card.f];
@@ -1554,11 +1555,40 @@ function rulesFigs() {
     wonder: ruleFig(`<div style="width:260px;margin:auto">${wonderPreviewHTML(W)}</div>`, 'Un Sanctuaire : trois places, la première vaut le plus.'),
   };
 }
+// Ajoute l'icône devant chaque élément du jeu cité dans les règles (une fois par paragraphe), hors figures et tableaux
+function rulesIcons(html) {
+  const img = (f, alt) => `<img class="rti" src="img/${f}.svg" alt="${alt}">`;
+  const tag = k => img(TAGICON[k], E.TAG_NAMES[k]);
+  const R = [
+    [/Autel de la Vie/, img('mar', '')], [/Autel de l’Enseignement/, img('art', '')], [/Autel du Karma/, img('eru', '')], [/Moine errant/, img('voy', '')],
+    [/Sanctuaires?/, img('sanctuaire', '')], [/Éveil/, img('eveil', '')], [/(?<!Autel du )Karma/, karmaIco('', 15)],
+    [/Prospérité/, tag('P')], [/Dévotion/, tag('M')], [/Connaissance/, tag('S')], [/(?<![\wÀ-ÿ])Arts(?![\wÀ-ÿ])/, tag('C')],
+    [/(?<![\wÀ-ÿ])âmes?(?![\wÀ-ÿ])/, `<svg class="rti" viewBox="0 0 20 22"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></svg>`],
+    [/(?<![\wÀ-ÿ])PV(?![\wÀ-ÿ])/, img('pv', '')], [/offrandes?/, '<svg class="rti" viewBox="0 0 16 20"><rect x="1.5" y="1" width="13" height="18" rx="2.5" fill="#fffaf0" stroke="#b98a4a" stroke-width="1.6"/><rect x="4" y="5" width="8" height="8" rx="1.6" fill="#c9a96a"/></svg>'],
+    [/[Tt]ourn(?:ez|e) (?:votre|sa|la) roue/, TURNICO.replace('width="22" height="22"', 'width="15" height="15"').replace('class="bico"', 'class="rti"')],
+  ];
+  let skip = 0, seen = new Set();
+  return html.split(/(<[^>]+>)/).map(seg => {
+    if (seg.startsWith('<')) {
+      if (/^<(figure|table|h2|h3)[\s>]/.test(seg)) skip++;
+      else if (/^<\/(figure|table|h2|h3)>/.test(seg)) skip = Math.max(0, skip - 1);
+      if (/^<(p|li)[\s>]/.test(seg)) seen = new Set();
+      return seg;
+    }
+    if (skip || !seg.trim()) return seg;
+    for (const [re, ico] of R) {
+      if (seen.has(re.source)) continue;
+      const m = seg.match(re); if (!m) continue;
+      seen.add(re.source); seg = seg.slice(0, m.index) + `\u0001${R.findIndex(r => r[0] === re)}\u0002` + seg.slice(m.index);
+    }
+    return seg.replace(/\u0001(\d+)\u0002/g, (x, i) => R[+i][1]);
+  }).join('');
+}
 function rulesHTML() {
   const F = rulesFigs();
-  return `<section class="panel rules-doc" style="max-width:860px">
+  return rulesIcons(`<section class="panel rules-doc" style="max-width:860px">
   <h2>Règles illustrées</h2>
-  <div class="rgloss-wrap"><h3>Les pictogrammes</h3>${F.icons}</div>
+  <div class="rgloss-wrap"><h3>Les icônes</h3>%%GLOSS%%</div>
   <p>Vous guidez des <strong>âmes</strong> sur la roue du Samsara. À chaque vie, elles gagnent en sagesse. Elles accomplissent des <strong>œuvres</strong> qui forment votre <strong>mandala</strong>, meurent et renaissent ; les plus anciennes atteignent l’<strong>Éveil</strong> et rejoignent les grands <strong>sanctuaires</strong>.</p>
   <h3>Mise en place</h3>
   <p>Chaque joueur commence avec 5 âmes sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2). Chaque joueur dispose de <strong>12 âmes à sa couleur</strong> : les 7 autres forment sa réserve. On ne peut jamais en avoir plus de 12 (roue, activations et Sanctuaires compris) : si la réserve est vide, on ne gagne plus d’âme. Au centre : 4 œuvres visibles de niveau 1 et 4 de niveau 2, une rangée de 4 offrandes visibles (paquet de 66 petites cartes) et, au-dessus, nombre de joueurs + 2 Sanctuaires tirés parmi 16.</p>
@@ -1608,7 +1638,7 @@ function rulesHTML() {
   <h3>Questions encore ouvertes</h3>
   <ul><li>Roue de départ (5 âmes : 2 au niveau 0, 2 au niveau 1, 1 au niveau 2).</li><li>Valeur des Sanctuaires, non réglés un par un.</li><li>Les bots jouent correctement mais pas comme des experts : tout est à confirmer en vraies parties.</li></ul>
 </div>
-  </section>`;
+  </section>`).replace('%%GLOSS%%', F.icons);
 }
 
 /* ---------- Export Google Sheets ---------- */
