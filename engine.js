@@ -58,7 +58,7 @@ const CARDS = [
   { id: 'a34', lvl: 1, g: 'art', name: 'Fondre la cloche', t: { M: 1 }, c: [1, 2], pv: 1, imm: [{ op: 'plan', n: 3 }], d: D.A },
   { id: 'a35', lvl: 1, g: 'eru', name: 'Tisser les robes', t: { M: 1 }, v: 2, c: [1, 2], pv: 2, perm: { discount: 1, tag: 'M' }, d: D.A },
   { id: 'a38', lvl: 1, g: 'eru', name: 'Allumer les lampes', t: { M: 1 }, c: [1, 1], pv: 1, end: { row: 'M', pts: 2 }, d: D.A },
-  { id: 'a39', lvl: 1, g: 'mar', f: 'or', sx: true, name: 'Danse des anciens', t: { M: 1, C: 1 }, c: [5], pv: 2, imm: [{ op: 'vp', n: 1 }], end: { atLvl: 5, pts: 2 }, d: D.A },
+  { id: 'a39', lvl: 1, g: 'mar', f: 'or', sx: true, name: 'Danse des anciens', t: { M: 1, C: 1 }, c: [5], pv: 3, end: { atLvl: 5, pts: 2 }, d: D.A },
   { id: 'a40', lvl: 1, g: 'art', name: 'Observer le soleil', t: { S: 1 }, c: [1, 1], pv: 1, imm: [{ op: 'turn', n: 1 }, { op: 'plan', n: 1 }], d: D.A },
   { id: 'a42', lvl: 1, g: 'eru', name: 'Classer les rouleaux', t: { S: 1 }, v: 2, c: [1, 2], pv: 1, perm: { on: 'discard', g: 'eru', ops: [{ op: 'plan', n: 1 }] }, d: D.A },
   { id: 'a43', lvl: 1, g: 'art', name: 'Dessiner les plans du temple', t: { S: 2 }, c: [1, 1], pv: 3, perm: { discount: 1, lvl: 2 }, d: D.A },

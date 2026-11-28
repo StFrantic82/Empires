@@ -402,6 +402,23 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 #tGuilds .gcard{align-self:stretch;width:128px;min-height:150px;gap:6px}
 #tGuilds .gcard img{width:36px;height:36px}#tGuilds .gcard .gn{font-size:13.5px}
 @media(max-width:700px){.mk-panel>.mk-peek.gsize{position:static;width:auto;margin-bottom:8px}.mk-panel #tGuilds{padding-right:0}}
+
+/* Tout le jeu en haut : à gauche le tour, les offrandes et les œuvres ; à droite la roue, l'Éveil et les autels */
+.mk-panel{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+.mk-panel #tGuilds{padding-right:0}
+.turnbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.mk-left #tPanel{margin:4px 0 6px}
+.mk-right{position:sticky;top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px;box-shadow:inset 0 0 0 3px var(--panel2),inset 0 0 0 4px color-mix(in srgb,var(--or) 45%,transparent)}
+.mk-right .wheel{max-width:250px}
+.mk-right .retz{margin:2px auto 0}
+.mk-right .matrix{font-size:11px;grid-template-columns:28px repeat(6,1fr)!important}
+.mk-right .mx-g span{display:none}.mk-right .mx-g{padding-right:0}
+.mk-right .matrix ~ .note{display:none}
+.spinhint{text-align:center;font-size:12.5px;font-weight:700;color:var(--brown)}
+@media(prefers-reduced-motion:no-preference){.hubglow{animation:hubglow 1.6s ease-in-out infinite}@keyframes hubglow{50%{opacity:.15;r:24}}}
+#tWheel.canspin [data-spin]:hover{stroke:#ffe08a;stroke-width:5}
+aside .city .cell{min-height:84px}
+@media(max-width:900px){.mk-panel{grid-template-columns:minmax(0,1fr)}.mk-right{position:static}}
 </style>
 </head>
 <body>
@@ -419,6 +436,7 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 <div id="toast" class="toast" hidden></div>
 
 <script src="firebase-config.js"></script>
+<script src="scenes.js"></script>
 <script src="engine.js"></script>
 <script>
 {
@@ -450,6 +468,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 /* ---------- Illustration simple d'une œuvre ---------- */
 function hash(s) { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
 function art(card, h = 74) {
+  if (window.SCENES && SCENES[card.id]) return `<svg class="art" viewBox="0 0 186 74" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCENES[card.id]()}</svg>`;
   const r = hash(card.name), main = Object.keys(card.t).sort((a, b) => card.t[b] - card.t[a])[0] || 'X';
   const col = { P: '#d98e04', M: '#b3261e', S: '#2e7d5b', C: '#2b5aa8', J: '#8a8a8a', X: '#7a6a55' }[main];
   const sky = { P: '#f7e6c4', M: '#f3d9d2', S: '#d9ecdf', C: '#d8e2f3', J: '#e6e2da', X: '#efe5d2' }[main];
@@ -612,7 +631,8 @@ function wheelSVG(p, color, opts = {}) {
   o.push(`<path d="M${f(ex)} ${f(ey)} Q${f(ex - 18)} ${f(ey + 4)} ${f(wx + 10)} ${f(wy - 10)}" fill="none" stroke="${ink}" stroke-width="2.5" marker-end="url(#ah)"/>
     <g transform="translate(${f(wx - 12)} ${f(wy - 12)})"><image href="img/eveil.svg" width="24" height="24"/></g>`);
   // moyeu
-  o.push(`<circle cx="${cx}" cy="${cy}" r="20" fill="${ink}" stroke="#c9a227" stroke-width="3"/>
+  if (opts.spin) o.push(`<circle class="hubglow" cx="${cx}" cy="${cy}" r="34" fill="#ffd75e" opacity=".75" pointer-events="none"/><circle cx="${cx}" cy="${cy}" r="25" fill="none" stroke="#fff3b0" stroke-width="3" pointer-events="none"/>`);
+  o.push(`<circle cx="${cx}" cy="${cy}" r="20" fill="${ink}" stroke="#c9a227" stroke-width="3"${opts.spin ? ` data-spin="1" style="cursor:pointer" tabindex="0" role="button" aria-label="Tourner la roue d’un cran"` : ''}/>
     <path d="M${cx - 9} ${cy + 2} a9 9 0 1 1 6 7" fill="none" stroke="#fbf7ee" stroke-width="2.2" marker-end="url(#ah2)"/>
     <defs><marker id="ah2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#fbf7ee"/></marker></defs>`);
   return `<svg class="wheel" viewBox="-22 -22 344 344" role="img" aria-label="Roue des âmes : ${p.wheel.map((n, l) => `${n} au niveau ${l}`).join(', ')}">${o.join('')}</svg>`;
@@ -645,7 +665,7 @@ function askLeave(then) {
   m.onclick = e => { const b = e.target.closest('[data-ld]'); if (b) close(b.dataset.ld === '1'); else if (e.target === m) close(false); };
   m.querySelector('[data-ld="0"]').focus();
 }
-document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-peek]')) { e.preventDefault(); e.target.click(); } });
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-spin]')) { e.preventDefault(); act({ type: 'spin' }); return; } if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-peek]')) { e.preventDefault(); e.target.click(); } });
 document.addEventListener('click', e => { const pk = e.target.closest('[data-peek]'); if (pk) { e.preventDefault(); const w = $('#tWheel'); if (w) w.scrollIntoView({ behavior: 'smooth', block: 'center' }); } });
 document.addEventListener('click', e => {
   const a = e.target.closest('#nav a[data-v="jouer"]'); if (!a || !G) return;
@@ -752,11 +772,10 @@ function gameHTML() {
     return `<div id="tMarket${L}"><h3>Œuvres de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
   }).join('');
   const gpick = my && needGuild() && !G.pending;
-  const PEEK = `<aside class="mk-peek gsize" data-peek tabindex="0" role="button" title="Roue de ${esc(seatName(pi))} — cliquer pour aller au plateau" aria-label="Rappel de la roue de ${esc(seatName(pi))}, Karma ${p.plans || 0}${G.opts.wonderMode === 'track' ? `, Éveil ${p.retired || 0} sur ${G.opts.retireStep}` : ''}. Aller au plateau.">${wheelSVG(p, WOOD, {})}
-          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 20)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/eveil.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
   const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
+  const canSpin = my && !G.pending && G.opts.guildChoice && G.mainDone && G.lastMain === 'guild' && !G.bonusBuilt;
   const opps = G.players.map((q, i) => {
     const s = E.scoreOf(G, i);
     return `<div class="oppc ${i === G.cur ? 'cur' : ''}"><div class="row" style="justify-content:space-between"><strong><span class="dot" style="background:${seats[i].color}"></span> ${esc(seatName(i))}</strong><span class="chip pvi">${pvIcon(s.total, 'sm')}</span></div>
@@ -774,20 +793,23 @@ function gameHTML() {
   <section class="panel" style="margin-bottom:14px"><h2>Sanctuaires</h2><div class="wonders">${wonders}</div></section>
   <div class="table">
     <div style="display:grid;gap:14px">
-      <section class="panel mk-panel">${PEEK}<h2>Marché</h2>${guildRow}${market}</section>
-      <section class="panel ${G.pending && my ? 'prompt' : ''}">
-        <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
-        <div id="tPanel">${panel}</div>
-        <div class="me" style="margin-top:12px">
-          <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
-            ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Âges : <b class="zone age" style="background:#d5ebc0"><img src="img/age1.svg" alt="">jeune 1-2</b> <b class="zone age" style="background:#f7d796"><img src="img/age2.svg" alt="">mûre 3-4</b> <b class="zone age" style="background:#f1e2a8"><img src="img/age3.svg" alt="">ancienne 5</b></p>` : ''}</div>
-          <div><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div>
-            <p class="note">Mandala 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. Passez la souris sur une œuvre pour revoir ses effets.</p></div>
+      <section class="panel mk-panel ${G.pending && my ? 'prompt' : ''}">
+        <div class="mk-left">
+          <div class="turnbar"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
+            <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
+          <div id="tPanel">${panel}</div>
+          ${guildRow}${market}
         </div>
+        <aside class="mk-right" aria-label="Votre roue et vos autels">
+          <div id="tWheel" class="${canSpin ? 'canspin' : ''}">${wheelSVG(p, WOOD, { pick: my && pickingLevel(), spin: canSpin })}</div>
+          ${canSpin ? '<div class="spinhint">Cliquez le moyeu pour tourner la roue d’un cran</div>' : ''}
+          ${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
+          ${matrixHTML(p)}
+        </aside>
       </section>
     </div>
     <aside style="display:grid;gap:14px">
+      <section class="panel"><h2>Votre mandala</h2><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div><p class="note" style="margin-bottom:0">Chaque nouvelle œuvre touche une œuvre déjà accomplie.</p></section>
       <section class="panel"><h2>Joueurs</h2><div class="opp">${opps}</div></section>
       <section class="panel"><h2>Journal</h2><div class="log">${G.log.slice().reverse().map(l => `<div>${esc(l)}</div>`).join('')}</div></section>
     </aside>
@@ -1366,8 +1388,9 @@ async function syncSheet(auto) {
 
 /* ---------- Événements ---------- */
 document.addEventListener('click', e => {
-  const t = e.target.closest('button,[data-mk],[data-gc],[data-guild],[data-cell],[data-act],[data-lvl]'); if (!t) return;
+  const t = e.target.closest('button,[data-mk],[data-gc],[data-guild],[data-cell],[data-act],[data-lvl],[data-spin]'); if (!t) return;
   const id = t.id, ds = t.dataset;
+  if (ds.spin) return act({ type: 'spin' });
   if (ds.seat) { const [pref, i, k] = ds.seat.split(':'); seatPick[pref][+i] = k; return render(); }
   if (id === 'startLocal') { tutoStop(); return startLocal(); }
   if (id === 'tutoBtn') return startTutorial();
