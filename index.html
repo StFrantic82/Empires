@@ -629,6 +629,7 @@ aside .city .cell{min-height:84px}
 .card .ft .pv.big,.pv.big{width:62px!important;height:62px!important;font-size:22px!important;padding-top:5.8px!important}
 .card .ft .lv{font-size:13px}
 .pnp-card .card .ft{min-height:0}.pnp-card .card .ft .tagi{width:18px;height:18px}.pnp-card .card .ft .pv.big{width:32px!important;height:32px!important;font-size:12px!important;padding-top:3px!important}
+.sxbar{flex:none;background:#7a1f1f;color:#fbeee0;font-size:11px;line-height:1.25;text-align:center;padding:3px 6px}.sxbar b{font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-right:4px}.pnp-card .sxbar{font-size:7px;padding:1px 4px}
 </style>
 </head>
 <body>
@@ -776,7 +777,6 @@ function cardHTML(card, o = {}) {
   // le prérequis n'est pas répété dans le texte : ses icônes sont à côté du coût
   // déclencheur (« Quand… », « Si… ») sur la première ligne, l'effet sur la suivante
   const iz = t => { const s = iconize(t); const k = s.indexOf(' : '); return /^(Quand|Si|Chaque fois)/.test(t) && k > 0 ? `<span class="trg">${s.slice(0, k)} :</span><br>${s.slice(k + 3)}` : s; };
-  if (tx.sx) fx.push(`<div><b class="k-sx">Sacrifice</b>${iz(tx.sx)}</div>`);
   if (tx.gd) fx.push(`<div><b class="k-gd">Autel −1</b>${iz(tx.gd)}</div>`);
   if (tx.imm) fx.push(`<div><b class="k-imm">Immédiat</b>${iz(tx.imm)}</div>`);
   if (tx.act) fx.push(`<div><b class="k-act">Activation</b>${iz(tx.act)}</div>`);
@@ -788,7 +788,7 @@ function cardHTML(card, o = {}) {
   // Âge exigé : affiché une seule fois, dans le bandeau du haut sous le coût (en rouge s'il manque)
   const ageMiss = o.can && !o.can.ok && o.can.age;
   const AGESHORT = { br: 'jeunes âmes seulement (1-2)', ag: 'une âme mûre (3+)', or: 'une âme ancienne (5)' };
-  const ageBar = ''; // l'âge exigé est une icône à côté du coût
+  const ageBar = card.sx ? `<div class="sxbar" title="${esc(tx.sx)}"><b>Sacrifice</b> les âmes dépensées retournent dans votre réserve</div>` : ''; // l'âge exigé est une icône à côté du coût ; le Sacrifice se déclenche au paiement
   // Zone de coût (haut gauche) : coût + prérequis + réduction de guilde. Zone d'apport (bas droite) : tags fournis + PV.
   const ICON = TAGICON;
   const reqI = [];
