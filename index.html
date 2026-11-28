@@ -419,6 +419,45 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 #tWheel.canspin [data-spin]:hover{stroke:#ffe08a;stroke-width:5}
 aside .city .cell{min-height:84px}
 @media(max-width:900px){.mk-panel{grid-template-columns:minmax(0,1fr)}.mk-right{position:static}}
+
+/* ---------- Print & Play ---------- */
+.pnp-sheet{background:#fff;color:#1f1c17;width:210mm;min-height:297mm;margin:16px auto;padding:9mm;box-shadow:0 2px 12px rgba(0,0,0,.15);box-sizing:border-box}
+.pnp-title{font-family:'Yatra One',serif;font-size:11pt;color:#6e4128;margin-bottom:4mm;border-bottom:1px solid #d9cdb8;padding-bottom:1mm}
+.pnp-grid{display:grid;grid-template-columns:repeat(3,63mm);grid-auto-rows:88mm;gap:0;justify-content:center}
+.pnp-card{width:63mm;height:88mm;outline:.2mm dashed #aaa;display:flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box}
+.pnp-card>.card{width:60mm;height:85mm;min-height:0;box-shadow:none;transform-origin:center}
+.pnp-card .card .art{height:22mm}
+.pnp-off .po-in{width:58mm;height:83mm;border:2px solid #b98a4a;border-radius:3mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3mm;text-align:center;padding:4mm;box-sizing:border-box;background:#fffaf0}
+.pnp-off img{width:20mm;height:20mm}.po-n{font-family:'Yatra One',serif;font-size:15pt;color:#6e4128}.po-t{font-size:8.5pt}.po-r{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm}
+.pnp-wgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:4mm}
+.pnp-w .wprev{width:auto;height:58mm;box-sizing:border-box}
+.pnp-board{display:grid;grid-template-columns:95mm 1fr;gap:6mm;border:1px solid #cdbb9a;border-radius:4mm;padding:5mm;height:130mm;margin-bottom:6mm;box-sizing:border-box;background:#fbf7ee}
+.pb-l .wheel{max-width:none;width:92mm}.pb-ev{display:flex;align-items:center;justify-content:center;gap:3mm;margin-top:2mm}.pb-ev img{width:9mm}.pb-slot{width:9mm;height:10mm;border:1px dashed #6d3b8e;border-radius:3mm}
+.pb-h{font-family:'Yatra One',serif;color:#6e4128;font-size:12pt}
+.pnp-board .matrix{grid-template-columns:24mm repeat(6,1fr)!important}
+.pb-city{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5mm}.pb-city div{height:16mm;border:1px dashed #b98a4a;border-radius:2mm}
+.pnp-tok{display:flex;flex-wrap:wrap;gap:0;margin-bottom:4mm}
+.tk{width:13mm;height:13mm;outline:.2mm dashed #aaa;display:grid;place-items:center}.tk svg{width:10mm;height:10mm}.tk .mk{width:9mm;height:9mm;border-radius:50%;border:1px solid #333}.tk-first{width:26mm;height:26mm}.tk-first img{width:22mm}
+.pnp-sheet h3{font-size:11pt;margin:2mm 0}
+.pnp-rules{font-size:9.5pt;column-count:2;column-gap:7mm}.pnp-rules h2,.pnp-rules h3{break-after:avoid}.pnp-rules table{font-size:8.5pt}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff!important}
+  header,header::after,.no-print,#tutoBubble,#tipBox,#hoverCard,.toast{display:none!important}
+  main{padding:0!important;max-width:none!important}
+  .pnp-sheet{margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* Haut : tour + offrandes | roue + (Éveil, autels) côte à côte ; dessous : les 4 cartes de chaque niveau sur toute la largeur */
+.mk-panel{grid-template-columns:minmax(0,1fr) auto}
+.mk-right{position:static;display:flex;gap:10px;align-items:center}
+.mk-wh{width:210px}.mk-right .wheel{max-width:210px}
+.mk-side{width:250px}
+.mk-market{grid-column:1/-1}
+@media(max-width:1180px){.mk-panel{grid-template-columns:minmax(0,1fr)}.mk-right{justify-content:center;flex-wrap:wrap}}
+#tGuilds .gcard{width:104px;padding:6px 4px}#tGuilds .cards{gap:7px}#tGuilds .gcard .gn{font-size:12px}
+.pnp-board{height:124mm;margin-bottom:4mm;overflow:hidden;grid-template-columns:86mm 1fr}.pb-l .wheel{width:84mm}.pnp-sheet{height:297mm;overflow:hidden}.pnp-sheet.pnp-flow{height:auto;overflow:visible}
 </style>
 </head>
 <body>
@@ -430,6 +469,7 @@ aside .city .cell{min-height:84px}
     <a href="#simulateur" data-v="simulateur">Atelier</a>
     <a href="#cartes" data-v="cartes">Cartes</a>
     <a href="#regles" data-v="regles">Règles</a>
+    <a href="#imprimer" data-v="imprimer">Print &amp; Play</a>
   </nav>
 </header>
 <main id="app"></main>
@@ -551,6 +591,7 @@ function soulIco(l, s = 30) { return `<svg class="bico" width="${s}" height="${s
 function upIco(n, s = 30) { return `<span class="bgrp" role="img" aria-label="${n} niveau${n > 1 ? 'x' : ''} d’amélioration"><svg class="bico" width="${s}" height="${s * 1.3}" viewBox="0 0 20 26"><path d="M10 0.6l5 5.2h-3v3.4H8V5.8H5z" fill="#2e7d5b"/><g transform="translate(0 4.4)"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></g></svg><b>${n > 1 ? '×' + n : ''}</b></span>`; }
 function karmaIco(n, s = 30) { return `<svg class="bico" width="${s}" height="${s}" viewBox="0 0 24 24" role="img" aria-label="${n} Karma"><circle cx="12" cy="12" r="11.4" fill="#5a3592" stroke="#2a1a45" stroke-width=".8"/><circle cx="12" cy="12" r="9.9" fill="none" stroke="#d9c4ff" stroke-width=".9" stroke-dasharray="1.4 1.6"/><text x="12" y="16.9" text-anchor="middle" font-family="'Source Sans 3',system-ui,sans-serif" font-size="${String(n).length > 1 ? 11.5 : 14.5}" font-weight="800" fill="#fff">${n}</text></svg>`; }
 const TURNICO = `<svg class="bico" width="22" height="22" viewBox="0 0 24 24" role="img" aria-label="La roue tourne"><circle cx="12" cy="12" r="11" fill="#5b4a36"/><path d="M17.5 12a5.5 5.5 0 1 1-1.8-4.1" fill="none" stroke="#f4d98a" stroke-width="2.2" stroke-linecap="round"/><path d="M17.8 4.6v4.6h-4.6z" fill="#f4d98a"/></svg>`;
+function jokerIco(g, k, s) { if (g === 'mar') return soulIco(Math.max(0, Math.min(5, k - 2)), s); return k - 1 > 0 ? blessIco(g, k - 1, s) : `<span class="mute" style="font-size:${Math.round(s * .6)}px">∅</span>`; }
 function blessIco(g, k, s) { return g === 'mar' ? soulIco(Math.min(5, k - 1), s) : g === 'art' ? upIco(k, s) : karmaIco(k, s); }
 function meepleNum(v, color = '#5b4a36', stroke = '') { return `<div class="mcost"><svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${color}"/></svg><span>${esc(v)}</span></div>`; }
 // Icône de points de victoire : laurier avec la valeur en vert
@@ -641,7 +682,7 @@ function wheelSVG(p, color, opts = {}) {
 function route() {
   const h = location.hash.replace('#', '');
   if (h === 'table') { view = 'jouer'; navSync(); if (!$('#table')) render(); $('#table') && $('#table').scrollIntoView({ behavior: 'smooth' }); return; }
-  view = ['jouer', 'simulateur', 'cartes', 'regles'].includes(h) ? h : 'jouer';
+  view = ['jouer', 'simulateur', 'cartes', 'regles', 'imprimer'].includes(h) ? h : 'jouer';
   render();
 }
 // Onglets : « Partie » n'apparaît que pendant une partie ; « Accueil » quitte la partie après confirmation
@@ -681,6 +722,7 @@ function render() {
   if (view === 'jouer') app.innerHTML = G ? gameHTML() : setupHTML();
   else if (view === 'simulateur') { app.innerHTML = simHTML(); restoreSimForm(); }
   else if (view === 'cartes') app.innerHTML = cardsHTML();
+  else if (view === 'imprimer') app.innerHTML = pnpHTML();
   else app.innerHTML = rulesHTML();
   if (view === 'jouer' && G) resolveNames();
   tutoSync();
@@ -798,14 +840,15 @@ function gameHTML() {
           <div class="turnbar"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
             <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
           <div id="tPanel">${panel}</div>
-          ${guildRow}${market}
+          ${guildRow}
         </div>
         <aside class="mk-right" aria-label="Votre roue et vos autels">
-          <div id="tWheel" class="${canSpin ? 'canspin' : ''}">${wheelSVG(p, WOOD, { pick: my && pickingLevel(), spin: canSpin })}</div>
-          ${canSpin ? '<div class="spinhint">Cliquez le moyeu pour tourner la roue d’un cran</div>' : ''}
+          <div class="mk-wh"><div id="tWheel" class="${canSpin ? 'canspin' : ''}">${wheelSVG(p, WOOD, { pick: my && pickingLevel(), spin: canSpin })}</div>
+          ${canSpin ? '<div class="spinhint">Cliquez le moyeu pour tourner la roue d’un cran</div>' : ''}</div><div class="mk-side">
           ${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
           ${matrixHTML(p)}
-        </aside>
+        </div></aside>
+        <div class="mk-market">${market}</div>
       </section>
     </div>
     <aside style="display:grid;gap:14px">
@@ -817,7 +860,7 @@ function gameHTML() {
 }
 // Ce qu'une offrande rapporte à ce joueur, selon le rang qu'elle prendrait dans sa rangée
 function guildGain(p, g) {
-  if (g === 'voy') return `<div class="bless">${['mar', 'art', 'eru'].map(x => blessIco(x, p.guilds[x].length + 1, 20)).join('<span class="mute">/</span>')}</div><span class="gtip">Joker : posez-la sur l’autel de votre choix et recevez sa bénédiction.</span>`;
+  if (g === 'voy') return `<div class="bless">${['mar', 'art', 'eru'].map(x => jokerIco(x, p.guilds[x].length + 1, 20)).join('<span class="mute">/</span>')}</div><span class="gtip">Joker : posez-la sur l’autel de votre choix ; sa bénédiction vaut un cran de moins que la case.<br>${['mar', 'art', 'eru'].map(x => `${esc(E.GUILD_NAMES[x])} : ${iconize(E.jokerText(x, p.guilds[x].length + 1))}`).join('<br>')}</span>`;
   const k = p.guilds[g].length + 1, col = E.GUILDS.every(x => x === g || p.guilds[x].length >= k);
   return `<div class="bless" >${blessIco(g, k, 34)}${col ? `<span class="mute">+</span>${TURNICO}` : ''}</div><span class="gtip">${iconize(E.matrixText(g, k))}${col ? '<br><b>Puis la roue tourne</b> (colonne complète).' : ''}</span>`;
 }
@@ -913,7 +956,7 @@ function pendingHTML() {
     const lbl = pd.label === 'line' ? ['La ligne', 'La colonne'] : pd.options.map(o => E.opsTxt(o));
     return `<div class="row"><strong>${pd.label === 'line' ? 'Activer quelle ligne de le mandala ?' : 'Choisissez :'}</strong>${lbl.map((t, i) => `<button data-res="${i}">${esc(t)}</button>`).join('')}</div>`;
   }
-  if (pd.type === 'guildRow') return `<div><strong>Le moine errant : sur quel autel déposer son offrande ?</strong><div class="row" style="margin-top:6px">${pd.options.map(g => `<button data-ress="${g}"><img src="img/${g}.svg" alt="" style="width:20px;height:20px;vertical-align:-5px;border-radius:3px"> ${E.GUILD_NAMES[g]} : ${esc(E.matrixText(g, p.guilds[g].length + 1))}${E.GUILDS.every(x => x === g || p.guilds[x].length >= p.guilds[g].length + 1) ? ' + la roue tourne' : ''}</button>`).join('')}</div></div>`;
+  if (pd.type === 'guildRow') return `<div><strong>Le moine errant : sur quel autel déposer son offrande ?</strong> <span class="small mute">(joker : bénédiction d’un cran de moins)</span><div class="row" style="margin-top:6px">${pd.options.map(g => `<button data-ress="${g}"><img src="img/${g}.svg" alt="" style="width:20px;height:20px;vertical-align:-5px;border-radius:3px"> ${E.GUILD_NAMES[g]} : ${esc(E.jokerText(g, p.guilds[g].length + 1))}${E.GUILDS.every(x => x === g || p.guilds[x].length >= p.guilds[g].length + 1) ? ' + la roue tourne' : ''}</button>`).join('')}</div></div>`;
   if (pd.type === 'takeGuild') return `<div><strong>Déposez une offrande et recevez sa bénédiction :</strong><div class="row" style="margin-top:6px">${pd.options.map(i => { const c = E.BY_ID[G.grow[i]]; return `<button data-res="${i}"><img src="img/${c.g}.svg" alt="" style="width:18px;height:18px;vertical-align:-4px;border-radius:3px"> ${esc(c.name)}${c.g === 'voy' ? ' (joker)' : ' : ' + esc(E.matrixText(c.g, p.guilds[c.g].length + 1))}</button>`; }).join('')}</div></div>`;
   if (pd.type === 'retire') { const need = E.retireNeed(p, G);
     return `<div><strong>Une âme dépasse la case 5. Que fait-il ?</strong><div class="row" style="margin-top:6px"><button data-ress="zone">Attendre dans la zone d’Éveil (${(p.retired || 0) + 1} / ${need}${(p.retired || 0) + 1 >= need ? ' : marqueur Sanctuaire !' : ''})</button><button data-ress="zero">Revenir tout de suite au niveau 0</button></div></div>`; }
@@ -1305,6 +1348,38 @@ function csv() {
 }
 
 /* ---------- Règles ---------- */
+
+/* ---------- Print & Play : généré à partir des données du jeu, donc toujours à jour ---------- */
+function pnpHTML() {
+  const chunk = (a, n) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+  const sheet = (title, inner, cls = '') => `<section class="pnp-sheet ${cls}"><div class="pnp-title">La Roue des Vies — ${title}</div>${inner}</section>`;
+  // œuvres : 9 par page, au format 63 × 88 mm
+  const works = chunk(E.CARDS, 9).map((g, i, all) => sheet(`Œuvres (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.map(c => `<div class="pnp-card">${cardHTML(c)}</div>`).join('')}</div>`)).join('');
+  // offrandes : autant d'exemplaires que dans la pioche
+  const offer = g => `<div class="pnp-card pnp-off"><div class="po-in"><img src="img/${g}.svg" alt=""><div class="po-n">${esc(E.GUILD_NAMES[g])}</div>${g === 'voy' ? `<div class="po-t">Joker : posez-la sur l’autel de votre choix ; bénédiction d’un cran de moins.</div>` : `<div class="po-t">Se pose à la suite sur votre ${esc(E.ALTAR[g])}.<br>Bénédiction selon son rang :</div><div class="po-r">${[1, 2, 3, 4, 5, 6].map(k => `<span>${blessIco(g, k, 18)}</span>`).join('')}</div>`}</div></div>`;
+  const offers = E.GCARDS.map(c => offer(c.g));
+  const offs = chunk(offers, 9).map((g, i, all) => sheet(`Offrandes (${i + 1}/${all.length})`, `<div class="pnp-grid">${g.join('')}</div>`)).join('');
+  // Sanctuaires
+  const wond = chunk(E.WONDERS, 8).map((g, i, all) => sheet(`Sanctuaires (${i + 1}/${all.length})`, `<div class="pnp-wgrid">${g.map(W => `<div class="pnp-w">${wonderPreviewHTML(W)}</div>`).join('')}</div>`)).join('');
+  // plateaux joueurs : roue, Éveil, autels, mandala
+  const blank = { wheel: [0, 0, 0, 0, 0, 0], guilds: { mar: [], art: [], eru: [] }, retired: 0, plans: 0 };
+  const board = col => `<div class="pnp-board"><div class="pb-l">${wheelSVG(blank, WOOD, {})}<div class="pb-ev"><img src="img/eveil.svg" alt=""> <b>Éveil</b> <span class="pb-slot"></span><span class="pb-slot"></span></div></div>
+    <div class="pb-r"><div class="pb-h"><span class="dot" style="background:${col}"></span> Autels</div>${matrixHTML(blank).replace(/<p class="note"[\s\S]*?<\/p>/, '')}
+    <div class="pb-h" style="margin-top:6px">Mandala</div><div class="pb-city">${Array.from({ length: 9 }, () => '<div></div>').join('')}</div></div></div>`;
+  const boards = chunk(SEATS.map(s => s.c), 2).map((g, i) => sheet(`Plateaux joueurs (${i + 1}/2)`, g.map(board).join(''))).join('');
+  // pions : âmes (flammes), jetons Karma, marqueurs Sanctuaire par couleur
+  const flame = `<svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></svg>`;
+  const tokens = sheet('Pions à découper', `<h3>Âmes (60)</h3><div class="pnp-tok">${Array.from({ length: 60 }, () => `<span class="tk">${flame}</span>`).join('')}</div>
+    <h3>Karma (40 jetons de 1, 10 de 5)</h3><div class="pnp-tok">${Array.from({ length: 40 }, () => `<span class="tk">${karmaIco(1, 34)}</span>`).join('')}${Array.from({ length: 10 }, () => `<span class="tk">${karmaIco(5, 34)}</span>`).join('')}</div>
+    <h3>Marqueurs Sanctuaire (4 par joueur) et premier joueur</h3><div class="pnp-tok">${SEATS.map(s => Array.from({ length: 4 }, () => `<span class="tk"><span class="mk" style="background:${s.c}"></span></span>`).join('')).join('')}<span class="tk tk-first"><img src="img/samsara.svg" alt=""></span></div>`);
+  const rules = sheet('Règles', `<div class="pnp-rules">${rulesHTML().replace(/<section[^>]*>/, '').replace(/<\/section>\s*$/, '')}</div>`, 'pnp-flow');
+  const n = E.CARDS.length, ng = E.GCARDS.length, nw = E.WONDERS.length;
+  return `<section class="panel no-print"><h2>Print &amp; Play</h2>
+    <p>Ce document est construit directement à partir des données du jeu : il est <strong>toujours à jour</strong> (cartes, coûts, PV, effets, réglages enregistrés). Cliquez sur « Imprimer / PDF » et choisissez <em>Enregistrer au format PDF</em>, format A4, marges par défaut, <em>graphiques d’arrière-plan</em> activés.</p>
+    <p class="small mute">Contenu : ${n} œuvres, ${ng} offrandes, ${nw} Sanctuaires, 4 plateaux joueurs, pions, règles. Cartes au format 63 × 88 mm.</p>
+    <button class="pri" id="pnpPrint">Imprimer / PDF</button></section>
+  <div class="pnp">${rules}${boards}${works}${offs}${wond}${tokens}</div>`;
+}
 function rulesHTML() {
   return `<section class="panel" style="max-width:860px">
   <h2>Règles telles que l’app les joue</h2>
@@ -1322,7 +1397,7 @@ function rulesHTML() {
   <tr><td><strong>Autel de l’Enseignement</strong> : niveaux à répartir entre vos âmes</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr>
   <tr><td><strong>Autel du Karma</strong> : Karma gagné</td><td class="n">1</td><td class="n">2</td><td class="n">3</td><td class="n">4</td><td class="n">5</td><td class="n">6, 7…</td></tr></tbody></table></div>
   <p><strong>L’équilibre.</strong> Dès qu’une colonne contient une offrande sur chaque autel (votre 1re offrande sur chacun, puis votre 2e, etc.), <strong>votre roue tourne</strong>. Honorer un seul autel renforce ses bénédictions ; honorer les trois fait tourner la roue.</p>
-  <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, qui donne sa bénédiction.</p>
+  <p><strong>Moine errant (joker).</strong> Il dépose son offrande sur l’autel de votre choix, mais sa bénédiction vaut un cran de moins que la case (Vie : une âme d’un niveau de moins ; Enseignement et Karma : 1 de moins). Il compte normalement pour l’équilibre des colonnes.</p>
   <p><strong>Karma.</strong> Il se cumule. <strong>1 Karma</strong> réduit de 1 le coût d’une œuvre (utilisé automatiquement). <strong>2 Karma</strong> permettent d’ignorer <em>un</em> élément de prérequis d’une œuvre : un tag manquant, un marqueur Sanctuaire manquant, ou l’âge exigé (on peut en ignorer plusieurs : 2 Karma chacun). Le Karma ne vaut aucun point, sauf effet de carte.</p>
   <p><strong>Âge exigé et réductions.</strong> Une œuvre de maturité coûte toujours au moins 3, une œuvre de sage au moins 5 : il faut de toute façon y dépenser cette âme. Les réductions (Karma, autels, effets) ne descendent pas en dessous ; le Karma en trop n’est pas dépensé.</p>
   <p>Vos autels servent aussi aux réductions d’autel et à certains scores (Réunir les fidèles, Commercer au port, Lumbini…). La première âme de l’Autel de la Vie s’incarne au niveau 0 : elle ne vient que s’il y a moins de 3 âmes dans votre case 0.</p>
@@ -1414,6 +1489,7 @@ document.addEventListener('click', e => {
   if (!G) return;
   if (ds.gc != null) return act({ type: 'guild', gi: +ds.gc });
   if (id === 'spin') return act({ type: 'spin' });
+  if (id === 'pnpPrint') return window.print();
   if (ds.mk && isMyTurn() && canBuildNow()) { const [L, idx] = ds.mk.split(':').map(Number); sel = sel && sel.L === L && sel.idx === idx ? null : { L, idx }; pickFor = null; return render(); }
   if (ds.guild) return act({ type: 'guild', L: +ds.guild });
   if (ds.cell != null && sel) {

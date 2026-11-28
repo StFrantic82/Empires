@@ -580,21 +580,30 @@ function matrixOps(g, k) {
   if (g === 'art') return [{ op: 'progress', n: k, by: 1 }];
   return [{ op: 'plan', n: k }];
 }
+// Moine errant (joker) : se pose sur l'autel de son choix, mais sa bénédiction vaut un cran de moins
+function jokerOps(g, k) {
+  if (g === 'mar') return [{ op: 'gain', n: 1, lvl: Math.max(0, Math.min(5, k - 2)), free: k > 2 }];
+  return k - 1 > 0 ? matrixOps(g, k - 1) : [];
+}
+function jokerText(g, k) {
+  if (g === 'mar') return `Une âme s’incarne au niveau ${Math.max(0, Math.min(5, k - 2))}`;
+  return k - 1 > 0 ? matrixText(g, k - 1) : 'Aucune bénédiction (rang 1, joker à −1)';
+}
 function matrixText(g, k) {
   if (g === 'mar') return `Une âme s’incarne au niveau ${Math.min(5, k - 1)}`;
   if (g === 'art') return `${k} niveau${k > 1 ? 'x' : ''} à répartir entre vos âmes`;
   return `Gagnez ${k} Karma`;
 }
 function guildColumns(p) { return Math.min(...GUILDS.map(x => p.guilds[x].length)); }
-function matrixEffect(G, pi, g) {
+function matrixEffect(G, pi, g, joker) {
   const p = G.players[pi], k = p.guilds[g].length + 1;
   const before = guildColumns(p), after = Math.min(...GUILDS.map(x => p.guilds[x].length + (x === g ? 1 : 0)));
-  const ops = matrixOps(g, k);
+  const ops = joker ? jokerOps(g, k) : matrixOps(g, k);
   if (after > before) { ops.push({ op: 'turn', n: 1 }); p.st.cols = (p.st.cols || 0) + 1; log(G, `${p.name} honore les trois autels : sa roue tourne.`); }
   push(G, ops, false);
 }
-function chainGuild(G, pi, g) {
-  if (G.opts.matrix) return matrixEffect(G, pi, g);
+function chainGuild(G, pi, g, joker) {
+  if (G.opts.matrix) return matrixEffect(G, pi, g, joker);
   if (G.opts.guildFixed) { // la nouvelle carte + chaque carte déjà posée (selon guildChain) donnent l'effet de la guilde
     const n = G.opts.guildChain ? Math.min(G.opts.guildChain, G.players[pi].guilds[g].length) : 0;
     for (let i = 0; i <= n; i++) push(G, G.opts.guildFixed[g], false);
@@ -786,7 +795,7 @@ function resolve(G, v) {
     else if (v === 'zone') addToZone(G, pi);
     else throw new Error('Choix invalide');
   }
-  else if (pd.type === 'guildRow') { if (!GUILDS.includes(v)) throw new Error('Rangée invalide'); G.pending = null; chainGuild(G, pi, v); p.guilds[v].push(pd.id); log(G, `Le moine errant de ${p.name} rejoint l’${ALTAR[v]}.`); }
+  else if (pd.type === 'guildRow') { if (!GUILDS.includes(v)) throw new Error('Rangée invalide'); G.pending = null; chainGuild(G, pi, v, true); p.guilds[v].push(pd.id); log(G, `Le moine errant de ${p.name} rejoint l’${ALTAR[v]}.`); }
   else if (pd.type === 'eject') { if (!pd.options.includes(v)) throw new Error('Sanctuaire invalide'); G.pending = null; placeOnWonder(G, pi, v); }
   else if (pd.type === 'retrigger') {
     G.pending = null;
@@ -1266,7 +1275,7 @@ const API = {
   GCARDS, TAGS, TAG_NAMES, GUILDS, GUILD_FIXED, GUILD_NAMES, prereqOk, CARDS, BASE_CARDS, BASE_WONDERS, applyOverrides, BY_ID, WONDERS, W_BY_ID, DEFAULT_OPTS,
   reqMissing, bypassInfo, bypassPlan, cardValue, discountFor, frameMin, newGame, apply, resolve, clone, canAct, mainOptions, pendingOptions, legalCells, effectiveCost, autoPay, payOk,
   tagCounts, hasAllTypes, diffTags, scoreOf, endPoints, wheelCount, placedOnWonders, wonderPoints,
-  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, matrixOps, matrixText, guildColumns, BYPASS_COST,
+  retireNeed, botTurn, botTurnBasic, botResolve, evalPlayer, cardText, wonderText, guildText, ALTAR, exportTables, opsTxt, matrixOps, matrixText, jokerOps, jokerText, guildColumns, BYPASS_COST,
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.Empires = API;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
