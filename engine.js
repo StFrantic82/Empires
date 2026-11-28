@@ -129,7 +129,7 @@ const GCARDS = [];
 {
   const P = (n, by) => ({ op: 'progress', n, by, fb: true }), W = (n, lvl) => ({ op: 'gain', n, lvl, fb: true }), K = n => ({ op: 'plan', n });
   // Les cartes n'ont pas de texte : l'effet dépend du rang de la carte dans sa rangée (matrice du plateau).
-  const SETS = { art: [[20, []]], mar: [[20, []]], eru: [[20, []]], voy: [[6, []]] };
+  const SETS = { art: [[16, []]], mar: [[16, []]], eru: [[16, []]], voy: [[6, []]] }; // 54 offrandes : à 4 joueurs on en utilise au plus ~43 (+4 visibles)
   let n = 0;
   for (const g of ['art', 'mar', 'eru', 'voy']) for (const [k, d] of SETS[g]) for (let i = 0; i < k; i++) GCARDS.push({ id: 'g' + (++n), guild: true, g, name: GUILD_NAMES[g], d });
 }
