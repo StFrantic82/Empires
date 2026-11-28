@@ -192,6 +192,33 @@ tr[data-hc],tr[data-hw]{cursor:help}tr[data-hc]:hover td,tr[data-hw]:hover td{ba
 .wprev .slots{display:flex;gap:6px}.pvslot{border:none!important;background:none!important;width:auto!important;height:auto!important}.wprev .slot{width:30px;height:30px;border-radius:50%;border:1.5px dashed #8a7a5c;display:grid;place-items:center;font-weight:700;font-size:13px;color:#2b2118;background:#fffaf0}
 .edit input{width:64px;min-height:32px;padding:2px 6px;font-size:14px;background:#fffaf0;color:#2b2118;border:1px solid #b9a27a;color-scheme:light}
 @media(prefers-reduced-motion:no-preference){.cell.legal{animation:pulse 1.4s ease-in-out infinite}@keyframes pulse{50%{background:color-mix(in srgb,var(--gold) 30%,var(--panel2))}}}
+
+/* Accueil simple */
+.home{max-width:620px;margin:8px auto 22px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.home-wheel{width:clamp(120px,22vw,170px);height:auto;border-radius:50%;box-shadow:0 6px 22px rgba(60,40,10,.25)}
+.home .logo{font-family:Cinzel,serif;font-size:clamp(44px,8vw,72px);color:var(--brown);margin:.15em 0 0;letter-spacing:.03em}
+.home .lead{font-size:clamp(16px,2vw,19px);margin:.3em 0 .4em;max-width:30em}
+.home .credits{font-family:Cinzel,serif;color:var(--mute);font-size:14px;margin:0 0 14px}
+.home-box{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.home-box .seats{grid-template-columns:repeat(4,minmax(0,1fr));width:100%;margin:2px 0}
+@media (max-width:620px){.home-box .seats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.home-box .seg button{font-size:12.5px;min-height:30px}
+.home .big{font-size:20px;font-weight:700;padding:12px 44px;border-radius:10px;background:var(--accent);color:#fff;border:none;cursor:pointer;min-width:220px}
+.home .big:hover{filter:brightness(1.08)}
+.tutoBtn{font-size:16px;padding:9px 22px;border-radius:10px;background:var(--card);color:var(--cardink);border:2px solid var(--gold);cursor:pointer;font-weight:700;min-width:220px}
+.home-links{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;align-items:center;margin-top:4px}
+.home-links a,.home-links button{color:var(--brown);font-weight:700;font-size:15px;background:none;border:none;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.home-remote{max-width:760px;margin:0 auto 24px}
+/* Tutoriel */
+#tutoBubble{position:fixed;right:18px;bottom:18px;z-index:70;width:min(390px,calc(100vw - 36px));background:var(--card);color:var(--cardink);border:2px solid var(--gold);border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#tutoBubble .tb-head{display:flex;align-items:center;gap:6px;font-size:15px}#tutoBubble .tb-head span{margin-left:auto;font-size:12px;color:#7a6a55}
+#tutoBubble p{margin:.5em 0 .7em;font-size:14px;line-height:1.45}
+#tutoBubble .tb-btns{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#tutoBubble .ghost{background:none;border:none;color:#7a6a55;text-decoration:underline;cursor:pointer;padding:4px 0;font-size:13px}
+#tutoBubble .pri{padding:7px 18px}
+.tuto-hl{outline:3px solid var(--gold)!important;outline-offset:4px;border-radius:8px;animation:tutoPulse 1.6s ease-in-out infinite}
+@keyframes tutoPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.55)}50%{box-shadow:0 0 0 8px rgba(201,162,39,0)}}
+@media (prefers-reduced-motion:reduce){.tuto-hl{animation:none}}
 </style>
 </head>
 <body>
@@ -395,6 +422,7 @@ function render() {
   else if (view === 'cartes') app.innerHTML = cardsHTML();
   else app.innerHTML = rulesHTML();
   if (view === 'jouer' && G) resolveNames();
+  tutoSync();
 }
 
 /* ---------- Mise en place ---------- */
@@ -406,26 +434,7 @@ function seatsHTML(pref) {
     return `<div class="seat ${v === 'x' ? 'off' : ''}">${meepleSVG(SEATS[i].c)}<div class="sn">${SEATS[i].n}</div>
       ${pref === 'o' && i === 0 ? '<div class="small mute">vous</div>' : `<div class="seg" role="group" aria-label="${SEATS[i].n}">${['h', 'b', 'x'].map(k => `<button data-seat="${pref}:${i}:${k}" class="${v === k ? 'on' : ''}" aria-pressed="${v === k}">${labels[k]}</button>`).join('')}</div>`}</div>`; }).join('')}</div>`;
 }
-function heroHTML() {
-  const pos = [[0, WOOD], [1, WOOD], [1, WOOD], [3, WOOD], [4, WOOD], [5, WOOD]];
-  const meeples = pos.map(([l, c], k) => { const a = (180 + 60 * l + (k % 2 ? 12 : -12)) * Math.PI / 180, r = 0.25 + (k % 3) * 0.06;
-    const x = 50 + r * 100 * Math.cos(a) * 0.86, y = 46 + r * 100 * Math.sin(a) * 0.86;
-    return `<g class="hop"><path d="${MEEPLE}" transform="translate(${(x - 3).toFixed(1)} ${(y - 3.3).toFixed(1)}) scale(.3)" fill="${c}" stroke="#3a2e1f" stroke-width="1.2"/></g>`; }).join('');
-  const icons = [['prosperite', 'Prospérité'], ['militaire', 'Militaire'], ['science', 'Science'], ['culture', 'Culture'], ['merveille', 'Merveilles']];
-  return `<section class="hero">
-    <div><h2>Empires</h2>
-      <p class="lead">Bâtissez votre cité avec des ouvriers qui gagnent en expérience. Plus leur niveau est élevé, plus ils valent cher… jusqu’au jour où ils partent bâtir les Merveilles du monde.</p>
-      <div class="icons">${icons.map(([f, n]) => `<figure><img src="img/${f}.png" alt=""><figcaption>${n}</figcaption></figure>`).join('')}</div>
-      <p class="by">Un jeu de Régis Crosnier &amp; Matthieu Verdier · 2 à 4 joueurs · 30 min · dès 10 ans</p>
-      <div class="row"><a href="#table" class="cta">Prendre place</a><a href="#regles" style="color:var(--brown);font-weight:700">Lire les règles</a></div></div>
-    <div class="board"><img src="img/roue.jpg" alt="Le plateau-roue d’Empires, avec les cases 0 à 5 et la flèche vers les Merveilles"><svg viewBox="0 0 100 95" aria-hidden="true">${meeples}</svg></div>
-  </section>
-  <section class="steps">
-    <div class="step"><span class="num">1</span><div><h3>Prenez une guilde</h3><p>Choisissez une des 4 cartes de guilde visibles et appliquez l’effet de sa rangée : ouvriers, expérience ou Savoir.</p></div></div>
-    <div class="step"><span class="num">2</span><div><h3>Construisez ou tournez</h3><p>Payez un bâtiment avec la somme des niveaux de vos ouvriers, ou faites tourner votre roue d’un cran pour leur faire gagner un niveau.</p></div></div>
-    <div class="step"><span class="num">3</span><div><h3>Visez les Merveilles</h3><p>Après le niveau 5, vos vétérans partent à la retraite. Deux retraités : un marqueur sur une Merveille, et une nouvelle génération.</p></div></div>
-  </section>`;
-}
+let remoteOpen = false;
 function setupHTML() {
   const lob = lobby.map(g => {
     const d = g.data, hum = d.seats.filter(s => !s.bot), free = hum.filter(s => !s.uid).length;
@@ -436,40 +445,32 @@ function setupHTML() {
       ${mine || d.status !== 'lobby' ? `<button data-open="${esc(g.id)}">${mine ? 'Retourner à la table' : 'Regarder'}</button>` : ''}
       ${d.host === me ? `<button data-del="${esc(g.id)}">Ranger</button>` : ''}</span></li>`;
   }).join('');
-  return `${heroHTML()}
-  <div class="grid2" id="table">
-  <section class="panel"><h2>Autour de cette table</h2>
-    <p class="note">Tout le monde joue sur cet écran, en se le passant. Ajoutez des bots pour compléter la table.</p>
-    ${seatsHTML('l')}
-    <details class="var"><summary>Variantes de règles</summary>${optsForm('l')}</details>
-    <div class="row" style="margin-top:12px"><button class="pri" id="startLocal">Commencer la partie</button></div>
+  return `<section class="home">
+    <img class="home-wheel" src="img/roue.jpg" alt="">
+    <h1 class="logo">Empires</h1>
+    <p class="lead">Bâtissez votre cité avec des ouvriers qui gagnent en expérience… jusqu’au jour où ils partent bâtir les Merveilles du monde.</p>
+    <p class="credits">Un jeu de <b>Régis Crosnier &amp; Matthieu Verdier</b> · 2 à 4 joueurs · 30 min</p>
+    <div class="home-box">
+      <p class="small mute" style="margin:0 0 6px">Joueurs autour de cet écran</p>
+      ${seatsHTML('l')}
+      <button class="big" id="startLocal">Jouer</button>
+      <button class="tutoBtn" id="tutoBtn">🎓 Tutoriel : apprendre à jouer</button>
+      <div class="home-links"><button id="goRemote" aria-expanded="${remoteOpen}">${remoteOpen ? 'Masquer le jeu à distance' : 'Jouer à distance'}</button><a href="#regles">Règles</a><a href="#cartes">Cartes</a><a href="#simulateur">Atelier</a></div>
+    </div>
   </section>
-  <section class="panel"><h2>Jouer à distance</h2>
+  ${remoteOpen ? `<div class="home-remote">${`  <section class="panel remote" id="remote"><h2>Jouer à distance</h2>
     ${db ? `<p class="note">${backend === 'firebase' ? 'Ouvrez une table, puis envoyez l’adresse de cette page aux autres joueurs : ils s’y assoient depuis leur propre écran.' : 'Ouvrez une table, Régis s’y assoit depuis cette même page. Il lui faut l’accès Contributeur (menu Partager).'}</p>
     ${backend === 'firebase' ? `<div class="row" style="margin-bottom:10px"><label for="pname" class="small">Votre pseudo</label><input id="pname" maxlength="20" placeholder="Votre pseudo" value="${esc(myName())}" style="flex:1"></div>` : ''}
     ${seatsHTML('o')}
-    <details class="var"><summary>Variantes de règles</summary>${optsForm('o')}</details>
     <div class="row" style="margin-top:12px"><input id="olabel" aria-label="Nom de la table" placeholder="Nom de la table" value="Partie du jour" style="flex:1"><button class="pri" id="createOnline">Ouvrir la table</button></div>
     <h3 style="margin-top:18px">Tables</h3>
     ${lobby.length ? `<ul class="tables">${lob}</ul>` : '<p class="note">Aucune table ouverte pour l’instant.</p>'}`
     : `<p class="note">${window.EMPIRES_FIREBASE ? 'Connexion au service de jeu à distance…' : 'Le jeu à distance n’est pas encore configuré (fichier firebase-config.js). La partie sur cet écran et l’atelier fonctionnent quand même.'}</p>`}
-  </section></div>`;
+  </section>`}</div>` : ''}`;
 }
-function optsForm(pref) {
-  return `<div class="row" style="margin-top:10px">
-    <label class="f">Score des Merveilles<select id="${pref}ws"><option value="arrival">À l’arrivée de l’ouvrier</option><option value="end">En fin de partie</option></select></label>
-    <label class="f">Coûts<select id="${pref}cm"><option value="sum">Somme des niveaux</option><option value="levels">Niveau minimum par ouvrier</option></select></label>
-    <label class="f">Fin : marqueurs sur Merveilles<input id="${pref}ew" type="number" min="0" max="21" value="0" style="width:90px" title="0 = automatique (2 par joueur)"></label>
-    <label class="f">Exemplaires de chaque carte<select id="${pref}cp"><option value="1">1</option><option value="2">2 (doublons)</option></select></label></div>
-    <div class="row" style="margin-top:8px">
-    <label class="f">Marqueurs sur les Merveilles<select id="${pref}wm"><option value="track">Zone de retraite : 2 ouvriers = 1 marqueur</option><option value="auto">1 à chaque retraite</option><option value="consecrate">Consacrer volontairement un vétéran</option></select></label>
-    <label class="f">Ouvriers dépensés<select id="${pref}sp"><option value="cycle">Reviennent au niveau 0 (cycle)</option><option value="general">Partent dans la réserve générale</option></select></label>
-</div>
-`;
-}
-function readOpts(pref) { const ck = k => { const el = $('#' + pref + k); return el ? el.checked : true; };
-  return { wonderScoring: $('#' + pref + 'ws').value, costMode: $('#' + pref + 'cm').value, endWonders: +$('#' + pref + 'ew').value || 0, copies1: +($('#' + pref + 'cp') || { value: 1 }).value, copies2: +($('#' + pref + 'cp') || { value: 1 }).value, guildDiscount: true, prereqs: true,
-    supply: ($('#' + pref + 'sp') || { value: 'cycle' }).value, wonderMode: ($('#' + pref + 'wm') || { value: 'track' }).value }; }
+// Pas de variantes de règles : toutes les parties utilisent les règles par défaut du moteur.
+function optsForm() { return ''; }
+function readOpts() { return {}; }
 function readSeats(pref) { const out = []; for (let i = 0; i < 4; i++) { const v = seatPick[pref][i]; if (v !== 'x') out.push({ i, bot: v === 'b' }); } return out; }
 
 function startLocal() {
@@ -507,10 +508,10 @@ function gameHTML() {
       const bi = my && !G.pending && (!G.mainDone || canBuildNow()) ? buildInfo(L, idx) : null; // tant que je peux encore construire ce tour-ci
       return cardHTML(card, { sel: isSel, click: my && canBuildNow(), can: bi, locked: my && !E.prereqOk(G, G.cur, card), cost: G.opts.costMode !== 'levels' && my ? E.effectiveCost(G, G.cur, card, null) : undefined, attrs: my && canBuildNow() ? `data-mk="${L}:${idx}" tabindex="0" role="button"` : '' });
     }).join('');
-    return `<div><h3>Bâtiments de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
+    return `<div id="tMarket${L}"><h3>Bâtiments de niveau ${L} <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.decks[L].length}</span></h3><div class="cards">${back}${cards}</div></div>`;
   }).join('');
   const gpick = my && needGuild() && !G.pending;
-  const guildRow = `<div><h3>Cartes de guilde <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la carte de guilde ${esc(c.name)}"` : ''}><img src="img/${c.g}.png" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus de cartes de guilde.</span>'}</div></div>`;
+  const guildRow = `<div id="tGuilds"><h3>Cartes de guilde <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la carte de guilde ${esc(c.name)}"` : ''}><img src="img/${c.g}.png" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus de cartes de guilde.</span>'}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
   const opps = G.players.map((q, i) => {
@@ -524,7 +525,7 @@ function gameHTML() {
   const over = G.over ? finalHTML() : '';
   return `${over}
   <div class="row" style="justify-content:space-between;margin-bottom:10px">
-    <div class="row"><span class="chip">Manche ${G.round}</span><span class="chip">Merveilles : ${E.placedOnWonders(G)} / ${G.endAt} marqueurs</span>${G.endTriggered && !G.over ? '<span class="chip hot">Dernier tour de table</span>' : ''}<span class="chip">${G.opts.costMode === 'levels' ? 'Coûts : niveaux minimum' : 'Coûts : somme des niveaux'}</span></div>
+    <div class="row"><span class="chip">Manche ${G.round}</span><span class="chip">Merveilles : ${E.placedOnWonders(G)} / ${G.endAt} marqueurs</span>${G.endTriggered && !G.over ? '<span class="chip hot">Dernier tour de table</span>' : ''}</div>
     <div class="row">${mode === 'local' ? '' : `<span class="chip">En ligne</span>`}<button id="quit">Quitter la partie</button></div>
   </div>
   <section class="panel" style="margin-bottom:14px"><h2>Merveilles</h2><div class="wonders">${wonders}</div></section>
@@ -533,10 +534,10 @@ function gameHTML() {
       <section class="panel"><h2>Marché</h2>${guildRow}${market}</section>
       <section class="panel ${G.pending && my ? 'prompt' : ''}">
         <div class="row" style="justify-content:space-between"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" title="1 Savoir = 1 de moins sur le coût d’un bâtiment (utilisé automatiquement). 2 Savoir = ignorer le prérequis et le cadre d’un bâtiment.">Savoir ${p.plans || 0}</span></div></div>
-        ${panel}
+          <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Ouvriers ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tSavoir" title="1 Savoir = 1 de moins sur le coût d’un bâtiment (utilisé automatiquement). 2 Savoir = ignorer le prérequis et le cadre d’un bâtiment.">Savoir ${p.plans || 0}</span></div></div>
+        <div id="tPanel">${panel}</div>
         <div class="me" style="margin-top:12px">
-          <div>${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les ouvriers qui dépassent le niveau 5 attendent ici. À ${G.opts.retireStep} : un marqueur sur une Merveille, et ils reviennent au niveau 0."><img src="img/merveille.png" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Retraite</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${MEEPLE}"/></svg>`).join('')}</div>` : ''}
+          <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les ouvriers qui dépassent le niveau 5 attendent ici. À ${G.opts.retireStep} : un marqueur sur une Merveille, et ils reviennent au niveau 0."><img src="img/merveille.png" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Retraite</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${MEEPLE}"/></svg>`).join('')}</div>` : ''}
             ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Zones : <b class="zone" style="background:#e8cfa6">bronze 1-2</b> <b class="zone" style="background:#d2d8de">argent 3-4</b> <b class="zone" style="background:#e8c75f">or 5</b></p>` : ''}</div>
           <div><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div>
             <p class="note">Ville 3 × 3 : chaque nouveau bâtiment touche un bâtiment déjà construit. Passez la souris sur un bâtiment pour revoir ses effets.</p></div>
@@ -680,6 +681,63 @@ function scheduleBot() {
   botTimer = setTimeout(() => { try { E.botTurn(G); } catch (e) { console.error(e); } undo = []; after(); }, 900);
 }
 
+
+/* ---------- Tutoriel guidé ---------- */
+// Partie à 2 (vous contre un bot). Étapes « Suivant » (explications) et étapes « action » qui avancent quand vous avez joué.
+const meTurn = () => G && G.cur === 0 && !G.over;
+const TUTO = [
+  { t: 'Bienvenue dans Empires', p: 'Vous allez bâtir une cité de 9 bâtiments avec des ouvriers qui gagnent en expérience. Cette partie guidée se joue contre un bot : je vous explique chaque étape au fur et à mesure.' },
+  { t: 'Votre roue', s: '#tWheel', p: 'Vos ouvriers sont sur la roue, sur les cases 0 à 5. Le niveau d’un ouvrier, c’est sa valeur : un ouvrier de niveau 3 paie 3. La roue a trois zones : bronze (niveaux 1-2), argent (3-4) et or (5).' },
+  { t: 'Un tour en deux temps', s: '#tPanel', p: '<strong>1.</strong> Prenez une carte de guilde. <strong>2.</strong> Construisez un bâtiment, <strong>ou</strong> tournez votre roue d’un cran : tous vos ouvriers gagnent alors un niveau.' },
+  { t: 'Les cartes de guilde', s: '#tGuilds', p: 'Elles n’ont pas de texte : leur effet dépend de votre matrice de guildes. Chaque carte indique ce qu’elle vous rapporterait maintenant.' },
+  { t: 'La matrice de guildes', s: '.matrix', p: '<strong>Marchands</strong> : un ouvrier. <strong>Artisans</strong> : des niveaux à répartir. <strong>Érudits</strong> : du Savoir. Plus une rangée est longue, plus la carte suivante est forte. Une <strong>colonne complète</strong> (une carte de chaque guilde) fait tourner votre roue.' },
+  { t: 'À vous : prenez une carte de guilde', s: '#tGuilds', act: true, p: 'Cliquez sur une des cartes de guilde. Pour commencer, les Artisans ou les Marchands sont un bon choix.', until: () => meTurn() && G.mainDone },
+  { t: 'Les bâtiments', s: '#tMarket1', p: 'Le chiffre dans le meeple, en haut à gauche d’une carte, est son coût : payez avec la somme des niveaux de vos ouvriers. Les ouvriers dépensés reviennent au niveau 0. Les cartes encadrées en vert sont celles que vous pouvez construire.' },
+  { t: 'À vous : construisez', s: '#tMarket1', act: true, p: 'Cliquez sur une carte encadrée en vert, puis sur une case de votre ville. Si aucune carte n’est constructible, cliquez sur « Tournez votre roue » dans le panneau d’action.', until: () => meTurn() && G.mainDone && !canBuildNow() },
+  { t: 'Votre ville', s: '.city', p: 'Une grille de 3 × 3 : chaque nouveau bâtiment touche un bâtiment déjà construit. En bas d’une carte : les tags qu’elle apporte et ses points de victoire. Passez la souris sur un bâtiment pour revoir ses effets.' },
+  { t: 'À vous : terminez votre tour', s: '#endTurn', act: true, p: 'Cliquez sur « Fin du tour ». Le bot jouera ensuite.', until: () => !G || G.cur !== 0 },
+  { t: 'Le bot joue…', act: true, p: 'Regardez le journal à droite pour suivre ce qu’il fait.', until: () => meTurn() && !G.mainDone && !G.pending },
+  { t: 'La retraite', s: '.retz', p: 'Un ouvrier qui dépasse le niveau 5 part à la retraite. Dès que deux ouvriers sont à la retraite, vous posez un marqueur sur une Merveille, et ils reviennent au niveau 0 : une nouvelle génération commence.' },
+  { t: 'Les Merveilles', s: '.wonders', p: 'Chaque Merveille rapporte des points ; la première place vaut le plus. La partie s’arrête quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville compte 9 bâtiments. On finit alors le tour de table.' },
+  { t: 'Le Savoir', s: '#tSavoir', p: 'Le Savoir des Érudits réduit de 1 le coût d’un bâtiment, automatiquement. Avec 2 Savoir, vous pouvez aussi ignorer le prérequis ou le cadre d’un bâtiment : ces cartes sont alors encadrées en bleu.' },
+  { t: 'À vous de jouer !', p: 'Vous connaissez l’essentiel. Continuez la partie librement ; les règles complètes sont dans l’onglet Règles.' },
+];
+let tuto = { on: false, i: 0, last: -1 };
+function tutoSeed() { for (let s = 20261128; s < 20261128 + 500; s++) { const g = E.newGame(['Noir', 'Blanc'], {}, s); if (g.start === 0 && g.market[1].some(id => E.cardValue(E.BY_ID[id]) <= 2)) return s; } return 20261128; }
+function startTutorial() {
+  seats = [{ bot: false, color: SEATS[0].c, label: SEATS[0].n }, { bot: true, color: SEATS[1].c, label: SEATS[1].n }];
+  G = E.newGame(['Noir', 'Blanc'], {}, tutoSeed());
+  mode = 'local'; undo = []; sel = null; tuto = { on: true, i: 0, last: -1 };
+  if (location.hash !== '#jouer') history.replaceState(null, '', '#jouer');
+  view = 'jouer'; render(); scheduleBot(); window.scrollTo(0, 0);
+}
+function tutoStop() { tuto.on = false; const b = $('#tutoBubble'); if (b) b.hidden = true; document.querySelectorAll('.tuto-hl').forEach(e => e.classList.remove('tuto-hl')); }
+function tutoSync() {
+  let b = $('#tutoBubble');
+  if (!b) { b = document.createElement('div'); b.id = 'tutoBubble'; b.setAttribute('role', 'dialog'); b.setAttribute('aria-label', 'Tutoriel'); b.hidden = true; document.body.appendChild(b); }
+  if (!tuto.on || view !== 'jouer' || !G) { b.hidden = true; return; }
+  while (tuto.i < TUTO.length && TUTO[tuto.i].until && TUTO[tuto.i].until()) tuto.i++;
+  if (tuto.i >= TUTO.length) { tutoStop(); return; }
+  let st = TUTO[tuto.i];
+  // un choix est en attente pendant une étape d'action : on aide à le faire, sans avancer
+  if (st.act && G.pending && G.cur === 0) st = { t: 'Faites votre choix', s: '#tPanel', act: true, p: 'Le panneau d’action vous demande un choix (par exemple : à quels ouvriers donner vos niveaux). Cliquez sur une option, ou directement sur un ouvrier de votre roue.' };
+  const target = st.s ? document.querySelector(st.s) : null;
+  document.querySelectorAll('.tuto-hl').forEach(e => e.classList.remove('tuto-hl'));
+  if (target) target.classList.add('tuto-hl');
+  const key = tuto.i + (st === TUTO[tuto.i] ? '' : 'p');
+  if (key !== tuto.last && target) { const r = target.getBoundingClientRect(); if (r.top < 70 || r.bottom > innerHeight - 240) target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  const fresh = key !== tuto.last; tuto.last = key;
+  const n = TUTO.length;
+  b.innerHTML = `<div class="tb-head">🎓 <b>${st.t}</b><span>${Math.min(tuto.i + 1, n)} / ${n}</span></div><p>${st.p}</p>
+    <div class="tb-btns"><button type="button" class="ghost" data-tq>Quitter le tutoriel</button>${st.act ? '<span class="small mute">À vous de jouer…</span>' : `<button type="button" class="pri" data-tn>${tuto.i === n - 1 ? 'Terminer' : 'Suivant'}</button>`}</div>`;
+  b.hidden = false;
+  if (fresh && !st.act) { const nb = b.querySelector('[data-tn]'); if (nb) nb.focus({ preventScroll: true }); }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#tutoBubble')) return;
+  if (e.target.closest('[data-tq]')) return tutoStop();
+  if (e.target.closest('[data-tn]')) { tuto.i++; tutoSync(); }
+});
 /* ---------- En ligne ---------- */
 function pushOnline() {
   if (!db || !online.id) return;
@@ -771,17 +829,15 @@ function simHTML() {
     <div class="row">
       <label class="f">Joueurs<select id="snp">${[2, 3, 4].map(k => `<option ${(simRes ? simRes.n : 3) === k ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
       <label class="f">Parties à ajouter<select id="sng"><option>20</option><option selected>60</option><option>150</option></select></label>
-      <label class="f">Roue de départ (niv. 0→5)<input id="ssw" value="2,2,1,0,0,0" style="width:130px"></label>
       <button class="pri" id="runSim" ${simRunning ? 'disabled' : ''}>${simRunning ? 'Simulation…' : 'Lancer'}</button>
       <button id="resetSim" ${simRunning || !simRes ? 'disabled' : ''}>Remettre les statistiques à zéro</button>
-    </div>${optsForm('s')}<div id="simProg" class="note" aria-live="polite">${simRes ? `${simRes.N} parties cumulées.` : ''}</div></section>
+    </div><div id="simProg" class="note" aria-live="polite">${simRes ? `${simRes.N} parties cumulées.` : ''}</div></section>
   <div id="simOut">${simRes ? simResultHTML(simRes) : ''}</div>`;
 }
 function runSim() {
   keepSimForm();
   const n = +$('#snp').value, N = +$('#sng').value;
-  const sw = $('#ssw').value.split(',').map(x => +x || 0).slice(0, 6); while (sw.length < 6) sw.push(0);
-  const opts = Object.assign(readOpts('s'), { startWheel: sw });
+  const opts = readOpts();
   const sig = JSON.stringify([n, opts, overrides]);
   const fresh = !(simRes && simRes.sig === sig);
   const R = fresh ? { n, sig, N: 0, next: 0, opts, games: [], cs: {}, wond: {} } : simRes; // mêmes réglages : on cumule
@@ -943,7 +999,6 @@ function csv() {
 function rulesHTML() {
   return `<section class="panel" style="max-width:860px">
   <h2>Règles telles que l’app les joue</h2>
-  <p>Version B (coûts en chiffre dans un meeple, effet de guilde), avec les décisions prises dans la discussion. Les points marqués <strong>Hypothèse</strong> sont des choix faits pour rendre le jeu jouable, à valider ou à changer.</p>
   <h3>Mise en place</h3>
   <p>Chaque joueur commence avec 5 ouvriers en bois sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2). Tous les autres ouvriers forment la réserve générale, commune. Chaque joueur a des marqueurs à sa couleur pour les Merveilles. Marché : 4 bâtiments visibles de niveau 1 et 4 de niveau 2, et une rangée de 4 cartes de guilde visibles (paquet séparé de 66 petites cartes). Merveilles : nombre de joueurs + 2, tirées au hasard parmi 16, en rangée au-dessus des bâtiments de niveau 2.</p>
   <h3>Tour de jeu</h3>
@@ -977,7 +1032,7 @@ function rulesHTML() {
   <p><strong>Un cycle continu.</strong> Un ouvrier qui entre sur votre roue y reste. « Tournez votre roue » fait avancer tous vos ouvriers d’une case. Un ouvrier qui dépasse le niveau 5 part à la retraite, et vous choisissez : soit il revient tout de suite au niveau 0, soit il attend dans la <strong>zone de retraite</strong> de votre plateau (2 emplacements). Quand elle est pleine, vous posez un marqueur sur une Merveille de votre choix (place libre la plus à gauche), puis les 2 ouvriers reviennent ensemble au niveau 0. Pendant leur attente, ils ne servent à rien. « Gagnez un ouvrier de niveau 0 » en prend un dans la réserve générale, s’il y a moins de 3 ouvriers dans votre case 0 ; sinon il n’est pas gagné. Un ouvrier gagné à un niveau supérieur n’a pas cette limite. On ne perd des ouvriers qu’avec les bâtiments Sacrifice.</p>
   <p>Le Joker compte comme le type manquant pour « 1 tag de chaque type », et comme un type de plus pour « tags différents ».</p>
   <h3>Merveilles et fin de partie</h3>
-  <p>Chaque Merveille a 3 places de valeur dégressive. Par défaut, les points sont comptés <strong>à l’arrivée de l’ouvrier</strong>, avec vos tags à ce moment-là (option : en fin de partie). Un joueur peut poser plusieurs marqueurs sur la même Merveille. Si toutes les places sont prises, aucun marqueur n’est posé. La fin est déclenchée quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville atteint 9 bâtiments. On termine alors le tour de table. Égalité : le plus d’ouvriers sur la roue.</p>
+  <p>Chaque Merveille a 3 places de valeur dégressive. Par défaut, les points sont comptés <strong>à l’arrivée de l’ouvrier</strong>, avec vos tags à ce moment-là. Un joueur peut poser plusieurs marqueurs sur la même Merveille. Si toutes les places sont prises, aucun marqueur n’est posé. La fin est déclenchée quand il y a 2 marqueurs par joueur sur les Merveilles, ou quand une ville atteint 9 bâtiments. On termine alors le tour de table. Égalité : le plus d’ouvriers sur la roue.</p>
   <h3>Équilibrage</h3>
   <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 8 à 9 tours et 6 à 7 bâtiments par joueur, et une fin par les Merveilles dans environ une partie sur trois (les autres par une ville complète), à 2, 3 et 4 joueurs. Les trois rangées de guilde sont choisies à parts à peu près égales. <strong>Idées retirées</strong> pour alléger le jeu : l’activation d’un bâtiment en y posant un ouvrier (très peu utilisée ; ces effets sont devenus des effets immédiats), les effets « reprenez un ouvrier », les jetons Bonus (remplacés par des PV), le déblocage d’ouvriers (remplacé par « gagnez un ouvrier de niveau 2 »), les Plans et les cartes de guilde à effets variés (remplacés par la matrice de guildes et le Savoir). Cartes atypiques conservées : la Grue (un bâtiment de niveau 2 peut la recouvrir) et quatre cartes « si vous avez 1 tag de chaque type ».</p>
   <h3>Questions encore ouvertes</h3>
@@ -1024,13 +1079,15 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button,[data-mk],[data-gc],[data-guild],[data-cell],[data-act],[data-lvl]'); if (!t) return;
   const id = t.id, ds = t.dataset;
   if (ds.seat) { const [pref, i, k] = ds.seat.split(':'); seatPick[pref][+i] = k; return render(); }
-  if (id === 'startLocal') return startLocal();
+  if (id === 'startLocal') { tutoStop(); return startLocal(); }
+  if (id === 'tutoBtn') return startTutorial();
+  if (id === 'goRemote') { remoteOpen = !remoteOpen; render(); if (remoteOpen && $('#remote')) $('#remote').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (id === 'createOnline') return createOnline();
   if (ds.join) return joinOnline(ds.join);
   if (ds.open) return openOnline(ds.open);
   if (ds.del) { db.doc('games/' + ds.del).delete().catch(err => toast(err.code)); return; }
   if (id === 'startOnline') return startOnline();
-  if (id === 'quit') return leaveGame();
+  if (id === 'quit') { tutoStop(); return leaveGame(); }
   if (id === 'runSim') return runSim();
   if (id === 'resetSim') { keepSimForm(); simRes = null; saveSim(); return render(); }
   const sb = e.target.closest('[data-sort]');

@@ -8,7 +8,7 @@ Chaque joueur développe une ville de 3 × 3 bâtiments. Ses ouvriers gagnent en
 
 | Fichier | Rôle |
 |---|---|
-| `index.html` | Interface : partie contre des bots, atelier de simulation, catalogue des cartes, règles |
+| `index.html` | Interface : accueil, tutoriel guidé, partie contre des bots ou à distance, atelier de simulation, catalogue des cartes, règles |
 | `engine.js` | Moteur de règles (cartes, Merveilles, cartes de guilde, bots), utilisable dans le navigateur et avec Node |
 | `img/` | Icônes des tags, des guildes et de la roue |
 | `sim/` | Scripts de simulation en ligne de commande |
