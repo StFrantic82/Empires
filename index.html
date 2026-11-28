@@ -612,6 +612,13 @@ aside .city .cell{min-height:84px}
 .pb2-slot img{width:16mm;height:16mm}.pb2-slot span{font-family:'Yatra One',serif;font-size:10pt;color:#6e4128}.pb2-slot small{font-size:7pt;color:#8a7a5c}
 .pb2-wheel{display:flex;flex-direction:column;align-items:center}.pb2-wheel .wheel{width:80mm;max-width:none}.pb2-name{font-family:'Yatra One',serif;font-size:13pt;color:#6e4128;margin-top:2mm}
 .pb2-card{width:63mm;height:63mm;border:1.5px dashed #b98a4a;border-radius:3mm;display:grid;place-items:center;text-align:center;padding:4mm;box-sizing:border-box;background:#fffaf0}.pb2-card small{font-size:7.5pt;color:#8a7a5c}
+
+.pnp-board2{grid-template-columns:10mm 1fr 10mm!important;padding:0!important;gap:0!important;position:relative}
+.pb2-notch{display:grid;grid-template-rows:repeat(3,63mm);gap:2mm;align-content:center;height:100%}
+.pb2-notch div{background:#efe2c4;border:1px solid #b98a4a;display:grid;place-items:center}
+.pb2-l div{border-left:none;border-radius:0 2mm 2mm 0}.pb2-r div{border-right:none;border-radius:2mm 0 0 2mm}
+.pb2-notch img{width:7mm;height:7mm}.pb2-notch .dot{width:5mm;height:5mm}
+.pb2-wheel{display:grid;place-items:center}.pb2-wheel .wheel{width:178mm!important;max-width:none!important}
 </style>
 </head>
 <body>
@@ -793,6 +800,7 @@ function wheelSVG(p, color, opts = {}) {
   // Même langage que les cartes : parchemin, encre brune, badges meeple chiffrés, or pour les points, violet Sanctuaire
   const cx = 150, cy = 150, R = 116, ink = '#5b4a36', o = [];
   const fills = ['#e9e1cd', '#d3e7bb', '#d3e7bb', '#f3d495', '#f3d495', '#f6efd8']; // 1-2 jeunes âmes · 3-4 âmes mûres · 5 âme ancienne
+  const A0 = opts.a0 != null ? opts.a0 : 180, rot = A0 - 180; // A0 : angle de la case 0 (180 = à gauche, 270 = en haut)
   const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
   const f = n => n.toFixed(1);
   o.push(`<defs>
@@ -803,7 +811,7 @@ function wheelSVG(p, color, opts = {}) {
   o.push(`<circle cx="${cx}" cy="${cy}" r="${R + 16}" fill="#d8c49b" stroke="${ink}" stroke-width="2.5"/>
     <circle cx="${cx}" cy="${cy}" r="${R + 9}" fill="none" stroke="#8a7350" stroke-width="1" stroke-dasharray="2 4"/>`);
   for (let i = 0; i < 6; i++) {
-    const c = 180 + 60 * i, [x0, y0] = pt(R, c - 30), [x1, y1] = pt(R, c + 30);
+    const c = A0 + 60 * i, [x0, y0] = pt(R, c - 30), [x1, y1] = pt(R, c + 30);
     const pick = opts.pick && p.wheel[i] > 0;
     o.push(`<path d="M${cx} ${cy} L${f(x0)} ${f(y0)} A${R} ${R} 0 0 1 ${f(x1)} ${f(y1)} Z" fill="${i === 0 ? 'url(#hz)' : fills[i]}" stroke="${pick ? '#c9a227' : ink}" stroke-width="${pick ? 4 : 2}" ${pick ? `data-lvl="${i}" style="cursor:pointer" tabindex="0" role="button" aria-label="Choisir une âme de niveau ${i}"` : ''}/>`);
     // âmes rangées sur deux arcs
@@ -820,9 +828,9 @@ function wheelSVG(p, color, opts = {}) {
   }
   o.push(`<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#glow)" pointer-events="none"/>`);
   // sens de rotation
-  for (const d of [-60, 60]) { const [ax, ay] = pt(R + 30, d - 10), [bx, by] = pt(R + 30, d + 10); o.push(`<path d="M${f(ax)} ${f(ay)} A${R + 30} ${R + 30} 0 0 1 ${f(bx)} ${f(by)}" fill="none" stroke="${ink}" stroke-width="2" marker-end="url(#ah)" opacity=".6"/>`); }
+  for (const d0 of [-60, 60]) { const d = d0 + rot, [ax, ay] = pt(R + 30, d - 10), [bx, by] = pt(R + 30, d + 10); o.push(`<path d="M${f(ax)} ${f(ay)} A${R + 30} ${R + 30} 0 0 1 ${f(bx)} ${f(by)}" fill="none" stroke="${ink}" stroke-width="2" marker-end="url(#ah)" opacity=".6"/>`); }
   // sortie vers les Sanctuaires, entre les cases 5 et 0
-  const [ex, ey] = pt(R + 24, 150), [wx, wy] = pt(R + 44, 160);
+  const [ex, ey] = pt(R + 24, 150 + rot), [wx, wy] = pt(R + 44, 160 + rot);
   o.push(`<path d="M${f(ex)} ${f(ey)} Q${f(ex - 18)} ${f(ey + 4)} ${f(wx + 10)} ${f(wy - 10)}" fill="none" stroke="${ink}" stroke-width="2.5" marker-end="url(#ah)"/>
     <g transform="translate(${f(wx - 12)} ${f(wy - 12)})"><image href="img/eveil.svg" width="24" height="24"/></g>`);
   // moyeu
@@ -1536,9 +1544,9 @@ function pnpHTML() {
   // plateaux joueurs : roue, Éveil, autels, mandala
   const blank = { wheel: [0, 0, 0, 0, 0, 0], guilds: { mar: [], art: [], eru: [] }, retired: 0, plans: 0 };
   const board = col => `<div class="pnp-board2" style="--pc:${col}">
-    <div class="pb2-alt">${['mar', 'art', 'eru'].map(g => `<div class="pb2-slot"><img src="img/${g}.svg" alt=""><span>${esc(E.ALTAR[g])}</span><small>glissez ici vos offrandes</small></div>`).join('')}</div>
-    <div class="pb2-wheel">${wheelSVG(blank, WOOD, {})}<div class="pb2-name"><span class="dot" style="background:${col}"></span> La Roue des Vies</div></div>
-    <div class="pb2-man">${[0, 1, 2].map(() => `<div class="pb2-card"><small>Mandala : commencez ici, colonne de gauche</small></div>`).join('')}</div></div>`;
+    <div class="pb2-notch pb2-l">${['mar', 'art', 'eru'].map(g => `<div><img src="img/${g}.svg" alt=""></div>`).join('')}</div>
+    <div class="pb2-wheel">${wheelSVG(blank, WOOD, { a0: 270 })}</div>
+    <div class="pb2-notch pb2-r">${[0, 1, 2].map(() => `<div><span class="dot" style="background:${col}"></span></div>`).join('')}</div></div>`;
   const boards = SEATS.map((s, i) => sheet(`Plateau personnel (${i + 1}/4)`, board(s.c), 'pnp-bsheet')).join('');
   // pions : âmes (flammes) à la couleur des joueurs, jetons Karma
   const flame = `<svg viewBox="0 0 20 22"><path d="${FLAME}" fill="${WOOD}" stroke="#3a2e1f" stroke-width=".8"/></svg>`;
