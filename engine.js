@@ -647,7 +647,7 @@ function apply(G, a) {
       for (const c of p.grid) if (c) { const pm = BY_ID[c.id].perm; if (pm && pm.on === 'build' && (card.t[pm.tag] || 0) > 0) triggers.push(...pm.ops); }
       p.grid[a.cell] = { id, occ: false };
       p.st.built++; G.mainDone = true; G._lastCell = a.cell; cs(G, id).b++;
-      log(G, `${p.name} accomplit « ${card.name} »${cover ? ' (sur la Grue)' : ''}${byp ? ` en dépensant ${byp} Karma pour ignorer ${card.req && card.f ? 'le prérequis et l’âge exigé' : card.req ? 'le prérequis' : 'l’âge exigé'}` : ''}.`);
+      log(G, `${p.name} accomplit « ${card.name} »${cover ? ' (sur l’échafaudage)' : ''}${byp ? ` en dépensant ${byp} Karma pour ignorer ${card.req && card.f ? 'le prérequis et l’âge exigé' : card.req ? 'le prérequis' : 'l’âge exigé'}` : ''}.`);
       push(G, (G.opts.turnOnBuild ? [{ op: 'turn', n: 1 }] : []).concat(card.imm || [], triggers), false);
       run(G); return G;
     }
@@ -1153,7 +1153,7 @@ function cardText(c) {
     else if (pm.retireLvl) out.perm = `Vos âmes éveillées renaissent au niveau ${pm.retireLvl} au lieu de 0.`;
     else if (pm.actBack) out.perm = `Vos âmes posées sur des œuvres reviennent au niveau ${pm.actBack} au lieu de 0.`;
     else if (pm.retire) out.perm = `Votre zone d’Éveil se déclenche avec ${3 + pm.retire} âmes au lieu de 3.`;
-    else if (pm.crane) out.perm = 'Une œuvre de niveau 2 peut recouvrir la Grue : payez seulement la différence de coût.';
+    else if (pm.crane) out.perm = 'Une œuvre de niveau 2 peut recouvrir cet échafaudage : payez seulement la différence de coût.';
   }
   if (c.end) {
     const e = c.end;

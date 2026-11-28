@@ -369,6 +369,11 @@ header{background:linear-gradient(180deg,#f8f4ec,#ece4d5);border-bottom-color:#c
 .mk-peek.gsize .mk-st{flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px;margin:0;font-size:12px;font-weight:700;color:var(--ink)}
 .mk-peek.gsize .mk-st .dot{width:11px;height:11px}
 .mk-ev{display:inline-flex;align-items:center;gap:2px}.mk-ev img{width:16px;height:16px}
+
+#tipBox{position:fixed;z-index:65;display:none;pointer-events:none;width:270px;background:#fffaf0;color:#34291f;border:1px solid #cdbb9a;border-left:4px solid #b98a4a;border-radius:10px;padding:8px 11px;font-size:13px;line-height:1.38;box-shadow:0 10px 24px -8px rgba(60,40,15,.45)}
+#tipBox>div,.tp-under>div{margin:2px 0}#tipBox b,.tp-under b{color:#7a3b1e}
+.tp-n{font-family:'Yatra One',serif;font-size:15px;color:#6e4128;margin-bottom:3px!important}
+.tp-under{width:224px;margin-top:6px;background:#fffaf0;color:#34291f;border:1px solid #cdbb9a;border-radius:10px;padding:7px 10px;font-size:12.5px;line-height:1.35}.tp-under .tp-n{display:none}
 </style>
 </head>
 <body>
@@ -531,7 +536,7 @@ function cardHTML(card, o = {}) {
   const gdI = card.gd && card.g !== 'voy' ? `<span class="czgd" title="−1 par carte ${esc(E.GUILD_NAMES[card.g])} (max 3)">−<img src="img/${card.g}.svg" alt="${esc(E.GUILD_NAMES[card.g])}"></span>` : '';
   const costZone = `<div class="cz">${costHTML(card, o.cost)}${reqI.length ? `<span class="czreq" title="Prérequis">${reqI.join('')}</span>` : ''}${gdI}</div>`;
   const giveZone = `<div class="gz">${tagsHTML(card.t)}${card.pv ? pvIcon(card.pv) : ''}</div>`;
-  return `<div class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
+  return `<div data-tip="${card.id}" class="card ${o.sel ? 'sel' : ''} ${o.click ? 'click' : ''} ${o.locked ? 'locked' : ''} ${o.can ? (o.can.ok ? 'can' : 'cant') : ''} ${fr ? 'f-' + fr : ''}" ${o.attrs || ''}>
     <div class="hd">${costZone}<span class="nm">${esc(card.name)}</span></div>${o.can ? (o.can.ok ? `<div class="canmsg ${o.can.byp ? 'byp' : ''}">✔ Réalisable${o.can.byp ? ` avec ${E.BYPASS_COST} Karma (${o.can.byp})` : ''}</div>` : `<div class="lockmsg">${esc(o.can.why)}</div>`) : o.locked ? '<div class="lockmsg">Prérequis non rempli</div>' : ''}
     ${art(card)}
     <div class="fx">${fx.join('')}</div>
@@ -574,7 +579,7 @@ function wheelSVG(p, color, opts = {}) {
   // sortie vers les Sanctuaires, entre les cases 5 et 0
   const [ex, ey] = pt(R + 24, 150), [wx, wy] = pt(R + 44, 160);
   o.push(`<path d="M${f(ex)} ${f(ey)} Q${f(ex - 18)} ${f(ey + 4)} ${f(wx + 10)} ${f(wy - 10)}" fill="none" stroke="${ink}" stroke-width="2.5" marker-end="url(#ah)"/>
-    <g transform="translate(${f(wx - 12)} ${f(wy - 12)})"><image href="img/sanctuaire.svg" width="24" height="24"/></g>`);
+    <g transform="translate(${f(wx - 12)} ${f(wy - 12)})"><image href="img/eveil.svg" width="24" height="24"/></g>`);
   // moyeu
   o.push(`<circle cx="${cx}" cy="${cy}" r="20" fill="${ink}" stroke="#c9a227" stroke-width="3"/>
     <path d="M${cx - 9} ${cy + 2} a9 9 0 1 1 6 7" fill="none" stroke="#fbf7ee" stroke-width="2.2" marker-end="url(#ah2)"/>
@@ -717,7 +722,7 @@ function gameHTML() {
   }).join('');
   const gpick = my && needGuild() && !G.pending;
   const PEEK = `<aside class="mk-peek gsize" data-peek tabindex="0" role="button" title="Roue de ${esc(seatName(pi))} — cliquer pour aller au plateau" aria-label="Rappel de la roue de ${esc(seatName(pi))}, Karma ${p.plans || 0}${G.opts.wonderMode === 'track' ? `, Éveil ${p.retired || 0} sur ${G.opts.retireStep}` : ''}. Aller au plateau.">${wheelSVG(p, WOOD, {})}
-          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 17)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/sanctuaire.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
+          <div class="mk-st"><span class="dot" style="background:${seats[pi].color}"></span><span title="Karma">${karmaIco(p.plans || 0, 17)}</span>${G.opts.wonderMode === 'track' ? `<span class="mk-ev" title="Éveil"><img src="img/eveil.svg" alt="">${p.retired || 0}/${G.opts.retireStep}</span>` : ''}</div></aside>`;
   const guildRow = `<div id="tGuilds"><h3>Offrandes <span class="small mute" style="font-family:inherit;font-weight:400">· pioche ${G.gdeck.length}</span></h3><div class="cards">${G.grow.map((id, gi) => { const c = E.BY_ID[id]; return `<div class="gcard ${gpick ? 'click' : ''}" ${gpick ? `data-gc="${gi}" tabindex="0" role="button" aria-label="Prendre la offrande ${esc(c.name)}"` : ''}><img src="img/${c.g}.svg" alt=""><div class="gn">${esc(c.name)}</div><div class="gt">${guildGain(p, c.g)}</div></div>`; }).join('') || '<span class="note">Plus d’offrandes.</span>'}${PEEK}</div></div>`;
   const sc = E.scoreOf(G, pi);
   const panel = actionPanel(my);
@@ -744,7 +749,7 @@ function gameHTML() {
           <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="1 Karma = 1 de moins sur le coût d’une œuvre (utilisé automatiquement). 2 Karma = ignorer le prérequis et l’âge exigé d’une œuvre.">Karma ${p.plans || 0}</span></div></div>
         <div id="tPanel">${panel}</div>
         <div class="me" style="margin-top:12px">
-          <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/sanctuaire.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
+          <div><div id="tWheel">${wheelSVG(p, WOOD, { pick: my && pickingLevel() })}</div>${G.opts.wonderMode === 'track' ? `<div class="retz" title="Les âmes qui dépassent le niveau 5 atteignent l’Éveil et attendent ici. À ${G.opts.retireStep} : un marqueur sur un Sanctuaire, et elles renaissent au niveau 0."><img src="img/eveil.svg" alt="" style="width:24px;height:24px;border-radius:4px"><span class="small"><strong>Éveil</strong></span>${Array.from({ length: G.opts.retireStep }, (_, k) => `<svg viewBox="0 0 20 22" class="rslot ${k < (p.retired || 0) ? 'on' : ''}"><path d="${FLAME}"/></svg>`).join('')}</div>` : ''}
             ${matrixHTML(p)}${G.opts.costMode !== 'levels' ? `<p class="note" style="text-align:center">Âges : <b class="zone age" style="background:#d5ebc0"><img src="img/age1.svg" alt="">jeune 1-2</b> <b class="zone age" style="background:#f7d796"><img src="img/age2.svg" alt="">mûre 3-4</b> <b class="zone age" style="background:#f1e2a8"><img src="img/age3.svg" alt="">ancienne 5</b></p>` : ''}</div>
           <div><div class="city">${p.grid.map((c, i) => cellHTML(p, c, i, my)).join('')}</div>
             <p class="note">Mandala 3 × 3 : chaque nouvelle œuvre touche une œuvre déjà accomplie. Passez la souris sur une œuvre pour revoir ses effets.</p></div>
@@ -1140,7 +1145,7 @@ function wonderPreviewHTML(W) {
 function showHover(el, x, y) {
   let box = $('#hoverCard'); if (!box) { box = document.createElement('div'); box.id = 'hoverCard'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
   const key = el.dataset.hc ? 'c' + el.dataset.hc : 'w' + el.dataset.hw;
-  if (box.dataset.key !== key) { box.dataset.key = key; box.innerHTML = el.dataset.hc ? cardHTML(E.BY_ID[el.dataset.hc]) : wonderPreviewHTML(E.W_BY_ID[el.dataset.hw]); }
+  if (box.dataset.key !== key) { box.dataset.key = key; box.innerHTML = el.dataset.hc ? cardHTML(E.BY_ID[el.dataset.hc]) + `<div class="tp-under">${cardPlain(E.BY_ID[el.dataset.hc])}</div>` : wonderPreviewHTML(E.W_BY_ID[el.dataset.hw]); }
   box.style.display = 'block';
   const w = box.offsetWidth, hh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
   let left = x + 18, top = y + 14;
@@ -1148,6 +1153,31 @@ function showHover(el, x, y) {
   if (top + hh > vh - 8) top = Math.max(8, vh - hh - 8);
   box.style.left = left + 'px'; box.style.top = top + 'px';
 }
+// Bulle d'aide en toutes lettres pour les œuvres (les cartes n'affichent que des pictogrammes)
+function cardPlain(card) {
+  const tx = E.cardText(card), L = [];
+  const fr = card.f && AGES[card.f];
+  L.push(`<div class="tp-n">${esc(card.name)}</div>`);
+  L.push(`<div><b>Coût</b> ${E.cardValue(card)} (valeur des âmes dépensées)${fr ? ` · ${esc(fr.label)} : ${esc(fr.txt)}` : ''}</div>`);
+  const tags = Object.entries(card.t || {}).filter(([, v]) => v).map(([k, v]) => `${v > 1 ? v + ' × ' : ''}${E.TAG_NAMES[k]}`);
+  L.push(`<div><b>Apporte</b> ${tags.length ? tags.join(', ') : 'aucun tag'}${card.pv ? `, ${card.pv} PV` : ''}</div>`);
+  const lab = { req: 'Prérequis', sx: 'Sacrifice', gd: 'Autel −1', imm: 'Immédiat', act: 'Activation', perm: 'Permanent', end: 'Fin de partie' };
+  for (const k of Object.keys(lab)) if (tx[k]) L.push(`<div><b>${lab[k]}</b> ${esc(tx[k])}</div>`);
+  return L.join('');
+}
+function showTip(el, x, y) {
+  let box = $('#tipBox'); if (!box) { box = document.createElement('div'); box.id = 'tipBox'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box); }
+  if (box.dataset.key !== el.dataset.tip) { box.dataset.key = el.dataset.tip; box.innerHTML = cardPlain(E.BY_ID[el.dataset.tip]); }
+  box.style.display = 'block';
+  const w = box.offsetWidth, hh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+  let left = x + 16, top = y + 16;
+  if (left + w > vw - 8) left = Math.max(8, x - w - 16);
+  if (top + hh > vh - 8) top = Math.max(8, y - hh - 12);
+  box.style.left = left + 'px'; box.style.top = top + 'px';
+}
+function hideTip() { const b = $('#tipBox'); if (b) b.style.display = 'none'; }
+document.addEventListener('mousemove', e => { const el = e.target.closest && e.target.closest('[data-tip]'); if (el && !el.closest('#hoverCard') && !e.target.closest('input,button,select')) showTip(el, e.clientX, e.clientY); else hideTip(); });
+document.addEventListener('scroll', hideTip, true);
 function hideHover() { const box = $('#hoverCard'); if (box) box.style.display = 'none'; }
 document.addEventListener('mousemove', e => { const el = e.target.closest && e.target.closest('[data-hc],[data-hw]'); if (el) showHover(el, e.clientX, e.clientY); else hideHover(); });
 document.addEventListener('focusin', e => { const el = e.target.closest && e.target.closest('[data-hc],[data-hw]'); if (el) { const r = e.target.getBoundingClientRect(); showHover(el, r.right, r.top); } else hideHover(); });
