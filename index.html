@@ -537,6 +537,33 @@ aside .city .cell{min-height:84px}
 
 .wonders .wc-h{font-size:13px}.wonders .wc-row{font-size:10.5px}.wonders .wc-sc .pv.sm{width:24px;height:24px;font-size:11px}.wonders .wc-x .ti{width:15px;height:15px}.wonders .wc-b{font-size:10px}
 .cards>.card .ft{min-height:36px}.cards>.card .hd{min-height:42px}
+
+/* Règles imprimées (PDF) : deux colonnes, figures compactes, sans notes d'équilibrage */
+.pnp-rules .devnote{display:none}
+.pnp-rules .rgloss-wrap{column-span:all}
+.pnp-rules .rgloss{grid-template-columns:repeat(5,1fr);gap:1mm 3mm;margin:1mm 0 3mm}.pnp-rules .rgloss div{font-size:8pt;gap:4px}.pnp-rules .rgloss .ri{width:16px;height:16px}.pnp-rules .rgloss .bico{transform:scale(.8)}
+.pnp-rules{font-size:9pt;line-height:1.35;column-gap:6mm;column-rule:1px solid #e6dcc8}
+.pnp-rules p{margin:0 0 2mm}.pnp-rules ul{margin:0 0 2mm;padding-left:4mm}
+.pnp-rules h2{column-span:all;margin:0 0 2mm;font-size:16pt}
+.pnp-rules h3{font-size:11pt;margin:3mm 0 1mm;padding-bottom:.5mm;border-bottom:1px solid #e2c48a}
+.pnp-rules .rfig{margin:1.5mm 0 2.5mm;padding:2mm}
+.pnp-rules .rfig figcaption{font-size:7.5pt;margin-top:1mm}
+.pnp-rules .rrow{gap:3mm;flex-wrap:nowrap}
+.pnp-rules .rfig .wheel{max-width:none}
+.pnp-rules .rrow>div[style*="width:220px"]{width:32mm!important}
+.pnp-rules .rrow>div[style*="width:260px"]{width:48mm!important}.pnp-rules .matrix{font-size:7pt;gap:1px;grid-template-columns:14mm repeat(6,1fr)!important}.pnp-rules .matrix .mx-g span{font-size:7pt}.pnp-rules .matrix .bico{transform:scale(.85)}
+.pnp-rules .rfig>div[style*="max-width:340px"]{max-width:62mm!important}
+.pnp-rules .rfig .card{width:46mm!important;height:auto!important;font-size:8px}.pnp-rules .rfig .card .art{height:12mm;flex:none;min-height:0}.pnp-rules .rleg{font-size:8pt;padding-left:3mm}
+.pnp-rules .rmand{grid-template-columns:repeat(3,16mm)}.pnp-rules .rmand div{height:10mm}
+.pnp-rules .rfig>div[style*="width:260px"]{width:56mm!important}
+.pnp-rules table{font-size:7.5pt}.pnp-rules th,.pnp-rules td{padding:1mm 1.5mm}
+@media print{
+  .rules-doc .devnote{display:none}
+  .rules-doc{font-size:10pt;line-height:1.4}
+  .rules-doc .rfig{padding:6px;margin:6px 0}
+  .rules-doc .rrow>div[style*="width:220px"]{width:150px!important}
+}
+.pnp-rules .rrow:has(.card){flex-wrap:wrap}.pnp-rules .rrow:has(.card)>div{flex:none}.pnp-rules .rrow:has(.card) .rleg{max-width:none}
 </style>
 </head>
 <body>
@@ -1499,9 +1526,9 @@ function rulesFigs() {
 }
 function rulesHTML() {
   const F = rulesFigs();
-  return `<section class="panel" style="max-width:860px">
+  return `<section class="panel rules-doc" style="max-width:860px">
   <h2>Règles illustrées</h2>
-  <h3>Les pictogrammes</h3>${F.icons}
+  <div class="rgloss-wrap"><h3>Les pictogrammes</h3>${F.icons}</div>
   <p>Vous guidez des <strong>âmes</strong> sur la roue du Samsara. À chaque vie, elles gagnent en sagesse. Elles accomplissent des <strong>œuvres</strong> qui forment votre <strong>mandala</strong>, meurent et renaissent ; les plus anciennes atteignent l’<strong>Éveil</strong> et rejoignent les grands <strong>sanctuaires</strong>.</p>
   <h3>Mise en place</h3>
   <p>Chaque joueur commence avec 5 âmes sur sa roue (2 au niveau 0, 2 au niveau 1, 1 au niveau 2). Chaque joueur dispose de <strong>12 âmes à sa couleur</strong> : les 7 autres forment sa réserve. On ne peut jamais en avoir plus de 12 (roue, activations et Sanctuaires compris) : si la réserve est vide, on ne gagne plus d’âme. Au centre : 4 œuvres visibles de niveau 1 et 4 de niveau 2, une rangée de 4 offrandes visibles (paquet de 66 petites cartes) et, au-dessus, nombre de joueurs + 2 Sanctuaires tirés parmi 16.</p>
@@ -1545,10 +1572,12 @@ function rulesHTML() {
   <h3>Sanctuaires et fin de partie</h3>
   <p>Chaque Sanctuaire a 3 places de valeur décroissante ; les points sont comptés à l’arrivée de l’âme, avec vos tags à ce moment-là. Un joueur peut avoir plusieurs âmes sur le même Sanctuaire. La fin est déclenchée quand il y a <strong>3 âmes par joueur + 2</strong> sur les Sanctuaires (8 à 2 joueurs, 11 à 3, 14 à 4), ou quand un mandala compte 9 œuvres. On termine alors le tour de table. Égalité : le plus d’âmes sur la roue.</p>
   ${F.wonder}
+<div class="devnote">
   <h3>Équilibrage</h3>
   <p>Réglé sur des parties simulées entre bots qui planifient leur tour : environ 8 à 9 tours et 6 à 7 œuvres par joueur, et une fin par les Sanctuaires dans environ une partie sur trois (les autres par un mandala achevé), à 2, 3 et 4 joueurs. Les trois autels sont honorés à parts à peu près égales.</p>
   <h3>Questions encore ouvertes</h3>
   <ul><li>Roue de départ (5 âmes : 2 au niveau 0, 2 au niveau 1, 1 au niveau 2).</li><li>Valeur des Sanctuaires, non réglés un par un.</li><li>Les bots jouent correctement mais pas comme des experts : tout est à confirmer en vraies parties.</li></ul>
+</div>
   </section>`;
 }
 
