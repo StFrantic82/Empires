@@ -478,6 +478,13 @@ aside .city .cell{min-height:84px}
 .panel>h2.h-sanct::before{background-image:url(img/sanctuaire.svg)!important;width:22px;height:22px}
 .wonder .wn{display:flex;align-items:center;gap:5px}.wico{width:18px;height:18px;flex:none}
 .slot.taken.flame{background:none!important;border:none!important;box-shadow:none;width:24px;height:26px}.slot.taken.flame svg{width:22px;height:24px}
+
+/* La consigne du tour occupe toute la largeur ; la roue et les autels descendent à hauteur des offrandes */
+.mk-panel{grid-template-areas:"turn turn" "left right" "market market"}
+.mk-turn{grid-area:turn}.mk-left{grid-area:left}.mk-right{grid-area:right;align-self:start}.mk-market{grid-area:market}
+.mk-turn #tPanel{margin:2px 0 0}.mk-turn #tPanel .row{flex-wrap:wrap}
+@media(max-width:1180px){.mk-panel{grid-template-areas:"turn" "left" "right" "market"}}
+.turnbar .stats{margin-left:auto}.endturn{font-size:16px;padding:8px 22px}
 </style>
 </head>
 <body>
@@ -856,10 +863,12 @@ function gameHTML() {
   <div class="table">
     <div style="display:grid;gap:14px">
       <section class="panel mk-panel ${G.pending && my ? 'prompt' : ''}">
-        <div class="mk-left">
+        <div class="mk-turn">
           <div class="turnbar"><h2 style="margin:0"><span class="dot" style="background:${seats[pi].color}"></span> Au tour de ${esc(seatName(pi))}</h2>
-            <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.soulCap ? `<span class="chip" title="Âmes encore dans votre réserve (12 à votre couleur)">Réserve ${E.soulsLeft(G, pi)}/${G.opts.soulCap}</span>` : ''}${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div></div>
+            <div class="stats"><span class="chip pvi">${pvIcon(sc.total, 'sm')}</span>${G.opts.soulCap ? `<span class="chip" title="Âmes encore dans votre réserve (12 à votre couleur)">Réserve ${E.soulsLeft(G, pi)}/${G.opts.soulCap}</span>` : ''}${G.opts.supply === 'cycle' ? `<span class="chip">Âmes ${E.wheelCount(p) + p.grid.filter(c => c && c.occ).length}</span>` : `<span class="chip">Réserve ${p.reserve}</span><span class="chip">Bloqués ${p.locked}</span>`}<span class="chip" id="tKarma" title="Le Karma se dépense par 2 : 2 Karma = 1 de moins sur le coût d’une œuvre (automatique), ou 2 Karma = ignorer un élément de prérequis (un tag, un marqueur Sanctuaire ou l’âge exigé).">Karma ${p.plans || 0}</span></div>${my || mode === 'local' ? `<button class="pri endturn" id="endTurn" ${my && !G.pending && G.mainDone && !(G.opts.guildChoice && G.mainDone && G.lastMain === 'guild' && !G.bonusBuilt) ? '' : 'disabled'}>Fin du tour</button>` : ''}</div>
           <div id="tPanel">${panel}</div>
+        </div>
+        <div class="mk-left">
           ${guildRow}
         </div>
         <aside class="mk-right" aria-label="Votre roue et vos autels">
@@ -967,8 +976,7 @@ function actionPanel(my) {
   const btns = [];
   if (p.tokens > 0 && E.wheelCount(p) > 0) btns.push(`<button id="useToken">Utiliser un jeton Bonus (+1 niveau)</button>`);
   if (undo.length) btns.push(`<button id="undo">Annuler la dernière action</button>`);
-  btns.push(`<button class="pri" id="endTurn" ${G.mainDone && !second ? '' : 'disabled'}>Fin du tour</button>`);
-  return parts.join('') + `<div class="row" style="margin-top:8px">${btns.join('')}</div>`;
+  return parts.join('') + (btns.length ? `<div class="row" style="margin-top:8px">${btns.join('')}</div>` : '');
 }
 function pendingHTML() {
   const pd = G.pending, p = G.players[G.cur];
